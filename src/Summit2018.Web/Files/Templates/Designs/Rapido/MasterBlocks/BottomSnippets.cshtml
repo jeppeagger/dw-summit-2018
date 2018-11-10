@@ -1,0 +1,57 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks.Extensibility
+@using Dynamicweb.Rapido.Blocks
+
+@{ 
+    BlocksPage bottomSnippetsBlocksPage = BlocksPage.GetBlockPage("Master");
+
+    Block primaryBottomSnippets = new Block()
+    {
+        Id = "MasterJavascriptInitializers",
+        SortId = 1,
+        Template = RenderPrimaryBottomSnippets()
+    };
+    bottomSnippetsBlocksPage.Add(MasterBlockId.MasterReferences, primaryBottomSnippets);
+}
+
+@helper RenderPrimaryBottomSnippets() {
+    bool isWireframeMode = Model.Area.Item.GetItem("Settings").GetBoolean("WireframeMode") != null ? Model.Area.Item.GetItem("Settings").GetBoolean("WireframeMode") : false;
+    bool useGoogleTagManager = !string.IsNullOrEmpty(Pageview.AreaSettings.GetItem("Settings").GetString("GoogleTagManagerID"));
+
+    <script>
+        Wireframe.Init(@Converter.ToString(isWireframeMode).ToLower());
+    </script>
+
+
+    if (useGoogleTagManager) 
+    {
+        <script>
+            document.addEventListener('addToCart', function(event) {
+                var googleImpression = event.detail.cartItem.productInfo.googleImpression;
+                dataLayer.push({
+                    'event': 'addToCart',
+                    'ecommerce': {
+                        'currencyCode': '@Dynamicweb.Ecommerce.Services.Currencies.GetDefaultCurrency()',
+                        'add': {
+                            'products': [{
+                                'name': googleImpression.name,
+                                'id': googleImpression.id,
+                                'price': googleImpression.price,
+                                'brand': googleImpression.brand,
+                                'category': googleImpression.category,
+                                'variant': googleImpression.variant,
+                                'quantity': event.detail.cartItem.quantity
+                            }]
+                        }
+                    }
+                });
+            });
+        </script>
+    }
+
+    <!--@Javascripts-->
+}

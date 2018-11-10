@@ -1,0 +1,56 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="6de7cc40-bac4-4d02-b199-a3e4d2aaf940" Name="Users.query">
+  <Settings />
+  <Source Repository="Secondary users" Item="Users.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <Parameters>
+    <Parameter Name="q" Type="System.String" DefaultValue="" />
+  </Parameters>
+  <SortOrder>
+    <Sort Field="UserName" Direction="Ascending" />
+  </SortOrder>
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="Contains">
+        <Left>
+          <FieldExpression Field="SearchField" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="q" />
+        </Right>
+      </BinaryExpression>
+      <GroupExpression Operator="Or">
+        <BinaryExpression Operator="MatchAny">
+          <Left>
+            <FieldExpression Field="CanBeImpersonatedBy" />
+          </Left>
+          <Right>
+            <MacroExpression Lookup="Dynamicweb.UserManagement.Context:UserID" />
+          </Right>
+        </BinaryExpression>
+      </GroupExpression>
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="Active" />
+        </Left>
+        <Right>
+          <TermExpression Value="True" DisplayValue="True" Type="System.Boolean" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields>
+    <Field Name="Active" SystemName="" Source="ProductActive" Sort="0" />
+    <Field Name="Address" SystemName="" Source="AccessUserAddress" Sort="1" />
+    <Field Name="Address 2" SystemName="" Source="AccessUserAddress2" Sort="2" />
+    <Field Name="Company" SystemName="" Source="AccessUserCompany" Sort="3" />
+    <Field Name="Customer number" SystemName="" Source="AccessUserCustomerNumber" Sort="4" />
+    <Field Name="First Name" SystemName="" Source="AccessUserFirstName" Sort="5" />
+    <Field Name="Last Name" SystemName="" Source="AccessUserLastName" Sort="6" />
+    <Field Name="Name" SystemName="" Source="AccessUserName" Sort="7" />
+    <Field Name="User e-mail" SystemName="" Source="AccessUserEmail" Sort="8" />
+    <Field Name="User ID" SystemName="" Source="AccessUserID" Sort="9" />
+    <Field Name="User name" SystemName="" Source="AccessUserUserName" Sort="10" />
+    <Field Name="Zip" SystemName="" Source="AccessUserZip" Sort="11" />
+  </ViewFields>
+  <ViewLanguages />
+</Query>

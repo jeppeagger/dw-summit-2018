@@ -1,0 +1,58 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.PageViewModel>
+@MasterPageFile("Master.cshtml")
+
+@{
+    string columnClass = "12";
+    bool isProductPage = HttpContext.Current.Request.QueryString.Get("ProductID") != null ? true : false;
+    string backgroundColorClass = Model.PropertyItem.GetString("BackgroundColor") != null && !isProductPage ? "u-" + Model.PropertyItem.GetList("BackgroundColor").SelectedValue + "--bg" : "";
+}
+
+@if (Model.PropertyItem.GetList("ShowBreadcrumb").SelectedValue == "True")
+{
+    <div class="grid__col-12 grid__col--bleed-y">
+        @RenderNavigation(new
+        {
+            id = "breadcrumb",
+            template = "Breadcrumb.xslt"
+        })
+    </div>
+}
+
+<div class="grid">
+    @if (Model.PropertyItem.GetList("LeftMenu") != null && Model.PropertyItem.GetList("LeftMenu").SelectedValue == "True" && (Pageview.Page.NavigationSettings == null || !Pageview.Page.NavigationSettings.UseEcomGroups))
+    {
+        var navigationMarkup = RenderNavigation(new
+        {
+            id = "leftnav",
+            cssclass = "dwnavigation",
+            startLevel = 2,
+            expandmode = "all",
+            endlevel = 5,
+            template = "LeftNavigation.xslt"
+        });
+
+        if (!string.IsNullOrEmpty(navigationMarkup))
+        {
+            <nav class="grid__col-md-3">
+                <div class="grid__cell">
+                    @navigationMarkup
+                </div>
+            </nav>
+            columnClass = "9";
+        }
+    }
+    <div class="grid__col-md-@columnClass grid__col--bleed">
+        <div class="grid">
+            @Model.Placeholder("dwcontent", "content", "default:true;sort:1")
+        </div>
+    </div>
+</div>
+
+
+@* Very small hack to make it cleanly, and easily possible to change the background color on a single page *@
+@if (backgroundColorClass != "")
+{
+    <script>
+        document.getElementById("Page").classList.add("@backgroundColorClass");
+    </script>
+} 

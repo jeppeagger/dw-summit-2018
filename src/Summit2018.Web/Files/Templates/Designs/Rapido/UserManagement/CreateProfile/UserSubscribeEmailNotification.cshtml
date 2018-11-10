@@ -1,0 +1,62 @@
+﻿@inherits RazorTemplateBase<RazorTemplateModel<Template>>
+@using Dynamicweb.Rendering;
+@MasterPageFile("../../EmailMaster.cshtml")
+@Include("../../EmailHelpers.cshtml")
+
+<table bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="500" id="emailBody">
+    @RenderHeaderSection()
+    @RenderMessage()
+    @RenderFooterSection()
+</table>
+
+@* CONTENT HELPERS *@
+
+@helper RenderHeaderSection()
+{
+    @RenderHeaderImage();
+}
+
+@helper RenderMessage()
+{
+    string resultUserName = "",
+           firstName = GetString("UserManagement:User.FirstName"),
+           lastName = GetString("UserManagement:User.LastName"),
+           name = GetString("UserManagement:User.Name");
+
+    if (!string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName))
+    {
+        resultUserName = " " + firstName + " " + lastName;
+    }
+    else if (!string.IsNullOrEmpty(firstName))
+    {
+        resultUserName = " " + firstName;
+    }
+    else if (!string.IsNullOrEmpty(name))
+    {
+        resultUserName = " " + name;
+    }
+    else
+    {
+        resultUserName = "";
+    }
+
+    string website = Dynamicweb.Context.Current.Request.Url.Scheme + "://" + GetGlobalValue("Global:Request.Host"),
+           contactUsPage = website + "/Default.aspx?Id=" + GetPageIdByNavigationTag("ContactUsPage").ToString(),
+           frontPage = website + "/Default.aspx?Id=" + GetPageIdByNavigationTag("Frontpage").ToString(),
+           email = GetString("UserManagement:User.Email");
+
+    Column message = new Column();
+    message.header = Translate("Subscription completed");
+    message.subheader = Translate("You have successfully subscribed our newsletter");
+    message.text.Add("");
+    message.text.Add(Translate("Hi") + resultUserName + ", ");
+    message.text.Add("");
+    message.text.Add(Translate("Thank you for subscribing to our newsletter with this email") + ": <b>" + email + "</b>. " + Translate("You will receive occasional emails with news, information and promotions") + ".");
+    @CreateRow(message);
+
+    @RenderButton(frontPage, Translate("Go to website"));
+
+    Column messageEnd = new Column();
+    messageEnd.text.Add(Translate("Should you have any questions to your account or any other matter, please feel free to") + " <a href='" + contactUsPage + "' title='" + Translate("Contact us") + "'>" + Translate("contact us") + "</a>.");
+    @CreateRow(messageEnd);
+}

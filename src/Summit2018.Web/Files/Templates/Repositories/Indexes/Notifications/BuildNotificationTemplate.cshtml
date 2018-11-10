@@ -1,0 +1,74 @@
+﻿@inherits RazorTemplateBase<RazorTemplateModel<Template>>
+@using Dynamicweb.Rendering;
+@using Dynamicweb.Core;
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using Dynamicweb.Security;
+
+@MasterPageFile("../../../Designs/Rapido/EmailMaster.cshtml")
+@Include("../../../Designs/Rapido/EmailHelpers.cshtml")
+
+<table bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="500" id="emailBody">
+    @RenderHeaderSection()
+    @RenderMainInfo()
+    @RenderMetaInfo()
+</table>
+
+@* CONTENT HELPERS *@
+
+@helper RenderHeaderSection()
+{    
+    Column info = new Column();
+    info.header = "Build information";
+    info.subheader = "Index build " + GetString("Build.Name") + " was executed " + (GetBoolean("Build.Failed") ? "with error" : "successfully");
+    info.align = "center";
+
+    @CreateRow(info);
+
+    @CreateRowDivider();
+}
+
+@helper RenderMainInfo()
+{ 
+    Column message = new Column();
+
+    message.text.Add("<b>" + "Start time" + ":</b> ");
+    message.text.Add("<b>" + "End time" + ":</b> " + ("Build.Status.EndTime"));
+    message.text.Add("<b>" + "Run time" + ":</b> " + GetString("Build.Status.Runtime"));
+    message.text.Add("<b>" + "Number of last processed record" + ":</b> " + GetString("Build.Status.Count"));
+    message.text.Add("<b>" + "Total number of records" + ":</b> " + GetString("Build.Status.TotalCount"));
+    message.text.Add("<b>" + "Latest log information" + ":</b> " + GetString("Build.Status.LogInformation"));
+
+    if (!string.IsNullOrEmpty(GetString("Build.Status.FailReason"))) 
+    {
+        message.text.Add("<b>" + "Fail reason" + ":</b> " + GetString("Build.Status.FailReason"));
+    }
+    
+    if (!string.IsNullOrEmpty(GetString("Build.Status.FailException")))
+    {
+        message.text.Add("<b>" + "Exception message" + ":</b> " + GetString("Build.Status.FailException"));
+    }
+
+    if (!string.IsNullOrEmpty(GetString("Build.Status.FailExceptionStackTrace")))
+    {
+        message.text.Add("<b>" + "Exception stack trace" + ":</b> " + GetString("Build.Status.FailExceptionStackTrace"));
+    }
+    
+    @CreateRow(message); 
+    @CreateRowDivider();
+}
+
+
+@helper RenderMetaInfo()
+{ 
+    Column message = new Column();
+    message.header = "Meta information";
+
+    foreach (LoopItem meta in GetLoop("Build.Status.Meta")) 
+    {
+        message.text.Add("<b>" + meta.GetString("Name") + ":</b> " + meta.GetString("Value"));
+    }
+
+    @CreateRow(message); 
+    @CreateRowDivider();
+}

@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Facets>
+  <Settings />
+  <Source Repository="Products" Item="Products.query" />
+  <Facet Name="Brand" Type="Field" Field="Brand_Facet" QueryParameter="Brand">
+    <RenderType Name="Checkboxes" SystemName="Checkboxes" />
+  </Facet>
+  <Facet Name="Type" Type="Field" Field="Type_Facet" QueryParameter="Type">
+    <RenderType Name="Checkboxes" SystemName="Checkboxes" />
+  </Facet>
+  <Facet Name="Material" Type="Field" Field="Material_Facet" QueryParameter="Material">
+    <RenderType Name="Checkboxes" SystemName="Checkboxes" />
+  </Facet>
+  <Facet Name="Eco" Type="Field" Field="CustomField_EcoFriendly" QueryParameter="EcoFriendly">
+    <RenderType Name="Checkboxes" SystemName="Checkboxes" />
+  </Facet>
+  <Facet Name="Format" Type="Field" Field="Format_Facet" QueryParameter="Format">
+    <RenderType Name="Checkboxes" SystemName="Checkboxes" />
+  </Facet>
+  <Facet Name="Weight" Type="Field" Field="Weight_Facet" QueryParameter="Weight">
+    <RenderType Name="Weight" SystemName="Weight" />
+  </Facet>
+  <Facet Name="Color" Type="Field" Field="Color_Facet" QueryParameter="Color">
+    <RenderType Name="Colors" SystemName="Colors" />
+  </Facet>
+</Facets>

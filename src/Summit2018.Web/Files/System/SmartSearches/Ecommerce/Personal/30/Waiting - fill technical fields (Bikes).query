@@ -1,0 +1,77 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="07cae506-d903-4a1e-8665-000f7b77800c" Name="Waiting - fill technical fields (Bikes)">
+  <Settings />
+  <Source Repository="Products" Item="Products.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <SortOrder>
+    <Sort Field="Updated" Direction="Ascending" />
+  </SortOrder>
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="Active" />
+        </Left>
+        <Right>
+          <TermExpression Value="True" DisplayValue="True" Type="System.Boolean" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="ShopIDs" />
+        </Left>
+        <Right>
+          <TermExpression Value="SHOP4" DisplayValue="SHOP4" Type="System.String[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Contains">
+        <Left>
+          <FieldExpression Field="IsVariant" />
+        </Left>
+        <Right>
+          <ConstantExpression Value="False" Type="System.Boolean[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="MatchAll">
+        <Left>
+          <FieldExpression Field="GroupNames" />
+        </Left>
+        <Right>
+          <ConstantExpression Value="Bikes" Type="System.String[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="WorkflowState" />
+        </Left>
+        <Right>
+          <TermExpression Value="2" DisplayValue="Ready for Enrich technical details" Type="System.Int32[]" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields>
+    <Field Name="Active" SystemName="" Source="ProductActive" Sort="0" />
+    <Field Name="Number" SystemName="" Source="ProductNumber" Sort="1" />
+    <Field Name="Name" SystemName="" Source="ProductName" Sort="2" />
+    <Field Name="EAN" SystemName="" Source="CustomField_EAN" Sort="3" />
+    <Field Name="Material" SystemName="" Source="CustomField_Material" Sort="4" />
+    <Field Name="Equipment Bikes - Back derailleur" SystemName="" Source="ProductCategory|equipment|Back_derailleur" Sort="5" />
+    <Field Name="Equipment Bikes - Breaks" SystemName="" Source="ProductCategory|equipment|Breaks" Sort="6" />
+    <Field Name="Equipment Bikes - Cassette" SystemName="" Source="ProductCategory|equipment|Cassette" Sort="7" />
+    <Field Name="Equipment Bikes - Crankset" SystemName="" Source="ProductCategory|equipment|Crankset" Sort="8" />
+    <Field Name="Equipment Bikes - Deck" SystemName="" Source="ProductCategory|equipment|Deck" Sort="9" />
+    <Field Name="Equipment Bikes - External reviews" SystemName="" Source="ProductCategory|equipment|External_reviews" Sort="10" />
+    <Field Name="Equipment Bikes - Fork" SystemName="" Source="ProductCategory|equipment|Fork" Sort="11" />
+    <Field Name="Equipment Bikes - Frame" SystemName="" Source="ProductCategory|equipment|Frame" Sort="12" />
+    <Field Name="Equipment Bikes - Front derailleur" SystemName="" Source="ProductCategory|equipment|Front_derailleur" Sort="13" />
+    <Field Name="Equipment Bikes - Gear" SystemName="" Source="ProductCategory|equipment|Gear" Sort="14" />
+    <Field Name="Equipment Bikes - Light" SystemName="" Source="ProductCategory|equipment|Light" Sort="15" />
+    <Field Name="Equipment Bikes - Lock" SystemName="" Source="ProductCategory|equipment|Lock" Sort="16" />
+    <Field Name="Equipment Bikes - Monitor" SystemName="" Source="ProductCategory|equipment|Monitor" Sort="17" />
+    <Field Name="Equipment Bikes - Shifter" SystemName="" Source="ProductCategory|equipment|Shifter" Sort="18" />
+    <Field Name="Equipment Bikes - Wheel" SystemName="" Source="ProductCategory|equipment|Wheel" Sort="19" />
+  </ViewFields>
+  <ViewLanguages>
+    <Language ID="LANG1" Name="English" SortOrder="0" />
+  </ViewLanguages>
+</Query>

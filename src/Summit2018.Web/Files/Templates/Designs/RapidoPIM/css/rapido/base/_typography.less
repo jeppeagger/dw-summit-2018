@@ -1,0 +1,70 @@
+/**
+ * Basic typography style for text
+ * Warning: These styles overrides without the default .dw-mod class, as they all target the most basic required elements
+ */
+
+//Header styles
+h1 {
+    .font-mixin(
+        @content-layout-header-font-family-family,
+        @content-layout-header-font-size,
+        @content-layout-header-font-family-weight,
+        @content-layout-header-line-height,
+        @content-layout-header-font-color,
+        @content-layout-header-casing
+    );
+}
+
+//Sub header styles
+h2 {
+    .font-mixin(
+        @content-layout-subheader-font-family-family,
+        @content-layout-subheader-font-size,
+        @content-layout-subheader-font-family-weight,
+        @content-layout-subheader-line-height,
+        @content-layout-subheader-font-color,
+        @content-layout-subheader-casing
+    );
+}
+
+//Tertiary header styles
+h3 {
+    .font-mixin(
+        @content-layout-tertiary-header-font-family-family,
+        @content-layout-tertiary-header-font-size,
+        @content-layout-tertiary-header-font-family-weight,
+        @content-layout-tertiary-header-line-height,
+        @content-layout-tertiary-header-font-color,
+        @content-layout-tertiary-header-casing
+    );
+}
+
+//Body styles
+body {
+    .font-mixin(
+        @content-layout-body-text-font-family-family,
+        @content-layout-body-text-font-size,
+        @content-layout-body-text-font-family-weight,
+        @content-layout-body-text-line-height,
+        @content-layout-body-text-font-color,
+        @content-layout-body-text-casing
+    );
+}
+
+//link styles
+a, .link {
+    .a-mixin();
+}
+
+.a-mixin() when not (@content-layout-links-color = none) {   
+	color: @content-layout-links-color;
+} 
+
+a:hover, a:active, a:focus,
+.link:hover, .link:active, .link:focus {
+    .a-active-mixin();
+}
+
+.a-active-mixin() when not (@content-layout-links-hover-color = none) {   
+	color: @content-layout-links-hover-color;
+} 

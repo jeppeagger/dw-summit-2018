@@ -1,0 +1,101 @@
+//Mini cart
+
+.mini-cart-update .menu-tools__link.dw-mod {
+    color: #fff;
+}
+
+.mini-cart__counter.dw-mod {
+   .mini-cart__counter-mixin(); 
+}
+
+.mini-cart__counter-mixin() when (@ecommerce-mini-cart-counter-position = "top") {   
+    line-height: 1.2;
+    padding: 4px;
+    right: -6px;
+    top: 6px;
+}
+
+.mini-cart__counter-mixin() when (@ecommerce-mini-cart-counter-position = "right") {   
+	position: relative;
+    display: inline-block;
+    left: 0;
+    line-height: 22px;
+    height: 22px;
+    vertical-align: middle;
+}
+
+.mini-cart__counter-mixin() when (@ecommerce-mini-cart-counter-design = "square") {   
+	border-radius: 0;
+}
+
+.mini-cart__counter-mixin() when (@ecommerce-mini-cart-counter-design = "rounded") {   
+	border-radius: 100px;
+}
+
+.mini-cart__counter-mixin() when not (@ecommerce-mini-cart-background-color = none) {   
+	background-color: @ecommerce-mini-cart-background-color;
+}
+
+.mini-cart__counter-mixin() when not (@ecommerce-mini-cart-font-color = none) {   
+	color: @ecommerce-mini-cart-font-color;
+}
+
+.mini-cart__counter-mixin() when (@ecommerce-mini-cart-counter-design = "clean") {   
+	background-color: transparent;
+}
+
+.mini-cart-update .mini-cart__counter.dw-mod {
+   .mini-cart__counter-update-mixin(); 
+}
+
+.mini-cart__counter-update-mixin() when (@ecommerce-mini-cart-animation-type = "counter-blink") {   
+    transform: scale(1, 1);
+    background-color: @ecommerce-mini-cart-animation-background-color;
+    color: @ecommerce-mini-cart-animation-font-color;
+}
+
+.mini-cart__counter-update-mixin() when (@ecommerce-mini-cart-animation-type = "counter-slide-up") { 
+    top: -16px;  
+    opacity: 0;
+    transform: scale(1, 0.8);
+    transition: all 0.2s ease-out;
+    background-color: @ecommerce-mini-cart-animation-background-color;
+    color: @ecommerce-mini-cart-animation-font-color;
+}
+
+.mini-cart__counter-update-mixin() when (@ecommerce-mini-cart-animation-type = "counter-slide-down") { 
+    bottom: -16px;  
+    opacity: 0;
+    transform: scale(1, 0.8);
+    transition: all 0.2s ease-out;
+    background-color: @ecommerce-mini-cart-animation-background-color;
+    color: @ecommerce-mini-cart-animation-font-color;
+}
+
+.mini-cart__counter-update-mixin() when (@ecommerce-mini-cart-animation-type = "counter-plop") { 
+    transform: scale(0, 0);
+    transition: all 0.2s ease-out;
+    background-color: @ecommerce-mini-cart-animation-background-color;
+    color: @ecommerce-mini-cart-animation-font-color;
+}
+
+.mini-cart__counter-update-mixin() when (@ecommerce-mini-cart-animation-type = "combi") { 
+    transform: scale(0, 0);
+    transition: all 0.2s ease-out;
+    background-color: @ecommerce-mini-cart-animation-background-color;
+    color: @ecommerce-mini-cart-animation-font-color;
+}
+
+.mini-cart-update.dw-mod {
+   .mini-cart-update-mixin(); 
+}
+
+.mini-cart-update-mixin() when (@ecommerce-mini-cart-animation-type = "blink") { 
+    background-color: @ecommerce-mini-cart-animation-background-color;
+    color: @ecommerce-mini-cart-animation-font-color;
+}
+
+.mini-cart-update-mixin() when (@ecommerce-mini-cart-animation-type = "combi") { 
+    background-color: @ecommerce-mini-cart-animation-background-color;
+    color: @ecommerce-mini-cart-animation-font-color;
+}

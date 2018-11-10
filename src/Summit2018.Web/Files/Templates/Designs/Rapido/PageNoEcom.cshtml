@@ -1,0 +1,43 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.PageViewModel>
+@MasterPageFile("MasterNoEcom.cshtml")
+@{
+    string columnClass = "12";
+}
+@if (Model.PropertyItem.GetList("ShowBreadcrumb").SelectedValue == "True")
+{
+    <div class="grid__col-12">
+        @RenderNavigation(new
+   {
+       id = "breadcrumb",
+       template = "breadcrumb.xslt"
+   })
+    </div>
+}
+
+<div class="grid">
+    @if (Model.PropertyItem.GetList("LeftMenu").SelectedValue == "True")
+	{
+		var navigationMarkup = RenderNavigation(new
+		{
+			id = "leftnav",
+			cssclass = "menu dwnavigation",
+			startLevel = 2,
+			endlevel = 5,
+			template = "LeftNavigation.xslt"
+		});
+		if (!string.IsNullOrEmpty(navigationMarkup))
+		{
+			<nav class="grid__col-md-3 grid__col-sm-12 grid__col-xs-12 paragraph-container">
+				<div class="grid__cell">
+					@navigationMarkup
+				</div>
+			</nav>
+            columnClass = "9";
+        }
+    }
+    <div class="grid__col-md-@columnClass grid__col--bleed">
+        <div class="grid">
+            @Model.Placeholder("dwcontent", "content", "default:true;sort:1")
+        </div>
+    </div>
+</div>   

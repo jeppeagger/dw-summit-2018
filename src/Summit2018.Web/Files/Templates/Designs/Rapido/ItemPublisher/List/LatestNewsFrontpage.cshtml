@@ -1,0 +1,21 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@functions { 
+    string Truncate(string value, int maxChars)
+    {
+        return value.Length <= maxChars ? value : value.Substring(0, maxChars) + "...";
+    }
+}
+
+@foreach (LoopItem item in GetLoop("ItemPublisher:Items.List"))
+{
+    string link = "/Default.aspx?ID=" + item.GetString("ItemPublisher:Item.Field.PageId");
+            
+    <article>
+        <a href="@link"><h5 class="article__header u-truncate-text">@item.GetString("ItemPublisher:Item.Title")</h5></a>
+
+        <p>@Truncate(item.GetString("ItemPublisher:Item.Summary"), 210)</p>
+
+        <a href="@link" class="btn btn--link u-no-padding u-margin-top dw-mod">@Translate("Read more")</a>
+    </article>
+}

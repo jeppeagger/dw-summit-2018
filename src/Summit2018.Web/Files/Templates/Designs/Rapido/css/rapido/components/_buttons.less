@@ -1,0 +1,129 @@
+// Buttons
+//––––––––––––––––––––––––––––––––––––––––––––––––––
+
+.button-mixin(@font-size, @font-weight, @font-color, @button-design, @background-color, @line-height) {  
+    .color(@font-color);
+    .font-size(@font-size, px);
+    .font-weight(@font-weight);
+    .line-height(@line-height, px);
+
+    .mixin() when (@button-design = "square") and not (@background-color = none) {
+	    border-radius: 0;
+        background-color: @background-color;
+
+        &:focus, &:hover, &:active, &.btn--active {
+            background-color: shade(@background-color, 10%);
+        }
+    }
+
+    .mixin() when (@button-design = "rounded") and not (@background-color = none) {   
+	    border-radius: @global-radius;
+        background-color: @background-color;
+
+        &:focus, &:hover, &:active, &.btn--active {
+            background-color: shade(@background-color, 10%);
+        }
+    }
+
+    .mixin() when (@button-design = "round") and not (@background-color = none) {   
+	    border-radius: 200px;
+        background-color: @background-color;
+
+        &:focus, &:hover, &:active, &.btn--active {
+            background-color: shade(@background-color, 10%);
+        }
+    }
+
+    .mixin() when (@button-design = "outline-square") and not (@background-color = none) {   
+	    border-radius: 0;
+        background-color: transparent;
+
+        &:focus, &:hover, &:active, &.btn--active {
+            background-color: @background-color;
+            color: @white;
+        }
+    }
+
+    .mixin() when (@button-design = "outline-rounded") and not (@background-color = none) {   
+	    border-radius: @global-radius;
+        background-color: transparent;
+
+        &:focus, &:hover, &:active, &.btn--active {
+            background-color: @background-color;
+            color: @white;
+        }
+    }
+
+    .mixin() when (@button-design = "outline-round") and not (@background-color = none) {   
+	    border-radius: 200px;
+        background-color: transparent;
+
+        &:focus, &:hover, &:active, &.btn--active {
+            background-color: @background-color;
+            color: @white;
+        }
+    }
+    
+    border-width: 1px;
+    .border-color(@background-color);
+    .mixin;
+}
+
+
+//Primary
+.btn--primary.dw-mod {
+    .button-mixin(
+        @layout-primary-button-font-size,
+        @layout-primary-button-font-weight,
+        @layout-primary-button-font-color,
+        @layout-primary-button-button-design,
+        @layout-primary-button-background-color,
+        @layout-primary-button-line-height
+    ); 
+}
+
+//Secondary
+.btn--secondary.dw-mod {
+    .button-mixin(
+        @layout-secondary-button-font-size,
+        @layout-secondary-button-font-weight,
+        @layout-secondary-button-font-color,
+        @layout-secondary-button-button-design,
+        @layout-secondary-button-background-color,
+        @layout-secondary-button-line-height
+    ); 
+}
+
+//Tertiary
+.btn--tertiary.dw-mod {
+    .button-mixin(
+        @layout-tertiary-button-font-size,
+        @layout-tertiary-button-font-weight,
+        @layout-tertiary-button-font-color,
+        @layout-tertiary-button-button-design,
+        @layout-tertiary-button-background-color,
+        @layout-tertiary-button-line-height
+    ); 
+}
+
+//Links
+.btn--link.dw-mod {
+    .color(@layout-links-color);
+
+    &:focus, &:hover, &:active{
+        .color(@layout-links-hover-color);
+    }
+}
+
+.btn--loyalty-points {
+    .color(@ecommerce-loyalty-points-color);
+    .border-color(@ecommerce-loyalty-points-color);
+
+    &:hover,
+    &:focus,
+    &:active,
+    &.active {
+        .background-color(@ecommerce-loyalty-points-color);
+        color: white;
+    }
+}

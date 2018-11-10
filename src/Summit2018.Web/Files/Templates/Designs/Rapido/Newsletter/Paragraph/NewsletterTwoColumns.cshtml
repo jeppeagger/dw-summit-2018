@@ -1,0 +1,57 @@
+@inherits RazorTemplateBase<RazorTemplateModel<Template>>
+@using Dynamicweb.Rendering;
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using Dynamicweb.Security;
+
+@MasterPageFile("../../EmailMaster.cshtml")
+@Include("../../EmailHelpers.cshtml")
+
+@RenderBodySection()
+
+@* CONTENT HELPERS *@
+
+@helper RenderBodySection()
+{
+    Column imageColumn = new Column();
+    Column textColumn = new Column();
+
+    imageColumn.image = GetString("Item.Image");
+    imageColumn.altText = GetString("Item.Heading");
+    if (!string.IsNullOrEmpty(GetString("Item.Link")) && !string.IsNullOrEmpty(GetString("Item.Image")))
+    {
+        imageColumn.link = GetString("Item.Link");
+    }
+    textColumn.align = "left";
+    textColumn.header = GetString("Item.Heading");
+    textColumn.introheader = GetString("Item.Topic");
+    textColumn.introheaderTextColor = GetString("Item.TopicFontColor");
+
+    if (!string.IsNullOrEmpty(GetString("Item.Text")))
+    {
+        textColumn.text.Add(GetString("Item.Text"));
+    }
+    textColumn.buttonType = GetString("Item.ButtonType");
+    textColumn.textColor = GetString("Item.FontColor");
+
+    if (!string.IsNullOrEmpty(GetString("Item.Link")))
+    {
+        textColumn.link = GetString("Item.Link");
+        textColumn.linkText = GetString("Item.LinkText");
+    }
+
+    string emailBackgroundColor = !string.IsNullOrEmpty(GetString("Item.BackgroundColor")) ? GetString("Item.BackgroundColor") : "#fff";
+    
+    if (GetString("Item.ImageAlign") == "Right") {
+        @CreateRow(textColumn, imageColumn, new RowSettings { backgroundColor = emailBackgroundColor });
+    } 
+    else
+    {
+        @CreateRow(imageColumn, textColumn, new RowSettings { backgroundColor = emailBackgroundColor });
+    }
+
+    if (GetBoolean("Item.SeparationLine"))
+    {
+        @CreateRowDivider();
+    }
+}

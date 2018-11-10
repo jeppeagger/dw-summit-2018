@@ -1,0 +1,25 @@
+//Breadcrumb
+
+.breadcrumb {
+   margin: @reflex-cell-spacing-sm @reflex-cell-spacing-md; 
+}
+
+.breadcrumb__item {
+   color: @gray;
+   display: inline-block;
+   margin-bottom: 0;
+
+   a {
+      color: @gray;
+   }
+}
+
+.breadcrumb__item:not(&:last-child) {
+   &::after {
+    font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
+    font-weight: 900;
+    content: '\f105'; 
+    margin-left: @reflex-cell-spacing-md; 
+    margin-right: @reflex-cell-spacing-md; 
+   }
+}

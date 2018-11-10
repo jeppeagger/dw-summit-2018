@@ -1,0 +1,435 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+<script src="/Files/Templates/Designs/DwSimple/js/ProductVariantsAjax.js"></script>
+
+@{
+    string image = "";
+    string grouplink = "";
+    string productname = "";
+    string imagesize = "";
+    string infosize = "";
+    var pid = GetValue("Ecom:Product.ID");
+    int featuresCount = GetLoop("ProductCategories").Count;
+
+    List<string> galleryImages = new List<string>();
+
+    foreach (LoopItem alternativeImage in GetLoop("Ecom:Product.AlternativeImages"))
+    {
+        if (!String.IsNullOrEmpty(alternativeImage.GetString("Ecom:Product.AlternativeImages.Image")))
+        {
+            string fullImage = "/Admin/Public/GetImage.ashx?Width=70&Height=70&Crop=5&Image=" + alternativeImage.GetString("Ecom:Product.AlternativeImages.Image");
+
+            galleryImages.Add(fullImage);
+        }
+    }
+
+    foreach (LoopItem detail in GetLoop("Details"))
+    {
+        if (!String.IsNullOrEmpty(detail.GetString("Ecom:Product:Detail.Image.Clean")))
+        {
+            string fullImage = "/Admin/Public/GetImage.ashx?Width=70&Height=70&Crop=5&Image=" + detail.GetString("Ecom:Product:Detail.Image.Clean");
+            galleryImages.Add(fullImage);
+        }
+    }
+}
+
+<style type="text/css">
+	.dw-logo {
+		height: 75px;
+	}
+
+	.top-header {
+		background-color:#14304A;
+		height:30px;
+	}
+	
+	.top-header-text-wrapper {
+		color:white;
+	}
+	
+	.top-header-text{
+		line-height:30px;
+	}
+	
+	.primary-image {
+		width: 250px;
+		height:250px;
+		position: relative;
+	}
+	
+	.primary-image > img, .thumbnail-images > img {
+		position: absolute;
+   left: 50%;
+   top: 50%;
+   transform: translate(-50%, -50%);
+	}
+	
+	.thumbnail-images {
+		margin:5px;
+		border: 1px solid #dddddd;
+		width: 80px;
+		height: 80px;
+		padding: 2px;
+		position: relative;
+	}
+	
+	.product-gallery {
+		margin: 5px;
+	}
+	
+	.footer {
+	clear: both;
+    position: fixed;
+	bottom: 0;
+    z-index: 10;
+    margin-top: -3em;
+		background-color:#14304A;
+		height:100px;
+		<!-- position:absolute; -->
+		<!-- bottom:0; -->
+		<!-- width:100%; -->
+	}
+
+</style>
+
+<div class="col-md-12 col-sm-12 col-xs-12">
+    @*Impersonation warning*@
+    @if (!string.IsNullOrWhiteSpace(GetGlobalValue("Global:Extranet.SecondaryUser.UserID")))
+    {
+        <div class="row info-block"><i class="fas fa-user-secret"></i> @GetGlobalValue("Global:Extranet.SecondaryUser.UserName") @Translate("is impersonated by") @Pageview.User.UserName</div>
+    }
+
+	
+	<div class="row">
+		<div class="dw-logo"></div>
+		
+	</div>
+	
+	<div class="row">
+		<h2>@GetString("Ecom:Product.Name") @GetString("Ecom:Product.SelectedVariantComboName")</h2>
+	</div>
+	
+	<div class="row top-header">
+		<div class="col-md-3 col-sm-3 col-xs-3 top-header-text-wrapper">
+			<span class="top-header-text">@Translate("Productnumber", "Productnumber"): </span>
+			<span class="top-header-text">@GetString("Ecom:Product.Number")</span>
+		</div>
+		
+		<div class="col-md-3 col-sm-3 col-xs-3 top-header-text-wrapper">
+			<span class="top-header-text">@Translate("Date", "Date"): </span>
+			<span class="top-header-text">@DateTime.Now.ToString()</span>
+		</div>
+	</div>
+	
+    <div class="row product">
+
+        @* The image area *@
+
+        <div class="col-md-@imagesize col-sm-12 col-xs-12">
+            <div class="product-gallery">
+
+                @* Discount sticker *@
+
+
+                @* Product images *@
+
+                @{
+					
+                    image = string.Format("/Admin/Public/GetImage.ashx?Image={0}&Format=jpg&Width=250&Height=250&Crop=5", System.Web.HttpContext.Current.Server.UrlEncode(GetString("Ecom:Product.ImageDefault.Default.Clean")));
+                }
+
+				<div class="col-md-@infosize col-sm-6 col-xs-6">
+                <div class="primary-image ">
+                        <img src="@image" style="vertical-align:middle" alt="Product image">
+                </div>
+				</div>
+                <div>&nbsp;</div>
+                <div class="col-md-@infosize col-sm-6 col-xs-6">
+                    @foreach (string imagePath in galleryImages)
+                    {
+                            <div class="col-md-3 col-sm-4 col-xs-4">
+                                <div class="thumbnail-images">
+                                    <img src="@imagePath" alt="">
+                                </div>
+                            </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @* The main product information area *@
+
+        <div class="col-md-@infosize col-sm-6 col-xs-6">
+            <form name="@pid" id="@pid" method="post" action="/Default.aspx">
+                @GetValue("Ecom:Product.Form.Clean")
+                <div class="product-info" vocab="http://schema.org/" typeof="Product" id="productinfo">
+
+                    @* Product description *@
+
+                    <span class="clearfix"></span>
+					<h2 class="section-title" style="padding-bottom: 10px; border-bottom: 1px solid #dddddd">@Translate("Short description")</h2>
+                    <div property="description" id="description">
+                        @GetString("Ecom:Product.ShortDescription")
+                    </div>
+					
+					
+					
+                    <span class="clearfix"></span>
+					<h2 class="section-title" style="padding-bottom: 10px; border-bottom: 1px solid #dddddd">@Translate("Long description")</h2>
+					<div property="description" id="description">
+                        @GetString("Ecom:Product.LongDescription")
+                    </div>
+                </div>
+            </form>
+    </div>
+	
+	<div class="col-md-@infosize col-sm-6 col-xs-6">
+        @* Features lists *@
+        @if (featuresCount > 0 && featuresCount < 10)
+        {
+            <div class="grid__col-12 grid__col--bleed-y">
+                <h2 class="section-title" style="padding-bottom: 10px; border-bottom: 1px solid #dddddd">@Translate("Product information")</h2>
+                <div class="grid grid--bleed">
+                    @if (GetLoop("CustomFieldValues").Count > 0)
+                    {
+                    <div class="grid__col-md-5 grid__col-sm-6">
+                        <table class="table table--clean table--compact u-margin-bottom">
+                            @foreach (LoopItem customField in GetLoop("CustomFieldValues"))
+                            {
+                                string fieldValue = customField.GetString("Product.CustomField.Value");
+
+                                if (customField.GetLoop("Product.CustomField.Options").Count > 0)
+                                {
+                                    fieldValue = "";
+                                    int count = 0;
+
+                                    foreach (LoopItem customFieldOptions in customField.GetLoop("Product.CustomField.Options"))
+                                    {
+                                        if (customFieldOptions.GetBoolean("Product.CustomField.Option.IsSelected"))
+                                        {
+                                            if (count != 0)
+                                            {
+                                                fieldValue += ", ";
+                                            }
+
+                                            fieldValue += customFieldOptions.GetString("Product.CustomField.Option.Name");
+                                            count++;
+                                        }
+                                    }
+                                }
+
+                                if (fieldValue == "False")
+                                {
+                                    fieldValue = Translate("No");
+                                }
+
+                                if (fieldValue == "True")
+                                {
+                                    fieldValue = Translate("Yes");
+                                }
+
+                                if (!String.IsNullOrEmpty(customField.GetString("Product.CustomField.Name")) && !String.IsNullOrEmpty(fieldValue))
+                                {
+                                <tr>
+                                    <td width="160">@customField.GetString("Product.CustomField.Name"):</td>
+                                    @if (!String.IsNullOrEmpty(customField.GetString("Document.FullPath")))
+                                    {
+                                        <td class="u-ta-left"><a href="@customField.GetString("Document.FullPath")" download title="@Translate("Download")"><i class="fas fa-arrow-circle-down"></i> @fieldValue</a></td>
+                                    }
+                                    else
+                                    {
+                                        <td class="u-ta-left"><span property="identifier">@fieldValue</span></td>
+                                    }
+                                </tr>
+                                }
+                            }
+                        </table>
+                    </div>
+                    <div class="grid__col-md-5 grid__col-sm-6"></div>
+                    }
+
+                    @if (GetLoop("ProductCategories").Count > 0)
+                    {
+                    <div class="grid__col-md-5 grid__col-sm-6">
+                        <table class="table table--clean table--compact u-margin-bottom">
+                            @foreach (LoopItem categoryGroup in GetLoop("ProductCategories"))
+                            {
+							
+							if(categoryGroup.GetLoop("ProductCategoryFields").Count > 0)
+							{
+                            <tr>
+                                <td colspan="2" class="u-ta-left u-bold" style="font-weight:bold">@categoryGroup.GetString("Ecom:Product.Category.Name")</td>
+                            </tr>
+							}
+
+                                foreach (LoopItem categoryField in categoryGroup.GetLoop("ProductCategoryFields"))
+                                {
+                                    string fieldValue = categoryField.GetString("Ecom:Product.CategoryField.Value");
+
+                                    if (fieldValue == "False")
+                                    {
+                                        fieldValue = Translate("No");
+                                    }
+
+                                    if (fieldValue == "True")
+                                    {
+                                        fieldValue = Translate("Yes");
+                                    }
+
+                                    if (!String.IsNullOrEmpty(categoryField.GetString("Ecom:Product.CategoryField.Label")) && !String.IsNullOrEmpty(fieldValue))
+                                    {
+                                    <tr>
+                                        <td width="160">@categoryField.GetString("Ecom:Product.CategoryField.Label"):</td>
+                                        @if (categoryField.GetString("Ecom:Product.CategoryField.TypeID") == "9")
+                                        {
+                                        <td class="u-ta-left"><a href="@fieldValue" download title="@Translate("Download")"><i class="fas fa-arrow-circle-down"></i> @fieldValue</a></td>
+                                        }
+                                        else
+                                        {
+                                        <td class="u-ta-left"><span property="identifier">@fieldValue</span></td>
+                                        }
+                                    </tr>
+                                    }
+                                }
+                            }
+                        </table>
+                    </div>
+                    <div class="grid__col-md-5 grid__col-sm-6"></div>
+                    }
+                </div>
+            </div>
+        }
+
+        @if (featuresCount >= 10)
+        {
+            <div class="grid__col-12 grid__col--bleed-y">
+                <input type="checkbox" id="expandable-text-trigger" class="expandable-text-trigger" />
+                <div class="expandable-text-container">
+                    <div class="expandable-text-container__content">
+                        <h2 class="section-title">@Translate("Product information")</h2>
+                        <div class="grid grid--bleed">
+                            @if (GetLoop("CustomFieldValues").Count > 0)
+                            {
+                            <div class="grid__col-md-5 grid__col-sm-6">
+                                <table class="table table--clean table--compact u-margin-bottom">
+                                    @foreach (LoopItem customField in GetLoop("CustomFieldValues"))
+                                    {
+                                        string fieldValue = customField.GetString("Product.CustomField.Value.Clean");
+
+                                        if (customField.GetLoop("Product.CustomField.Options").Count > 0)
+                                        {
+                                            fieldValue = "";
+                                            int count = 0;
+
+                                            foreach (LoopItem customFieldOptions in customField.GetLoop("Product.CustomField.Options"))
+                                            {
+                                                if (customFieldOptions.GetBoolean("Product.CustomField.Option.IsSelected"))
+                                                {
+                                                    if (count != 0)
+                                                    {
+                                                        fieldValue += ", ";
+                                                    }
+
+                                                    fieldValue += customFieldOptions.GetString("Product.CustomField.Option.Name");
+                                                    count++;
+                                                }
+                                            }
+                                        }
+
+                                        if (fieldValue == "False")
+                                        {
+                                            fieldValue = Translate("No");
+                                        }
+
+                                        if (fieldValue == "True")
+                                        {
+                                            fieldValue = Translate("Yes");
+                                        }
+
+                                        if (!String.IsNullOrEmpty(customField.GetString("Product.CustomField.Name")) && !String.IsNullOrEmpty(fieldValue))
+                                        {
+                                        <tr>
+                                            <td width="160">@customField.GetString("Product.CustomField.Name"):</td>
+                                            @if (!String.IsNullOrEmpty(customField.GetString("Document.FullPath")))
+                                            {
+                                                <td class="u-ta-left"><a href="@customField.GetString("Document.FullPath")" download title="@Translate("Download")"><span property="identifier"><i class="fas fa-arrow-circle-down"></i> @fieldValue</span></a></td>
+                                            }
+                                            else
+                                            {
+                                                <td class="u-ta-left"><span property="identifier">@fieldValue</span></td>
+                                            }
+                                        </tr>
+                                        }
+                                    }
+                                </table>
+                            </div>
+                            <div class="grid__col-md-5 grid__col-sm-6"></div>
+                            }
+
+                            @if (GetLoop("ProductCategories").Count > 0)
+                            {
+                            <div class="grid__col-md-5 grid__col-sm-6">
+                                <table class="table table--clean table--compact u-margin-bottom">
+                                    @foreach (LoopItem categoryGroup in GetLoop("ProductCategories"))
+                                    {
+                                    <tr>
+                                        <td colspan="2" class="u-ta-left u-bold">@categoryGroup.GetString("Ecom:Product.Category.Name")</td>
+                                    </tr>
+
+                                        foreach (LoopItem categoryField in categoryGroup.GetLoop("ProductCategoryFields"))
+                                        {
+                                            string fieldValue = categoryField.GetString("Ecom:Product.CategoryField.Value");
+
+                                            if (fieldValue == "False")
+                                            {
+                                                fieldValue = Translate("No");
+                                            }
+
+                                            if (fieldValue == "True")
+                                            {
+                                                fieldValue = Translate("Yes");
+                                            }
+
+                                            if (!String.IsNullOrEmpty(categoryField.GetString("Ecom:Product.CategoryField.Label")) && !String.IsNullOrEmpty(fieldValue))
+                                            {
+                                            <tr>
+                                                <td width="160">@categoryField.GetString("Ecom:Product.CategoryField.Label"):</td>
+                                                @if (categoryField.GetString("Ecom:Product.CategoryField.TypeID") == "9")
+                                                {
+                                                <td class="u-ta-left"><a href="@fieldValue" download title="@Translate("Download")"><i class="fas fa-arrow-circle-down"></i> @fieldValue</a></td>
+                                                }
+                                                else
+                                                {
+                                                <td class="u-ta-left"><span property="identifier">@fieldValue</span></td>
+                                                }
+                                            </tr>
+                                            }
+                                        }
+                                    }
+                                </table>
+                            </div>
+                            <div class="grid__col-md-5 grid__col-sm-6"></div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="u-ta-center">
+                        <label for="expandable-text-trigger" class="btn btn--secondary expandable-text-container__btn more dw-mod">@Translate("Show more")</label>
+                        <label for="expandable-text-trigger" class="btn btn--secondary expandable-text-container__btn less dw-mod">@Translate("Show less")</label>
+                    </div>
+                </div>
+            </div>
+        }
+	
+</div>
+
+
+</div>
+
+
+</div>
+
+<!-- <div class="row footer"> -->
+<!-- <div class="col-md-@infosize col-sm-12 col-xs-12"></div> -->
+	
+<!-- </div> -->

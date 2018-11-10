@@ -1,0 +1,147 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using System.Text.RegularExpressions
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using Dynamicweb.Core
+@using Dynamicweb.Ecommerce.Orders
+@using Dynamicweb.Ecommerce.Orders.SalesDiscounts
+@using Dynamicweb.Rapido.Blocks
+
+@{ 
+    BlocksPage staticSummaryCheckoutPage = BlocksPage.GetBlockPage("CheckoutPage");
+
+    Block staticSummary = new Block()
+    {
+        Id = "StaticSummary",
+        SortId = 20,
+        Template = RenderStaticSummary(),
+        Design = new Design
+        {
+            RenderType = RenderType.Column,
+            Size = "12"
+        }
+    };
+    staticSummaryCheckoutPage.Add("SummaryContainerRow", staticSummary);
+}
+
+
+@helper RenderStaticSummary()
+{
+    int productCatalog = GetPageIdByNavigationTag("ProductsPage");
+
+    <div class="card-header u-color-light--bg dw-mod">
+        <h3><i class="fas fa-list-ul"></i> @Translate("Summary") (@GetString("Ecom:Order.OrderLines.TotalProductQuantity"))</h3>
+    </div>
+
+    <div class="card u-color-light--bg u-no-padding--xs dw-mod">
+        <table class="table cart-table u-margin-bottom dw-mod">
+            <tbody>
+                @foreach (LoopItem orderline in GetLoop("OrderLines"))
+                {
+                    if (orderline.GetBoolean("Ecom:Order:OrderLine.IsProduct"))
+                    {
+                        string productLink = "/" + Regex.Replace(orderline.GetString("Ecom:Product.LinkGroup.Clean"), @"\?ID=\d*\&", "?ID=" + productCatalog + "&");
+                        productLink += !string.IsNullOrEmpty(orderline.GetString("Ecom:Order:OrderLine.ProductVariantID")) ? "&VariantID=" + orderline.GetString("Ecom:Order:OrderLine.ProductVariantID") : "";
+
+                        <tr>
+                            <td class="u-w60px">
+                                @orderline.GetString("Ecom:Order:OrderLine.Quantity") x
+                            </td>
+                            <td title="@orderline.GetString("Ecom:Order:OrderLine.ProductName") @GetString("Ecom:Order:OrderLine.ProductVariantText")">
+                                <a href="@productLink" class="u-color-inherit">@orderline.GetString("Ecom:Order:OrderLine.ProductName")</a>
+                                <div>@GetString("Ecom:Order:OrderLine.ProductVariantText")</div>
+                                <div>@orderline.GetString("Ecom:Order:OrderLine.UnitName")</div>
+                            </td>
+                            <td class="u-ta-right u-w120px">@orderline.GetString("Ecom:Order:OrderLine.Price")</td>
+                        </tr>
+
+                        if (orderline.GetLoop("BOMItems").Count > 0)
+                        {
+                        <tr>
+                            <td colspan="3" class="u-no-padding">
+                                <table class="u-no-margin u-color-light-gray--bg">
+                                    <tbody>
+                                        @foreach (LoopItem bomitem in orderline.GetLoop("BOMItems"))
+                                        {
+                                            string bomItemLink = "/" + Regex.Replace(bomitem.GetString("Ecom:Product.LinkGroup.Clean"), @"\?ID=\d*\&", "?ID=" + productCatalog + "&");
+
+                                            <tr>
+                                                <td class="u-w60px">@bomitem.GetString("Ecom:Order:OrderLine.Quantity") x</td>
+                                                <td title="{@bomitem.GetString("Ecom:Order:OrderLine.ProductName") @bomitem.GetString("Ecom:Order:OrderLine.ProductVariantText")">
+                                                    <a href="@bomItemLink" class="mini-cart-orderlines__name dw-mod">@bomitem.GetString("Ecom:Order:OrderLine.ProductName")</a>
+                                                    <div>@bomitem.GetString("Ecom:Order:OrderLine.ProductVariantText")</div>
+                                                    <div>@bomitem.GetString("Ecom:Order:OrderLine.UnitName")</div>
+                                                </td>
+                                                <td class="u-hidden-xs u-hidden-xxs">&nbsp;</td>
+                                                <td>&nbsp;</td>
+                                                <td class="cart-table__price u-ta-right dw-mod">&nbsp;</td>
+                                            </tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </td>
+                        </tr>
+                        }
+                    }
+                    else
+                    {
+                    <tr class="table__row--no-border">
+                        <td class="u-w60px">&nbsp;</td>
+                        <td>@orderline.GetString("Ecom:Order:OrderLine.ProductName")</td>
+                        <td class="cart-table__price u-ta-right dw-mod">@orderline.GetString("Ecom:Order:OrderLine.Price")</td>
+                    </tr>
+                    }
+                }
+            </tbody>
+        </table>
+
+        @if (!Pageview.AreaSettings.GetItem("Ecommerce").GetItem("Checkout").GetBoolean("HideSubtotal"))
+        {
+        <div class="u-padding u-border-bottom">
+            <div class="cart-summary__subtotals dw-mod">@Translate("Subtotal")</div>
+            <div class="cart-summary__subtotals u-pull--right dw-mod">@GetString("Ecom:Order.PriceWithoutFees.PriceFormatted")</div>
+        </div>
+        }
+
+        @if (GetInteger("Ecom:Order.PaymentFee.Price") != 0 && Pageview.AreaSettings.GetItem("Ecommerce").GetItem("Checkout").GetBoolean("HideFreeServices") != true)
+        {
+            string paymentFee = GetInteger("Ecom:Order.PaymentFee.Price") != 0 ? GetString("Ecom:Order.PaymentFee.PriceFormatted") : Translate("Free");
+            <div class="u-padding u-border-bottom">
+                <div class="cart-summary__info dw-mod"><i class="fas fa-credit-card"></i> @GetString("Ecom:Order.PaymentMethod")</div>
+                <div class="cart-summary__info u-pull--right dw-mod">@paymentFee</div>
+            </div>
+        }
+
+        @if (GetInteger("Ecom:Order.ShippingFee.Price") != 0 && Pageview.AreaSettings.GetItem("Ecommerce").GetItem("Checkout").GetBoolean("HideFreeServices") != true)
+        {
+            string shippingFee = GetInteger("Ecom:Order.ShippingFee.Price") != 0 ? GetString("Ecom:Order.ShippingFee.PriceFormatted") : Translate("Free");
+
+            <div class="u-padding">
+                <div class="cart-summary__info dw-mod"><i class="fas fa-truck"></i> @GetString("Ecom:Order.ShippingMethod")</div>
+                <div class="cart-summary__info u-pull--right dw-mod">@shippingFee</div>
+            </div>
+        }
+
+        <div class="u-padding u-border-bottom">
+            <div class="cart-summary__info dw-mod">@Translate("VAT")</div>
+            <div class="cart-summary__info u-pull--right dw-mod">@GetString("Ecom:Order.OrderLines.Total.PriceVAT")</div>
+        </div>
+
+        @if (Pageview.User != null && Dynamicweb.Security.Licensing.LicenseManager.LicenseHasFeature("LoyaltyPoints") && GetDouble("Ecom:Order.RewardTotalPoints") > 0)
+        {
+        <div class="u-padding u-border-bottom">
+            <div class="cart-summary__info dw-mod">@Translate("Earnings")</div>
+            <div class="cart-summary__info u-pull--right dw-mod"><span class="u-color--loyalty-points">@GetDouble("Ecom:Order.RewardTotalPoints")</span> @Translate("points")</div>
+        </div>
+        }
+
+        <div class="u-padding">
+            <div class="cart-summary__totals dw-mod">@Translate("Total")</div>
+            <div class="cart-summary__totals u-pull--right dw-mod">@GetString("Ecom:Order.OrderLines.Total.Price")</div>
+        </div>
+    </div>
+}

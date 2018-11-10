@@ -1,0 +1,42 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@{ 
+    BlocksPage productListProductsBlocksPage = BlocksPage.GetBlockPage("ProductList");
+
+    Block productsBlock = new Block
+    {
+        Id = "Views",
+        SortId = 30,
+        Template = RenderProducts()
+    };
+
+    productListProductsBlocksPage.Add("ProductList", productsBlock);
+}
+
+@helper RenderProducts()
+{
+    @*This is part of a script template *@
+
+    <text>{{>Products}}</text>
+}
+
+<script id="Products" type="text/x-template">
+    <div id="ProductsContainer" data-template="{{listTemplate}}" class="grid product-list dw-mod" data-save-cookie="true">
+        {{#ProductsContainer}}
+            {{#ifCond template "===" "ProductItemContainer"}}
+                {{>ProductItemContainer}}
+            {{/ifCond}}
+            {{#ifCond template "===" "ProductGridItemContainer"}}
+                {{>ProductGridItemContainer}}
+            {{/ifCond}}
+            {{#ifCond template "===" "ProductDetailsItemContainer"}}
+                {{>ProductDetailsItemContainer}}
+            {{/ifCond}}
+        {{/ProductsContainer}}
+    </div>
+</script>

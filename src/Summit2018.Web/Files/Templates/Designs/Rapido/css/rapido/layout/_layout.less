@@ -1,0 +1,35 @@
+﻿// -----------------------------------------------------------------------------
+// Contains all styles related to the Wbsite settings Layout section
+// -----------------------------------------------------------------------------
+
+.center-container-mixin() when not (@layout-page-center-width = none) {   
+	max-width: ~'@{layout-page-center-width}';
+}
+
+.top-container-mixin() when (@layout-page-width = "full") {   
+	max-width: 100%;
+}
+
+.top-container__center-container-mixin() when (@layout-page-width = "full") {   
+	max-width: 100%;
+}
+
+//Center width
+.center-container.dw-mod {
+   .center-container-mixin(); 
+}
+
+//Top full width
+.top-container.dw-mod {
+   .top-container-mixin(); 
+}
+
+.top-container__center-container.dw-mod {
+   .top-container__center-container-mixin(); 
+}
+
+//Site layout
+.site.dw-mod {
+    .background-color(@layout-page-background-color);
+    .background-image(@layout-page-background-image);
+}

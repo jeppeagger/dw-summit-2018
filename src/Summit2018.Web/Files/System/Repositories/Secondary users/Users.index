@@ -1,0 +1,19 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Index>
+  <Settings />
+  <Instances Balancer="Dynamicweb.Indexing.Balancing.ActivePassive">
+    <Instance Name="Users" Type="Dynamicweb.Indexing.Lucene.LuceneIndexProvider, Dynamicweb.Indexing.Lucene" />
+  </Instances>
+  <Builds Type="Dynamicweb.Security.UserManagement.Indexing.UserIndexBuilder, Dynamicweb.Security">
+    <Build Name="Users" Action="Full">
+      <Notification SendLog="false" NotificationType="Never" />
+    </Build>
+  </Builds>
+  <Schema>
+    <Fields>
+      <Extension Type="Dynamicweb.Security.UserManagement.Indexing.UserIndexSchemaExtender, Dynamicweb.Security" Stored="false" Analyzed="false" Indexed="false" />
+      <Copy Sources="UserEmail,UserName,Name,Company,FirstName,LastName,CustomerNumber" Name="SearchField" SystemName="SearchField" Type="System.String" Stored="true" Analyzed="true" Indexed="true" />
+    </Fields>
+    <FieldTypes />
+  </Schema>
+</Index>

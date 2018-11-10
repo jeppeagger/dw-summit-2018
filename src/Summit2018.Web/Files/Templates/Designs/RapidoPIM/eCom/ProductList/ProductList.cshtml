@@ -1,0 +1,125 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Frontend.Devices
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Text.RegularExpressions
+
+@{
+    string pageCountText = Translate("Showing page", "Showing page") + " " + GetValue("Ecom:ProductList.CurrentPage") + " " + Translate("of", "of") + " " + GetValue("Ecom:ProductList.TotalPages") + " (" + GetValue("Ecom:ProductList.PageProdCnt") + " " + Translate("products", "products") + ")";
+}
+
+<div class="grid grid--external-bleed">
+    <div class="grid__col-md-12">
+        <div class="grid__cell">
+            <div class="u-pull--left">
+                @pageCountText
+            </div>
+            <div class="u-pull--right">
+
+            </div>
+        </div>
+    </div>
+
+    @foreach (LoopItem product in GetLoop("Products"))
+    {
+        string Discount = product.GetString("Ecom:Product.Discount.Price.PriceFormatted");
+        string Price = product.GetString("Ecom:Product.Price.PriceFormatted");
+
+        <div class="grid__col-md-12">
+            <div class="grid grid--border">
+                <div class="grid__col-md-3 grid--align-self-center">
+                    <div class="stickers-container dw-mod">
+                        @if (!String.IsNullOrEmpty(GetString("Ecom:Product:Field.CustomSticker.Value")))
+                        {
+                        <div class="stickers-container__tag stickers-container__tag--custom dw-mod">@GetString("Ecom:Product:Field.CustomSticker.Value")</div>
+                        }
+                        @if (Pageview.Area.Item["NewStickersEnable"].ToString() == "True" && GetDate("Ecom:Product.Created").AddDays(Converter.ToDouble(Pageview.Area.Item["NewStickersExpiration"])) > DateTime.Now)
+                        {
+                        <div class="stickers-container__tag stickers-container__tag--new dw-mod">@Translate("New!")</div>
+                        }
+                        @if (GetString("Ecom:Product.Discount.Price.PriceFormatted") != GetString("Ecom:Product.Price.PriceFormatted"))
+                        {
+                        <div class="stickers-container__tag stickers-container__tag--sale dw-mod">@Translate("Sale!")</div>
+                        }
+                    </div>
+                    <a href="@product.GetString("Ecom:Product.LinkGroup.Clean")">
+                        <img class="grid__cell-img" src="@product.GetString("Ecom:Product.ImageDefault.Default.Clean")" alt="@product.GetString("Ecom:Product.Name")" />
+                    </a>
+                </div>
+
+                <div class="grid__col-md-9">
+                    <a href="@product.GetString("Ecom:Product.LinkGroup.Clean")"><h4 class="product-list-item__name dw-mod">@product.GetString("Ecom:Product.Name")</h4></a>
+
+                    @product.GetString("Ecom:Product.ShortDescription")
+
+                    <div class="grid__cell-footer product-list-item__footer dw-mod">
+                        <div class="grid grid--bleed">
+                            <div class="grid__col-md-4 grid__col-sm-4">
+                                @if (Discount != Price)
+                                {
+                                <div class="price dw-mod">@product.GetString("Ecom:Product.Discount.Price.PriceFormatted")</div>
+                                <div class="before-price dw-mod">@product.GetString("Ecom:Product.Price.PriceFormatted")</div>
+                                }
+                                else
+                                {
+                                <div class="price dw-mod">@product.GetString("Ecom:Product.Price.PriceFormatted")</div>
+                                }
+                            </div>
+                            <div class="grid__col-md-8 grid__col-sm-8">
+                                <div class="grid__cell">
+                                    <button type="submit" class="btn btn--primary dw-mod u-pull--right" name="submit" onclick="Cart.AddToCart(event, '@product.GetString("Ecom:Product.ID")', $(this).siblings('input.quantity').val());">@Translate("Add to cart")</button>
+                                    <input type="number" class="u-w50px u-no-margin u-pull--right" name="Quantity" value="1">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="grid__col-12 u-margin-top">
+        <div class="pager">
+            <div class="pager__info">
+                @Translate("Page") @GetValue("Ecom:ProductList.CurrentPage") @Translate("of") @GetValue("Ecom:ProductList.TotalPages")
+            </div>
+            <ul class="pager__list">
+                @if (!string.IsNullOrWhiteSpace(GetString("Ecom:ProductList.PrevPage.Clean")))
+                {
+                    <li class="pager__btn">
+                        <a href="@GetString("Ecom:ProductList.PrevPage.Clean")" class="pager__num dw-mod"><i class="fas fa-angle-left"></i></a>
+                    </li>
+                }
+
+                @foreach (LoopItem page in GetLoop("Ecom:ProductList.Pages"))
+                {
+                    bool isActive = page.GetBoolean("Ecom:ProductList.Pages.Page.IsCurrent");
+                    <li class="pager__btn">
+                        @if (isActive)
+                        {
+                            <span class="pager__num pager__num--current dw-mod">
+                                @page.GetValue("Ecom:ProductList.Pages.Page.Number")
+                            </span>
+                        }
+                        else
+                        {
+                            <a href="@page.GetString("Ecom:ProductList.Pages.Page.Url")" class="pager__num dw-mod">
+                                @page.GetValue("Ecom:ProductList.Pages.Page.Number")
+                            </a>
+                        }
+                    </li>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(GetString("Ecom:ProductList.NextPage.Clean")))
+                {
+                    <li class="pager__btn">
+                        <a href="@GetString("Ecom:ProductList.NextPage.Clean")" class="pager__num dw-mod"><i class="fas fa-angle-right"></i></a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</div>

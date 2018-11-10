@@ -1,0 +1,73 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@{ 
+    BlocksPage productListPromotionsBlocksPage = BlocksPage.GetBlockPage("ProductList");
+
+    Block productListPromotions = new Block
+    {
+        Id = "Promotions",
+        SortId = 10,
+        Template = RenderProductListPromotions()
+    };
+    productListPromotionsBlocksPage.Add("PageContainer", productListPromotions);
+}
+
+@helper RenderProductListPromotions()
+{
+    @*This is part of a script template *@
+
+    string listId = HttpContext.Current.Request.QueryString.Get("ListID");
+    bool isFavoriteList = !String.IsNullOrEmpty(listId) ? true : false;
+
+    if (!isFavoriteList)
+    {
+        <text>{{>ProductListPromotions}}</text>
+    }
+}
+
+<script id="ProductListPromotions" type="text/x-template">
+    @switch (Pageview.AreaSettings.GetItem("ProductList").GetList("PromotionBlockDesign").SelectedValue)
+    {
+        case "OnlyText":
+        <article class="grid__col-12 u-margin-bottom">
+            <h1>{{groupName}}</h1>
+            {{{groupDescription}}}
+        </article>
+            break;
+        case "TextAndImage":
+        <article class="grid__col-12 u-margin-bottom">
+            <div class="grid grid--bleed">
+                <div class="grid__col-md-6">
+                    <h1>{{groupName}}</h1>
+                    {{{groupDescription}}}
+                </div>
+                {{#ifCond groupPromotionImage "!==" ""}}
+                <div class="grid__col-md-6">
+                    <img src="/Admin/Public/GetImage.ashx?width=600&crop=5&Compression=75&DoNotUpscale=true&image={{groupPromotionImage}}" alt="{{groupName}}" class="background-image__cover" />
+                </div>
+                {{/ifCond}}
+            </div>
+        </article>
+            break;
+        case "Banner":
+        <text>
+            {{#ifCond groupPromotionImage "!==" ""}}
+            <article class="grid__col-12 u-margin-bottom">
+                <div class="u-color-light grid center-container center-container--with-background-image u-padding" style="background-image:url('{{groupPromotionImage}}'); background-size: cover;">
+                    <div class="grid__col-12 u-middle">
+                        <div class="grid__cell">
+                            {{{groupDescription}}}
+                        </div>
+                    </div>
+                </div>
+            </article>
+            {{/ifCond}}
+        </text>
+            break;
+    }
+</script>

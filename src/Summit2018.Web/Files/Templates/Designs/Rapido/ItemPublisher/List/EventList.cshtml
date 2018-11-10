@@ -1,0 +1,97 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+
+@{ 
+    string selectedEventType = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString.Get("EventType")) ? HttpContext.Current.Request.QueryString.Get("EventType") : Translate("All");
+    var query = HttpUtility.ParseQueryString(HttpContext.Current.Request.QueryString.ToString());
+
+    var eventTypeField = GetLoop("ItemPublisher:ItemType.Fields").FirstOrDefault((field) => field.GetString("ItemPublisher:ItemType.Field.SystemName") == "EventType");
+    
+    Dictionary<string, string> eventTypes = eventTypeField.GetLoop("ItemPublisher:ItemType.Field.Options").ToDictionary(x => x.GetString("ItemPublisher:ItemType.Field.Option.Value"), x => x.GetString("ItemPublisher:ItemType.Field.Option.Label"));
+
+    selectedEventType = eventTypes.ContainsKey(selectedEventType) ? eventTypes[selectedEventType] : "All";
+
+    var months = GetLoop("ItemPublisher:Items.List").Where(x => x.GetDate("ItemPublisher:Item.DateAndTime") > DateTime.Now).GroupBy(x => x.GetDate("ItemPublisher:Item.DateAndTime").Month).ToDictionary(y => y.Key, z => z.ToList());
+    int signUpForEventPageId = GetPageIdByNavigationTag("SignUpForEventPage");
+}
+
+<div class="grid__col-12">
+    <div class="grid">
+        <div class="grid__col-12">
+            <div class="collection u-no-margin">
+                <h5>@Translate("Event type")</h5>
+                <input type="checkbox" id="CategorySelector" class="dropdown-trigger" />
+                <div class="dropdown u-w180px dw-mod">
+                    <label class="dropdown__header dropdown__btn dw-mod" for="CategorySelector">@Translate(selectedEventType)</label>
+                    <div class="dropdown__content dw-mod">
+                        @{
+                            query.Set("EventType", "");
+                            <div class="dropdown__item" onclick="window.location = '/Default.aspx?@query.ToString()'">@Translate("All")</div>
+
+                            foreach (var options in eventTypeField.GetLoop("ItemPublisher:ItemType.Field.Options"))
+                            {
+                                query.Set("EventType", options.GetString("ItemPublisher:ItemType.Field.Option.Value"));
+                                <div class="dropdown__item" onclick="window.location = '/Default.aspx?@query.ToString()'">@Translate(options.GetString("ItemPublisher:ItemType.Field.Option.Label"))</div>
+                            }
+                        }
+                    </div>
+                    <label class="dropdown-trigger-off" for="CategorySelector"></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid__col-12">
+            @foreach (var month in months)
+            {
+                string monthName = new DateTime(2010, month.Key, 1).ToString("MMMM", System.Globalization.CultureInfo.CurrentCulture);
+
+                <h3 class="grid-caption">@monthName</h3>
+                <div class="u-margin-bottom">
+                    @foreach (var eventInfo in month.Value)
+                    {
+                        string eventType = eventInfo.GetString("ItemPublisher:Item.EventType");
+                        string signUpLink = "";
+                        string signUpTargetType = "_self";
+
+                        if (eventInfo.GetString("ItemPublisher:Item.SignUp") == "external")
+                        {
+                            signUpLink = eventInfo.GetString("ItemPublisher:Item.SignUpLink");
+                            signUpTargetType = "_blank";
+                        }
+                        else
+                        {
+                            signUpLink = "/Default.aspx?Id=" + signUpForEventPageId + "&eventId=" + eventInfo.GetString("ItemPublisher:Item.Field.Id") + "&eventName=" + HttpUtility.UrlEncode(eventInfo.GetString("ItemPublisher:Item.Title"));
+                        }
+
+                        <div class="u-padding u-border-bottom">
+                            <div class="grid">
+                                <div class="grid__col-sm-4 grid__col--bleed-y">
+                                    <a href="/Default.aspx?ID=@eventInfo.GetString("ItemPublisher:Item.Field.PageId")">@eventInfo.GetString("ItemPublisher:Item.Title")</a>
+                                </div>
+                                <div class="grid__col-sm-1 grid__col--bleed-y">
+                                    @eventInfo.GetDate("ItemPublisher:Item.DateAndTime").ToString("MMM. dd")
+                                </div>
+                                <div class="grid__col-sm-2 grid__col--bleed-y">
+                                    @(eventTypes.ContainsKey(eventType) ? eventTypes[eventType] : "")
+                                </div>
+                                <div class="grid__col-sm-2 grid__col--bleed-y">
+                                    @*Split address parts by comma*@
+                                    @string.Join(", ", (new[] {
+                                        eventInfo.GetString("ItemPublisher:Item.Location.City"),
+                                        eventInfo.GetString("ItemPublisher:Item.Location.Region"),
+                                        eventInfo.GetString("ItemPublisher:Item.Location.Country") }).Where(x => !string.IsNullOrEmpty(x)))
+                                </div>
+                                <div class="grid__col-sm-1 grid__col--bleed-y">
+                                    @eventInfo.GetString("ItemPublisher:Item.ParticipationFee")
+                                </div>
+                                <div class="grid__col-sm-2 grid__col--bleed-y">
+                                    <a href="@signUpLink" target="@signUpTargetType">@Translate("Sign up")</a>
+                                </div>
+                            </div>
+                    </div>
+                    }
+                </div>
+            }
+        </div>
+     </div>
+</div>

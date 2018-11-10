@@ -1,0 +1,44 @@
+﻿.dynamicweb-map {
+    overflow: hidden;
+    *zoom: 1;
+}
+
+.dynamicweb-map > .dynamicweb-map__wrap {
+    margin: 0.5em auto 2em;
+}
+
+.dynamicweb-map__wrap,
+.dynamicweb-map__map {
+    height: 100%;
+}
+
+/* .dynamicweb-map .dynamicweb-map__wrap img {
+    max-width: none;
+    height: auto;
+}*/
+
+.js-current .dynamicweb-map__location-item {
+    background: @gray-lightest;
+}
+
+.dynamicweb-map__locations .dynamicweb-map__location-item {
+    /* without cascade locations will be bordered inside map */
+    border: 1px @gray solid;
+    padding: @reflex-cell-spacing;
+    height: 100%;
+    cursor: pointer;
+}
+
+.dynamicweb-map__location-name {
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+
+.dynamicweb-map__location-info {
+    color: @gray;
+    margin-bottom: 10px;
+}
+
+.dynamicweb-map__location-contact {
+    color: @gray;
+}

@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="3448cb78-7cce-4bb8-aca7-04d2aa1f8693" Name="Ready for Marketing (DE,FR)">
+  <Settings />
+  <Source Repository="Products" Item="Products.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="WorkflowState" />
+        </Left>
+        <Right>
+          <TermExpression Value="1004,1009" DisplayValue="Ready for Marketing,Ready for Marketing" Type="System.Int32[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Contains">
+        <Left>
+          <FieldExpression Field="IsVariant" />
+        </Left>
+        <Right>
+          <ConstantExpression Value="False" Type="System.Boolean[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="ShopIDs" />
+        </Left>
+        <Right>
+          <TermExpression Value="SHOP4" DisplayValue="SHOP4" Type="System.String[]" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields>
+    <Field Name="Product name" SystemName="" Source="ProductName" Sort="0" />
+    <Field Name="Product number" SystemName="" Source="ProductNumber" Sort="1" />
+    <Field Name="Short description" SystemName="" Source="ProductShortDescription" Sort="2" />
+    <Field Name="Long description" SystemName="" Source="ProductLongDescription" Sort="3" />
+    <Field Name="TranslateStatus" SystemName="" Source="CustomField_translateStatus" Sort="4" />
+    <Field Name="Brand" SystemName="" Source="CustomField_brand" Sort="5" />
+  </ViewFields>
+  <ViewLanguages>
+    <Language ID="LANG1" Name="English" SortOrder="0" />
+    <Language ID="LANG11" Name="Deutsch" SortOrder="1" />
+    <Language ID="LANG8" Name="French" SortOrder="2" />
+  </ViewLanguages>
+</Query>

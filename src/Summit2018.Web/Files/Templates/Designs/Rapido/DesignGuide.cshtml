@@ -1,0 +1,320 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.PageViewModel>
+@MasterPageFile("Master.cshtml")
+@using Dynamicweb.Frontend;
+@using System.Web
+
+
+@{
+    string downloadUrl = "/Default.aspx?ID=" + Model.ID + "&pdf=true";
+    string excludeEcomStyles = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString.Get("ToggleEcom")) ? HttpContext.Current.Request.QueryString.Get("ToggleEcom") : "off";
+
+    string theLogo = Model.Area.Item.GetFile("LogoImage") != null ? Model.Area.Item.GetFile("LogoImage").PathUrlEncoded : "/Files/Images/logo-dynamicweb.png";
+    string favicon = Model.Area.Item.GetItem("Layout").GetFile("LogoFavicon") != null ? Model.Area.Item.GetItem("Layout").GetFile("LogoFavicon").Path : "/Files/Images/favicon.png";
+
+    string theEmailLogo = Model.Area.Item.GetFile("LogoImage") != null ? Model.Area.Item.GetFile("LogoImage").PathUrlEncoded : "/Files/Images/logo-dynamicweb.png";
+    string theReceiptLogo = Model.Area.Item.GetFile("EcommerceReceiptLogoImage") != null ? Model.Area.Item.GetFile("EcommerceReceiptLogoImage").PathUrlEncoded : "/Files/Images/logo-dynamicweb.png";
+
+    string theNavigationFont = Model.Area.Item.GetItem("NavigationFont").GetGoogleFont("FontFamily").Family;
+    string theNavigationFontColor = Model.Area.Item.GetItem("NavigationFont").GetString("FontColor");
+
+    string theToolsMenuFont = Model.Area.Item.GetItem("ToolsMenuFont").GetGoogleFont("FontFamily").Family;
+    string theToolsMenuFontColor = Model.Area.Item.GetItem("ToolsMenuFont").GetString("FontColor");
+
+    string[] colorsInUse = new string[] { theNavigationFontColor, theToolsMenuFontColor, Model.Area.Item.GetString("LayoutBrandColorOne"), Model.Area.Item.GetString("LayoutBrandColorTwo"), Model.Area.Item.GetString("LayoutBackgroundColor"), Model.Area.Item.GetString("ToolsMenuBackgroundColor"), theToolsMenuFontColor,
+    Model.Area.Item.GetString("NavigationBackgroundColor"),  Model.Area.Item.GetString("NavigationActiveFontColor"), Model.Area.Item.GetString("NavigationDropdownBackgroundColor"), Model.Area.Item.GetString("NavigationDropdownActiveColor"), Model.Area.Item.GetString("NavigationDropdownFontColor"),
+    Model.Area.Item.GetString("NavigationDropdownHeadingColor"), Model.Area.Item.GetString("MobileNavigationBackgroundColor"), Model.Area.Item.GetString("MobileNavigationActiveBorderColor"), Model.Area.Item.GetString("MobileNavigationActiveBorderColor"), Model.Area.Item.GetItem("MobileNavigationFont").GetString("FontColor"),
+    Model.Area.Item.GetString("MobileNavigationActiveFontColor"), Model.Area.Item.GetString("ContentLayoutPaginationActiveColor"), Model.Area.Item.GetString("ContentLayoutPaginationActiveColor"), Model.Area.Item.GetString("FooterFontColor")
+    };
+
+    var set = new Dictionary<string, bool>();
+    foreach (var item in colorsInUse)
+    {
+        if (!set.ContainsKey(item))
+        {
+            set.Add(item, true);
+        }
+    }
+
+    int numberOfUniqueColors = set.Count;
+}
+
+<div class="grid">
+    <div class="grid__col-12">
+        <div class="grid">
+            <div class="grid__col-md-12 u-no-print">
+                <div class="grid__cell">
+                    <a href="@downloadUrl" class="btn btn--secondary btn--full dw-mod" download><i class="fas fa-download"></i> @Translate("Download the design guide")</a>
+                
+                    <form id="DesignStylesForm" method="get"  >              
+                        <div class="form__field-group">
+                            <input type="hidden" name="ID" value="@Model.ID" />
+                            <input type="checkbox" id="ToggleEcom" name="ToggleEcom" class="js-remember-state form__control" onclick="document.getElementById('DesignStylesForm').submit();"  />
+                            <label for="ToggleEcom">@Translate("Exclude Ecommerce related styles")</label>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="grid__col-12">
+                <h1>@Translate("Design guide")</h1>
+            </div>
+            <div class="grid__col-md-8 grid__col-xs-12">
+                <div>@Translate("This design guide is for") @Model.Area.Item.GetString("BusinessName")</div>
+                <div>@DateTime.Now</div>
+                <div>@Translate("Unique colors in use "): @numberOfUniqueColors</div>
+            </div>
+            <div class="grid__col-md-4 grid__col-xs-12">
+                <div class="card u-ta-right">
+                    <div>@Model.Area.Item.GetString("BusinessName")</div>
+                    <div>@Model.Area.Item.GetItem("Address").GetString("StreetAddress")</div>
+                    <div>@Model.Area.Item.GetItem("Address").GetString("PostalCode") @Model.Area.Item.GetItem("Address").GetString("City")</div>
+                    <div>@Model.Area.Item.GetItem("Address").GetString("Country")</div>
+                    <div>@Model.Area.Item.GetString("ContactEmail")</div>
+                    <div>@Model.Area.Item.GetString("ContactNumber")</div>
+                </div>
+            </div>
+            <div class="grid__col-md-6 grid__col-xs-12">
+                <h2 class="section-title">@Translate("Logo on the website")</h2>
+
+                <div class="u-bold">@Translate("On dark background")</div>
+                <div class="logo u-color-dark--bg u-padding dw-mod">
+                    <img src="@theLogo" alt="@Translate("Logo")" />
+                </div>
+                <p></p>
+
+                <div class="u-bold">@Translate("On light background")</div>
+                <div class="logo u-padding u-border dw-mod">
+                    <img src="@theLogo" alt="@Translate("Logo")" />
+                </div>
+                <p></p>
+            </div>
+            <div class="grid__col-md-6 grid__col-xs-12">
+                <h2 class="section-title">@Translate("Logo in the emails")</h2>
+
+                <div class="u-bold">@Translate("On dark background")</div>
+                <div class="logo u-color-dark--bg u-padding dw-mod">
+                    <img src="@theEmailLogo" alt="@Translate("EmailLogoImage")" />
+                </div>
+                <p></p>
+
+                <div class="u-bold">@Translate("On light background")</div>
+                <div class="logo u-padding u-border dw-mod">
+                    <img src="@theEmailLogo" alt="@Translate("EmailLogoImage")" />
+                </div>
+                <p></p>
+            </div>
+            @if (excludeEcomStyles == "off")
+            {
+                <div class="grid__col-md-6 grid__col-xs-12">
+                    <h2 class="section-title">@Translate("Logo on the receipts")</h2>
+
+                    <div class="u-bold">@Translate("On dark background")</div>
+                    <div class="logo u-color-dark--bg u-padding dw-mod">
+                        <img src="@theReceiptLogo" alt="@Translate("EmailLogoImage")" />
+                    </div>
+                    <p></p>
+
+                    <div class="u-bold">@Translate("On light background")</div>
+                    <div class="logo u-padding u-border dw-mod">
+                        <img src="@theReceiptLogo" alt="@Translate("EmailLogoImage")" />
+                    </div>
+                    <p></p>
+                </div>
+            }
+            <div class="grid__col-md-12">
+                <h2 class="section-title">@Translate("Colors")</h2>
+
+                <div class="collection">
+                    @ColorBox("Brand color one", Model.Area.Item.GetString("LayoutBrandColorOne"))
+                    @ColorBox("Brand color two", Model.Area.Item.GetString("LayoutBrandColorTwo"))
+                    @ColorBox("Page background", Model.Area.Item.GetString("LayoutBackgroundColor"))
+                </div>
+
+                <div class="collection-header">@Translate("Tools menu")</div>
+                <div class="collection">
+                    @ColorBox("Background", Model.Area.Item.GetString("ToolsMenuBackgroundColor"))
+                    @ColorBox("Font", theToolsMenuFontColor)
+                </div>
+
+                <div class="collection-header">@Translate("Navigation")</div>
+                <div class="collection">
+                    @ColorBox("Background", Model.Area.Item.GetString("NavigationBackgroundColor"))
+                    @ColorBox("Font active", Model.Area.Item.GetString("NavigationActiveFontColor"))
+                </div>
+
+                <div class="collection-header">Megamenu / Dropdown</div>
+                <div class="collection">
+                    @ColorBox("Background", Model.Area.Item.GetString("NavigationDropdownBackgroundColor"))
+                    @ColorBox("Background active", Model.Area.Item.GetString("NavigationDropdownActiveColor"))
+                    @ColorBox("Font", Model.Area.Item.GetString("NavigationDropdownFontColor"))
+                    @ColorBox("Font active", Model.Area.Item.GetString("NavigationDropdownActiveFontColor"))
+                    @ColorBox("Heading font", Model.Area.Item.GetString("NavigationDropdownHeadingColor"))
+                </div>
+
+                <div class="collection-header">@Translate("Mobile navigation")</div>
+                <div class="collection">
+                    @ColorBox("Background", Model.Area.Item.GetString("MobileNavigationBackgroundColor"))
+                    @ColorBox("Background active", Model.Area.Item.GetString("MobileNavigationActiveBackgroundColor"))
+                    @ColorBox("Border", Model.Area.Item.GetString("MobileNavigationActiveBorderColor"))
+                    @ColorBox("Border active", Model.Area.Item.GetString("MobileNavigationBorderColor"))
+                    @ColorBox("Font", Model.Area.Item.GetItem("MobileNavigationFont").GetString("FontColor"))
+                    @ColorBox("Font active", Model.Area.Item.GetString("MobileNavigationActiveFontColor"))
+                </div>
+
+                <div class="collection-header">Pagination</div>
+                <div class="collection">
+                    @ColorBox("Background active", Model.Area.Item.GetString("ContentLayoutPaginationActiveColor"))
+                </div>
+
+                <div class="collection-header">Footer</div>
+                <div class="collection">
+                    @ColorBox("Background", Model.Area.Item.GetString("ContentLayoutPaginationActiveColor"))
+                    @ColorBox("Font", Model.Area.Item.GetString("FooterFontColor"))
+                </div>
+            </div>
+            <div class="grid__col-md-12">
+                <h2 class="section-title">@Translate("Fonts")</h2>
+
+                @if (Model.Area.Item.GetItem("NavigationFont") != null)
+                {
+                    <div class="collection-header">@Translate("Navigation")</div>
+                    <div class="collection">
+                        @FontBox(Model.Area.Item.GetItem("NavigationFont"))
+                    </div>
+                }
+
+                @if (Model.Area.Item.GetItem("MobileNavigationFont") != null)
+                {
+                    <div class="collection-header">@Translate("Mobile navigation")</div>
+                    <div class="collection">
+                        @FontBox(Model.Area.Item.GetItem("MobileNavigationFont"))
+                    </div>
+                }
+
+                @if (Model.Area.Item.GetItem("ContentLayoutHeaderFont") != null)
+                {
+                    <div class="collection-header">Headers (H1)</div>
+                    <div class="collection">
+                        @FontBox(Model.Area.Item.GetItem("ContentLayoutHeaderFont"))
+                    </div>
+                }
+
+                @if (Model.Area.Item.GetItem("ContentLayoutSubheaderFont") != null)
+                {
+                    <div class="collection-header">Subheaders (H2)</div>
+                    <div class="collection">
+                        @FontBox(Model.Area.Item.GetItem("ContentLayoutSubheaderFont"))
+                    </div>
+                }
+
+                @if (Model.Area.Item.GetItem("ContentLayoutTertiaryHeaderFont") != null)
+                {
+                    <div class="collection-header">Subheaders (H2)</div>
+                    <div class="collection">
+                        @FontBox(Model.Area.Item.GetItem("ContentLayoutTertiaryHeaderFont"))
+                    </div>
+                }
+
+                @if (Model.Area.Item.GetItem("ContentLayoutBodyText") != null)
+                {
+                    <div class="collection-header">Body text</div>
+                    <div class="collection">
+                        @FontBox(Model.Area.Item.GetItem("ContentLayoutBodyText"))
+                    </div>
+                }
+            </div>
+            <div class="grid__col-md-12">
+                <h2 class="section-title">@Translate("Buttons")</h2>
+                @ButtonBox("Primary", "primary", Translate("The primary button is for when you want to attract extra attention"))
+                @ButtonBox("Secondary", "secondary", Translate("The secondary button is for when you do not need to attract special attention"))
+                @ButtonBox("Tertiary", "tertiary", Translate("The tertiary button is most often used when you need a design that work for example on top of images"))
+                @ButtonBox("Link", "link")
+            </div>
+            @if (excludeEcomStyles == "off")
+            {
+                <div class="grid__col-md-12">
+                    <h2 class="section-title">@Translate("Ecommerce tags")</h2>
+                    @TagBox("Sale", "sale", "25% off", Translate("The sale tag will automatically be on products that has a discount"))
+                    @TagBox("New", "new", "New", Translate("The new tag can be set to appear on the newest products"))
+                    @TagBox("Custom", "custom", "Black friday", Translate("The custom tag has a custom text and is specific to the products where it is enabled"))
+                </div>
+            }
+            <div class="grid__col-md-12">
+                <h2 class="section-title">@Translate("Footer text")</h2>
+
+                @if (!String.IsNullOrEmpty(Model.Area.Item.GetString("FooterColumnOne"))) {
+                    <div class="collection-header">Column one</div>
+                    @Model.Area.Item.GetString("FooterColumnOneHeader")
+                    @Model.Area.Item.GetString("FooterColumnOne")
+                }
+
+                @if (!String.IsNullOrEmpty(Model.Area.Item.GetString("FooterColumnTwo"))) {
+                    <div class="collection-header">Column two</div>
+                    @Model.Area.Item.GetString("FooterColumnTwoHeader")
+                    @Model.Area.Item.GetString("FooterColumnTwo")
+                }
+
+                @if (!String.IsNullOrEmpty(Model.Area.Item.GetString("FooterColumnThree")))
+                {
+                    <div class="collection-header">Column three</div>
+                    @Model.Area.Item.GetString("FooterColumnThreeHeader")
+                    @Model.Area.Item.GetString("FooterColumnThree")
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+
+@helper ColorBox(string name, string color) {
+    if (!String.IsNullOrEmpty(color)) {
+        <div class="color-box">
+            <div class="color-box__title">
+                @name
+            </div>
+            <div class="color-box__container">
+                <div class="color-box__color" style="background-color: @color"></div>
+                <div class="color-box__value">
+                    @color
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@helper FontBox(ItemViewModel fontModel) {
+    string fontColor = fontModel.GetString("FontColor");
+    string backgroundColor = fontModel.GetString("FontColor").ToLower() == "#fff" || fontModel.GetString("FontColor").ToLower() == "#ffffff" ? "background-color: #333;" : "";
+    string casing = @fontModel.GetString("Casing") != "None" ? fontModel.GetString("Casing") : "";
+
+    <div>
+        <div>@fontModel.GetGoogleFont("FontFamily").Family</div>
+        <div class="collection u-color-light-gray">
+            <span>@fontModel.GetString("FontSize")<text>px</text></span><span>@fontModel.GetGoogleFont("FontFamily").Weight</span><span> @casing</span>
+        </div>
+        <div class="u-padding u-border" style="font-family: @fontModel.GetGoogleFont("FontFamily").Family; color: @fontColor; @backgroundColor font-weight: @fontModel.GetGoogleFont("FontFamily").Weight; font-size: @fontModel.GetString("FontSize")px; text-transform: @fontModel.GetString("Casing"); width: max-content;">
+            The quick brown fox jumps over the lazy dog
+        </div>
+    </div>
+}
+
+@helper ButtonBox(string name, string type, string description = "") {
+    <div>
+        <div class="u-bold">@name</div>
+        <button class="btn btn--@type dw-mod">@Translate("Read more")</button>
+        @if (!String.IsNullOrEmpty(description)) {
+            <p>@description.</p>
+        }
+    </div>
+}
+
+@helper TagBox(string name, string type, string content, string description = "") {
+    <div>
+        <div class="u-bold">@name</div>
+        <div class="stickers-container dw-mod" style="position: relative">
+            <div class="stickers-container__tag stickers-container__tag--@type dw-mod">@content</div>
+        </div>
+        @if (!String.IsNullOrEmpty(description)) {
+            <p>@description.</p>
+        }
+    </div>
+}

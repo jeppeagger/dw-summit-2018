@@ -1,0 +1,99 @@
+﻿@inherits RazorTemplateBase<RazorTemplateModel<Template>>
+@using Dynamicweb.Rendering;
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using Dynamicweb.Security;
+
+@MasterPageFile("../../EmailMaster.cshtml")
+@Include("../../EmailHelpers.cshtml")
+
+<table bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="500" id="emailBody">
+    @RenderHeaderSection()
+    @RenderCustomerDetails()
+    @RenderOrderList()
+    @RenderGiftcards()
+    @RenderComments()
+    @RenderFooterSection()
+</table>
+
+@* CONTENT HELPERS *@
+
+@helper RenderHeaderSection()
+{
+    @RenderHeaderImage();
+    
+    Column info = new Column();
+    info.header = Translate("Order information");
+    info.text.Add(Translate("Order no.") + " " + GetString("Ecom:Order.ID") + " - " + GetString("Ecom:Order.Completed"));
+    info.align = "center";
+
+    @CreateRow(info);
+
+    @CreateRowDivider();
+
+    @RenderRecurringDetails();
+}
+
+@helper RenderCustomerDetails()
+{ 
+    @RenderAddresses("Billing address", "Shipping address", "Order");
+}
+
+@helper RenderOrderList()
+{
+    foreach (LoopItem orderline in GetLoop("OrderLines"))
+    {
+        @RenderOrderline(orderline);
+
+        @CreateRowDivider();
+    }
+
+    @RenderSummary();
+    @RenderTotal();
+}
+
+
+@helper RenderSummary()
+{
+    Column summaryLeft = new Column();
+    summaryLeft.text.Add("Total");
+    if (!string.IsNullOrEmpty(GetString("Ecom:Order.PaymentMethod")))
+    {
+        summaryLeft.text.Add("Payment method: " + GetString("Ecom:Order.PaymentMethod"));
+    } 
+    else 
+    {
+        summaryLeft.text.Add("Payment method");
+    }
+    if (!string.IsNullOrEmpty(GetString("Ecom:Order.PaymentMethod")))
+    {
+        summaryLeft.text.Add("Shipping method: " + GetString("Ecom:Order.ShippingMethod"));
+    } 
+    else 
+    {
+        summaryLeft.text.Add("Shipping method");
+    }
+    summaryLeft.text.Add("VAT");
+
+    Column summaryRight = new Column();
+    summaryRight.text.Add(GetString("Ecom:Order.Price.PriceWithoutVATFormatted"));
+    summaryRight.text.Add(GetString("Ecom:Order.PaymentFee.PriceFormatted"));
+    summaryRight.text.Add(GetString("Ecom:Order.ShippingFee.PriceFormatted"));
+    summaryRight.text.Add(GetString("Ecom:Order.Price.VATFormatted"));
+    summaryRight.align = "right";
+
+    @CreateRow(summaryLeft, summaryRight);
+}
+
+
+@helper RenderTotal()
+{
+    Column totalsLeft = new Column();
+    totalsLeft.subheader = Translate("Total");
+
+    Column totalsRight = new Column();
+    totalsRight.subheader = GetString("Ecom:Order.Price.PriceWithVATFormatted");
+    totalsRight.align = "right";
+
+    @CreateRow(totalsLeft, totalsRight, new RowSettings { backgroundColor = "#e4e4e4" });
+}

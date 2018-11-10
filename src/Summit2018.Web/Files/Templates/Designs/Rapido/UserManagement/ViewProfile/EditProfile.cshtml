@@ -1,0 +1,120 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Text.RegularExpressions
+
+@{ 
+    string userIcon = Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetString("SignInProfileIcon") != null ? Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("SignInProfileIcon").SelectedValue : "fas fa-user";
+    string manageAddressesBtnText = Pageview.Device.ToString() == "Mobile" ? Translate("Addresses") : Translate("Manage addresses");
+}
+
+@helper getInitials(string name, string firstName, string lastName, string email, string userName)
+{
+    string userInitials = "";
+
+    if (!String.IsNullOrEmpty(name))
+    {
+	    string[] names = name.Split(' ');
+	    userInitials += name.Substring(0, 1);
+
+	    if (names.Length > 1)
+	    {
+		    userInitials += names[names.Length - 1].Substring(0, 1);
+	    }
+    }
+    else
+    {
+	    userInitials += firstName != null && firstName != "" ? firstName.Substring(0, 1) : "";
+	    userInitials += lastName != null && lastName != "" ? lastName.Substring(0, 1) : "";
+	    userInitials += userInitials.Length == 1 && firstName != null && firstName.Length > 1 ? firstName.Substring(1, 2) : "";
+	    userInitials += userInitials == "" && email != null && email.Length > 1 ? email.Substring(0, 2) : "";
+	    userInitials += userInitials == "" ? userName.Substring(0, 2) : "";
+    }
+	@userInitials
+}
+
+<h2><i class="@userIcon"></i> @Translate("My profile")</h2>
+<div class="grid media-list-item media-list-item--no-border">
+	<div class="media-list-item__sticker media-list-item__sticker--no-link u-hidden-xs">
+		<span class="u-uppercase">
+			@getInitials(
+				GetString("UserManagement:User.Name"),
+				GetString("UserManagement:User.FirstName"),
+				GetString("UserManagement:User.LastName"),
+				GetString("UserManagement:User.Email"),
+				GetString("UserManagement:User.UserName")
+			)
+		</span>
+	</div>
+	<input type="checkbox" id="editProfileContentTrigger" class="u-hidden" data-expand="editProfileContentTrigger" />
+	<div class="grid__cell">
+		<div class="js-expand-hide" data-trigger="editProfileContentTrigger">
+            <div class="grid grid--external-bleed">
+                <div class="grid__col-6">
+                    <div class="u-bold">@GetString("UserManagement:User.Name")</div>
+                    <div>@GetString("UserManagement:User.Email")</div>
+                    <div>@GetString("UserManagement:User.Phone")</div>
+                    <div>&nbsp;</div>
+                    <div class="u-pull--left">
+                        <a href="/Default.aspx?ID=@GetPageIdByNavigationTag("CustomerAddresses")" class="btn btn--secondary u-no-margin dw-mod" for="editProfileContentTrigger"><i class="far fa-address-book"></i> @manageAddressesBtnText</a>
+                        <label class="btn btn--secondary u-no-margin dw-mod" for="editProfileContentTrigger"><i class="fas fa-pencil"></i> @Translate("Edit profile")</label>
+                    </div>
+                </div>
+                <div class="grid__col-6">
+                    @if (Dynamicweb.Security.Licensing.LicenseManager.LicenseHasFeature("LoyaltyPoints") && GetDouble("UserManagement:User.PointBalance") > 0)
+                    {
+                        <div class="u-border u-border-color--loyalty-points u-padding--lg u-full-height">
+                            <h3 class="u-no-margin">@Translate("Your point balance")</h3>
+                            <div class="u-font-size--lg u-margin-bottom">
+                                <span class="u-color--loyalty-points">@GetInteger("UserManagement:User.PointBalance")</span> @Translate("points")
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+		</div>
+		<div class="expandable--collapsed" data-trigger="editProfileContentTrigger">
+			@GetString("UserManagement:User.FormStart")
+			<div class="grid">
+				<div class="grid__col-md-6 grid__col--bleed u-padding-right u-no-padding--xs">
+					<label for="UserManagement_Form_Name">@Translate("Name")</label>
+					<input type="text" class="u-full-width" name="UserManagement_Form_Name" id="UserManagement_Form_Name" value="@GetString("UserManagement:User.Name")" />
+					<div class="field-error dw-mod">@GetString("UserManagement:User.Name.Input.Error")</div>
+
+					<label for="UserManagement_Form_Phone">@Translate("Phone")</label>
+					<input type="tel" class="u-full-width" name="UserManagement_Form_Phone" id="UserManagement_Form_Phone" value="@GetString("UserManagement:User.Phone")" />
+					<div class="field-error dw-mod">@GetString("UserManagement:User.Phone.Input.Error")</div>
+
+					<label for="UserManagement_Form_Email">@Translate("Email")</label>
+					<input type="email" class="u-full-width" name="UserManagement_Form_Email" id="UserManagement_Form_Email" value="@GetString("UserManagement:User.Email")" />
+					<div class="field-error dw-mod">@GetString("UserManagement:User.Email.Input.Error")</div>
+				</div>
+				<div class="grid__col-md-6 grid__col--bleed">
+					<label for="UserManagement_Form_NewPassword">@Translate("Old password")</label>
+					@GetString("UserManagement:User.OldPassword.Input").Replace("input ", "input class=\"u-full-width\"")
+					<div class="field-error dw-mod">@GetString("UserManagement:User.OldPassword.Input.Error")</div>
+
+					<label for="UserManagement_Form_NewPassword">@Translate("New password")</label>
+					@GetString("UserManagement:User.NewPassword.Input").Replace("input ", "input class=\"u-full-width\"")
+					<div class="field-error dw-mod">@GetString("UserManagement:User.NewPassword.Input.Error")</div>
+
+					<label for="UserManagement_Form_NewPasswordConfirm">@Translate("Confirm password")</label>
+					@GetString("UserManagement:User.NewPasswordConfirm.Input").Replace("input ", "input class=\"u-full-width\"")
+					<div class="field-error dw-mod">@GetString("UserManagement:User.NewPasswordConfirm.Input.Error")</div>
+				</div>
+			</div>
+			<div class="u-pull--right">
+				<label class="btn btn--secondary btn--condensed dw-mod " for="editProfileContentTrigger"><i class="fas fa-angle-left"></i> @Translate("Back")</label>
+				<button type="submit" class="btn btn--primary dw-mod" id="submitter">@Translate("Save")</button>
+			</div>
+			@GetString("UserManagement:User.FormEnd")
+		</div>
+	</div>
+</div>
+@{
+	string addressesUrl = new Regex("([?&]ID)=[^?&]+").Replace(GetString("UserManagement:User.ManageAddressesUrl"), "?ID=" + GetPageIdByNavigationTag("ManageAddressesPage"));
+}
+
+<script>
+	function resizeIFrameToFitContent(iframe) {
+		iframe.style.height = iframe.contentWindow.document.body.scrollHeight + "px";
+	}
+</script>

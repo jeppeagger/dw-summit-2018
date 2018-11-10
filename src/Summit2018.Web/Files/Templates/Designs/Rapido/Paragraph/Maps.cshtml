@@ -1,0 +1,103 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.ParagraphViewModel>
+                                 
+@Include("Layout.cshtml")
+
+@functions {
+    public class Location
+    {
+        public string latitude { get; set; }
+        public string longitude { get; set; }
+        public string company { get; set; }
+        public string address { get; set; }
+        public string zip { get; set; }
+        public string city { get; set; }
+        public string country { get; set; }
+        public string description { get; set; }
+    }
+
+    public List<Location> Locations { get; set; }
+}
+
+@{
+    string mapsScriptUrl = "//maps.googleapis.com/maps/api/js";
+    mapsScriptUrl += !String.IsNullOrEmpty(Pageview.AreaSettings.GetItem("Settings").GetString("GoogleMapsAPIKey")) ? "?key=" + Pageview.AreaSettings.GetItem("Settings").GetString("GoogleMapsAPIKey") : "";
+
+    if (Model.Item.GetItems("LocationMark") != null) {
+        Locations = new List<Location>();
+
+        foreach (var item in Model.Item.GetItems("LocationMark"))
+        {
+            Location location = new Location();
+            location.latitude = item.GetGeolocation("Location") != null ? item.GetGeolocation("Location").Latitude.ToString() : "";
+            location.longitude = item.GetGeolocation("Location") != null ? item.GetGeolocation("Location").Longitude.ToString() : "";
+            location.company = item.GetString("Name") != null ? item.GetString("Name") : "";
+            location.address = item.GetString("Address") != null ? item.GetString("Address") : "";
+            location.zip = item.GetString("Zip") != null ? item.GetString("Zip") : "";
+            location.city = item.GetString("City") != null ? item.GetString("City") : "";
+            location.country = item.GetString("Country") != null ? item.GetString("Country") : "";
+            location.description = item.GetString("Description") != null ? item.GetString("Description") : "";
+            Locations.Add(location);
+        }
+    }
+
+    string jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(Locations);
+    string mapWidthClass = "grid__col-12";
+}
+
+<div class="@columnClass() paragraph-container">
+    <h2>@Translate("Find us")</h2>
+
+    <div class="grid grid--external-bleed-x">
+        @if (Model.Item.GetItems("LocationMark") != null && Model.Item.GetItems("LocationMark").Count > 0)
+        {
+            if (Model.Item.GetItems("LocationMark").Count > 1)
+            {
+                mapWidthClass = "grid__col-lg-8 grid__col-md-8 grid__col-sm-8 grid__col-xs-12";
+                int count = 1;
+
+                <div class="grid__col-lg-4 grid__col-md-4 grid__col-sm-4 grid__col-xs-12">
+                    <ul class="list list--clean list--scroll dw-mod">
+                        @foreach (var item in Model.Item.GetItems("LocationMark"))
+                        {
+                            <li class="list__item list__item--hover dw-mod" data-lat="@item.GetGeolocation("Location").Latitude" data-lng="@item.GetGeolocation("Location").Longitude" onclick="Maps.OpenInfo((@count-1))">
+                                <div class="list__number">@count</div>
+                                <div class="list__numbered-item">
+                                    <div class="u-bold">@item.GetString("Name")</div>
+                                    <span>@item.GetString("Address") </span>
+                                    <div>
+                                        @if (!String.IsNullOrEmpty(item.GetString("Zip")))
+                                        {
+                                            <span>@item.GetString("Zip") </span>
+                                        }
+                                        <span>@item.GetString("City") </span>
+                                    </div>
+                                    @if (!String.IsNullOrEmpty(item.GetString("Country")))
+                                    {
+                                        <span>@item.GetString("Country") </span>
+                                    }
+                                </div>
+                            </li>
+                            <li class="list__seperator list__seperator--clean"></li>
+
+                            count++;
+                        }
+                    </ul>
+                </div>
+            }
+
+            <div class="@mapWidthClass">
+                <div class="map-container">
+                    <div id="MapCanvas" class="map-container__canvas"></div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function (event) {
+        Maps.Init('MapCanvas', @jsonFeed);
+    });
+</script>
+
+<script src="@mapsScriptUrl"></script>

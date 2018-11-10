@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="4b8c67c5-cf06-43c9-a77d-8f75cc36a461" Name="Promotion.query">
+  <Settings />
+  <Source Repository="Products" Item="Products.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <Parameters>
+    <Parameter Name="GroupId" Type="System.String[]" DefaultValue="" />
+  </Parameters>
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="Active" />
+        </Left>
+        <Right>
+          <TermExpression Value="True" DisplayValue="True" Type="System.Boolean" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="MatchAny">
+        <Left>
+          <FieldExpression Field="GroupIDs" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="GroupId" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="LanguageID" />
+        </Left>
+        <Right>
+          <MacroExpression Lookup="Dynamicweb.Ecommerce.Context:LanguageID" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields>
+    <Field Name="Active" SystemName="" Source="ProductActive" Sort="0" />
+    <Field Name="Product name" SystemName="" Source="ProductName" Sort="1" />
+    <Field Name="Product number" SystemName="" Source="ProductNumber" Sort="2" />
+    <Field Name="Price" SystemName="" Source="ProductPrice" Sort="3" />
+  </ViewFields>
+  <ViewLanguages />
+</Query>

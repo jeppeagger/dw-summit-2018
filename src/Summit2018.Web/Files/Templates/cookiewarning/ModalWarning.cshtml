@@ -1,0 +1,57 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+<div id="cookieWarningDiv">
+    <script type="text/javascript">
+        function setOptInCookie(optInLevel) {
+            var xmlhttp;
+            if (window.XMLHttpRequest) {
+                xmlhttp = new XMLHttpRequest();
+            }
+            else {
+                xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                    document.getElementById("CookieModalTrigger").checked = false;
+                    return false;
+                }
+            }
+            xmlhttp.open("GET", "/admin/public/CookieOptInLevelConfig.aspx?cmd=SetCookieOptInLevel&OptInLevel=" + optInLevel, true);
+            xmlhttp.send();
+            return false;
+        }
+    </script>
+</div>
+
+
+<!-- Trigger for the cookie modal -->
+<input type="checkbox" id="CookieModalTrigger" class="modal-trigger" checked />
+
+<!-- Cookie modal -->
+<div class="modal-container">
+    <label for="CookieModalTrigger" id="CookieModalOverlay" class="modal-overlay"></label>
+    <div class="modal modal--sm" id="CookieModal">
+        <div class="modal__header">
+            <h2>@Translate("This website use cookies")</h2>
+        </div>
+        <div class="modal__body">
+            <p>@Translate("This website uses cookies to track your behavior and to improve your experience on the site")</p>
+            <p>@Translate("You can always delete saved cookies by visiting the advanced settings of your browser")</p>
+
+            <form method="get" id="CookieForm" class="u-no-margin" action="/admin/public/CookieOptInLevelConfig.aspx?cmd=SetCookieOptInLevel">
+                <input type="radio" name="OptInLevel" id="OptInLevel0" value="0" class="form__control" />
+                <label onclick="setOptInCookie(0);" for="OptInLevel0">
+                    @Translate("Do not accept cookies")
+                </label> 
+                <input type="radio" name="OptInLevel" id="OptInLevel1" value="1" class="form__control" />
+                <label onclick="setOptInCookie(1);" for="OptInLevel1">
+                    @Translate("Only accept functional cookies")
+                </label>
+                <input type="radio" name="OptInLevel" id="OptInLevel2" value="2" class="form__control" />
+                <label onclick="setOptInCookie(2);" for="OptInLevel2">
+                    @Translate("Accept all cookies")    
+                </label> 
+            </form>
+        </div>
+    </div>
+</div>

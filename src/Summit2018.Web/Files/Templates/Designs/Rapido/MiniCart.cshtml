@@ -1,0 +1,95 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.PageViewModel>
+@using Dynamicweb.Ecommerce;
+@using System.Web
+@using System.Text.RegularExpressions
+
+@{
+    string feedType = HttpContext.Current.Request.QueryString.Get("feedtype");
+    int productCatalog = GetPageIdByNavigationTag("ProductsPage");
+}
+
+@functions {
+    public class MiniCartOrderLine
+    {
+        public string template { get; set; }
+        public string id { get; set; }
+        public string name { get; set; }
+        public string variantname { get; set; }
+        public string unitname { get; set; }
+        public string quantity { get; set; }
+        public double pointPrice { get; set; }
+        public double pointsTotal { get; set; }
+        public string totalprice { get; set; }
+        public string link { get; set; }
+        public string image { get; set; }
+        public string isempty { get; set; }
+    }
+
+    public class Root
+    {
+        public string numberofproducts { get; set; }
+        public string paymentmethod { get; set; }
+        public string paymentfee { get; set; }
+        public string shippingmethod { get; set; }
+        public string shippingfee { get; set; }
+        public string totalprice { get; set; }
+        public double earnings { get; set; }
+        public string totalvat { get; set; }
+        public string isempty { get; set; }
+        public List<MiniCartOrderLine> MiniCartOrderLines { get; set; }
+    }
+}
+
+@{
+    string jsonFeed = "";
+
+    List<Root> feedObject = new List<Root>();
+    Root feedRoot = new Root();
+
+    if (feedType != "Counter")
+    {
+        feedRoot.numberofproducts = Model.Cart.TotalProductsCount.ToString();
+        feedRoot.paymentmethod = Model.Cart.PaymentMethod != null ? Model.Cart.PaymentMethod : "";
+        feedRoot.paymentfee = Model.Cart.PaymentFee.Price.Formatted;
+        feedRoot.shippingmethod = Model.Cart.ShippingMethod != null ? Model.Cart.ShippingMethod : "";
+        feedRoot.shippingfee = Model.Cart.ShippingFee.Price.Formatted;
+        feedRoot.earnings = GetDouble("Ecom:Order.RewardTotalPoints");
+        feedRoot.totalprice = Model.Cart.TotalPrice.Price.Formatted;
+        feedRoot.totalvat = Model.Cart.TotalPrice.Vat.Formatted;
+        feedRoot.isempty = Model.Cart.IsEmpty ? "u-visually-hidden" : "";
+
+        feedRoot.MiniCartOrderLines = new List<MiniCartOrderLine>();
+        foreach (var orderline in Model.Cart.CartOrderlines)
+        {
+            string productLink = orderline.ProductLink;
+            string variantId = !String.IsNullOrEmpty(orderline.ProductVariantID) ? "&VariantID=" + orderline.ProductVariantID : "";
+            string groupId = orderline.ProductID != null ? Dynamicweb.Ecommerce.Products.Product.GetProductById(orderline.ProductID).DefaultGroup.Id : "";
+            productLink = string.Format("/Default.aspx?ID={0}&GroupID={1}&ProductID={2}{3}", productCatalog, groupId, orderline.ProductID, variantId);
+
+            MiniCartOrderLine miniCartOrderLine = new MiniCartOrderLine();
+            miniCartOrderLine.template = orderline.IsProduct == true ? "MiniCartOrderline" : "MiniCartOrderlineDiscount";
+            miniCartOrderLine.id = orderline.ProductID;
+            miniCartOrderLine.name = orderline.ProductName != null ? orderline.ProductName + orderline.ProductVariantText : "";
+            miniCartOrderLine.variantname = orderline.ProductVariantText != null ? orderline.ProductVariantText : "";
+            miniCartOrderLine.unitname = orderline.UnitName != null ? orderline.UnitName : "";
+            miniCartOrderLine.quantity = orderline.Quantity.ToString();
+            miniCartOrderLine.totalprice = orderline.TotalPrice.Price.Formatted;
+            miniCartOrderLine.pointsTotal = orderline.GetDouble("Ecom:Order:OrderLine.Points");
+            miniCartOrderLine.pointPrice = orderline.GetDouble("Ecom:Product.PointPrice");
+            miniCartOrderLine.link = productLink;
+            miniCartOrderLine.image = orderline.ProductImage;
+            miniCartOrderLine.isempty = Model.Cart.IsEmpty ? "u-hidden" : "";
+            feedRoot.MiniCartOrderLines.Add(miniCartOrderLine);
+        }
+    }
+    else
+    {
+        feedRoot.numberofproducts = Model.Cart.TotalProductsCount.ToString();
+    }
+
+    feedObject.Add(feedRoot);
+    jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(feedObject);
+
+}
+
+@jsonFeed

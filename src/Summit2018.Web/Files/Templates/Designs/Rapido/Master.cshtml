@@ -1,0 +1,200 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.PageViewModel>
+
+@* Rapido version 3.0 *@ 
+
+@using System.Web;
+@using Dynamicweb.Frontend
+@using Dynamicweb.Frontend.Devices
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using Dynamicweb.Security
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.IO
+@using Dynamicweb.Rapido.Blocks
+
+@functions {
+    BlocksPage masterPage = BlocksPage.GetBlockPage("Master");
+
+    string getFontFamily(params string[] items)
+    {
+        var itemParent = Pageview.AreaSettings;
+        foreach (var item in items)
+        {
+            itemParent = itemParent.GetItem(item);
+            if (itemParent == null)
+            {
+                return null;
+            }
+        }
+        
+        var googleFont = itemParent.GetGoogleFont("FontFamily");
+        if (googleFont == null)
+        {
+            return null;
+        }
+        return googleFont.Family.Replace(" ", "+");
+    }
+}
+@{ 
+    //Font settings
+    var fonts = new string[] {
+        getFontFamily("Layout", "HeaderFont"),
+        getFontFamily("Layout", "SubheaderFont"),
+        getFontFamily("Layout", "TertiaryHeaderFont"),
+        getFontFamily("Layout", "Header", "ToolsFont"),
+        getFontFamily("Layout", "Header", "NavigationFont"),
+        getFontFamily("Layout", "MobileNavigation", "Font"),
+        getFontFamily("ProductList", "Facets", "HeaderFont"),
+        getFontFamily("ProductPage", "PriceFontDesign"),
+        getFontFamily("Ecommerce", "SaleSticker", "Font"),
+        getFontFamily("Ecommerce", "NewSticker", "Font"),
+        getFontFamily("Ecommerce", "CustomSticker", "Font")
+    };
+
+    string autoCssLink = "/Files/Templates/Designs/Rapido/css/rapido/rapido_" + Model.Area.ID.ToString() + ".min.css?ticks=" + Model.Area.UpdatedDate.Ticks;
+
+    string favicon = Model.Area.Item.GetItem("Layout").GetFile("LogoFavicon") != null ? Model.Area.Item.GetItem("Layout").GetFile("LogoFavicon").Path : "/Files/Images/favicon.png";
+}
+
+@{
+    Block master = new Block()
+    {
+        Id = "Master",
+        BlocksList = new List<Block> {
+            new Block {
+                Id = "MasterTopSnippets",
+                SortId = 10
+            },
+            new Block {
+                Id = "MasterMain",
+                SortId = 20,
+                Template = RenderMain(),
+                SkipRenderBlocksList = true,
+                BlocksList = new List<Block> {
+                    new Block
+                    {
+                        Id = "MasterHeader",
+                        SortId = 10,
+                        Template = RenderMasterHeader(),
+                        SkipRenderBlocksList = true
+                    },
+                    new Block {
+                        Id = "MasterPageContent",
+                        SortId = 20,
+                        Template = RenderPageContent()
+                    }
+                }
+            },
+            new Block {
+                Id = "MasterFooter",
+                SortId = 30
+            },
+            new Block {
+                Id = "MasterReferences",
+                SortId = 40
+            },
+            new Block {
+                Id = "MasterBottomSnippets",
+                SortId = 50
+            }
+        }
+    };
+    masterPage.Add(master);
+}
+
+@* Include the required Grid builder (Contains the methods @RenderBlockList and @RenderBlock) *@
+@Include("Components/GridBuilder.cshtml")
+
+@* Include the Blocks for the page *@
+@Include("MasterBlocks/TopSnippets.cshtml")
+@Include("MasterBlocks/Login.cshtml")
+@if (Pageview.Device.ToString() == "Mobile" || Pageview.Device.ToString() == "Tablet")
+{
+    <text>@Include("MasterBlocks/MobileHeader.cshtml")</text>
+    <text>@Include("MasterBlocks/MobileNavigation.cshtml")</text>
+}
+else
+{
+    <text>@Include("MasterBlocks/Header.cshtml")</text>
+}
+@Include("MasterBlocks/Footer.cshtml")
+@Include("MasterBlocks/MiniCart.cshtml")
+@Include("MasterBlocks/References.cshtml")
+@Include("MasterBlocks/Search.cshtml")
+@Include("MasterBlocks/BottomSnippets.cshtml")
+@Include("MasterBlocks/Custom__Blocks.cshtml")
+
+<!DOCTYPE html>
+
+<html lang="@Pageview.Area.CultureInfo.TwoLetterISOLanguageName">
+<head>
+    <meta charset="utf-8" />
+    <title>@Model.Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="index, follow">
+
+    <!-- Favicon -->
+    <link href="@favicon" rel="icon" type="image/png">
+
+    <!-- Font awesome -->
+    <link rel="stylesheet" href="/Files/Templates/Designs/Rapido/css/fonts/FontAwesomePro/css/fontawesome-all.min.css" type="text/css">
+
+    <!-- Flag icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/flag-icon-css/3.1.0/css/flag-icon.min.css" type="text/css">
+
+    <!-- Base (Default, wireframe) styles -->
+    <link rel="stylesheet" href="/Files/Templates/Designs/Rapido/css/base/base.min.css" type="text/css">
+
+    <!-- Rapido Css from Website Settings -->
+    <link id="rapidoCss" rel="stylesheet" href="@autoCssLink" type="text/css">
+
+    <!-- Ignite Css (Custom site specific styles) -->
+    <link id="igniteCss" type="text/css" href="/Files/Templates/Designs/Rapido/css/ignite/ignite.min.css" rel="stylesheet">
+
+    <!-- Google fonts -->
+    @{ 
+        var family = string.Join("%7C", fonts.Where(x => !string.IsNullOrEmpty(x)).Distinct().Select(x => string.Format("{0}:100,200,300,400,500,600,700,800,900", x)));
+    }
+    <link href="https://fonts.googleapis.com/css?family=@family" rel="stylesheet">
+</head>
+
+<body>
+
+@* The @RenderBlockList base helper is included in Components/GridBuilder.cshtml *@
+@RenderBlockList(masterPage.BlocksRoot.BlocksList)
+
+
+@helper RenderMasterHeader() { 
+    List<Block> subBlocks = this.masterPage.GetBlockListById("MasterHeader").OrderBy(item => item.SortId).ToList();
+    bool isNavigationStickyMenu = Pageview.Device.ToString() != "Mobile" && Pageview.Device.ToString() != "Tablet" && Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("StickyTop");
+    string stickyTop = isNavigationStickyMenu ? "top-container--sticky" : "";
+
+    <header class="top-container @stickyTop dw-mod" id="Top">
+       @RenderBlockList(subBlocks)
+    </header>
+}
+
+@helper RenderMain() {
+    List<Block> subBlocks = this.masterPage.GetBlockListById("MasterMain").OrderBy(item => item.SortId).ToList();
+
+    <main class="site dw-mod">
+        @RenderBlockList(subBlocks)
+    </main>
+}
+
+@helper RenderPageContent() {
+    bool isNavigationStickyMenu = Pageview.Device.ToString() != "Mobile" && Pageview.Device.ToString() != "Tablet" && Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("StickyTop");
+    string pagePos = isNavigationStickyMenu ? "js-page-pos" : "";
+
+    <div id="Page" class="page @pagePos">
+        <section class="center-container content-container dw-mod" id="content">
+            @ContentPlaceholder()
+        </section>
+    </div>
+}
+
+</body>
+</html>
+

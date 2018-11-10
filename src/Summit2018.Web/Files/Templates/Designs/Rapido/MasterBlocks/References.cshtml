@@ -1,0 +1,30 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks.Extensibility
+@using Dynamicweb.Rapido.Blocks
+@using Dynamicweb.Ecommerce.Common
+
+@{ 
+    BlocksPage referencesBlocksPage = BlocksPage.GetBlockPage("Master");
+
+    Block masterScriptReferences = new Block()
+    {
+        Id = "MasterScriptReferences",
+        SortId = 1,
+        Template = RenderMasterScriptReferences()
+    };
+    referencesBlocksPage.Add(MasterBlockId.MasterReferences, masterScriptReferences);
+}
+
+@helper RenderMasterScriptReferences() {
+    <script src="/Files/Templates/Designs/Rapido/js/handlebars-v4.0.11.js"></script>
+    <script src="/Files/Templates/Designs/Rapido/js/master.min.js"></script>
+
+	if (Model.Area.Item.GetItem("Settings").GetBoolean("UseCustomJavascript"))
+    {
+		<script src="/Files/Templates/Designs/Rapido/js/custom.min.js"></script>
+	}
+}

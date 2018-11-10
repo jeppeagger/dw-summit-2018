@@ -1,0 +1,288 @@
+// Buttons
+//––––––––––––––––––––––––––––––––––––––––––––––––––
+
+.btn() {
+    background-color: transparent;
+    border-radius: 0;
+    border: 1px solid @border-color;
+    color: inherit;
+    cursor: pointer;
+    display: inline-block;
+    font-size: inherit;
+    font-weight: 500;
+    letter-spacing: .1rem;
+    line-height: 20px;
+    min-height: 38px;
+    margin-bottom: 1em;
+    padding: 8px 30px;
+    text-align: center;
+    text-decoration: none;
+    transition-duration: 200ms;
+    vertical-align: top;
+    word-break: break-all;
+
+    &:focus,
+    &:hover:not(.disabled),
+    &:hover:not(:disabled),
+    &:hover:not([disabled]) {
+        @include hover-style;
+    }
+
+    &:focus{
+        outline: .1rem dotted @gray;
+    }
+
+    &:active{
+        background-color: @color-primary;
+    }
+}
+
+.btn,
+.button {
+  .btn();
+}
+
+.btn.disabled,
+.button.disabled
+.btn:disabled,
+.btn[disabled] {
+   cursor: not-allowed;
+   opacity: 0.3;
+}
+
+// Basic Colors
+//
+.btn--primary {
+  color: @white;
+  background-color: @color-primary;
+  border-color: @color-primary;
+
+  &:focus,
+  &:hover,
+  &:active,
+  &.btn--active {
+    color: @white;
+    background-color: darken(@color-primary, 10%);
+    border-color: @color-primary;
+  }
+}
+
+.btn--secondary {
+  color: @gray-lighter;
+  background-color: @color-secondary;
+  border-color: @color-secondary;
+
+  &:focus,
+  &:hover,
+  &:active,
+  &.btn--active {
+    color: @gray-lighter;
+    background-color: darken(@color-secondary, 15%);
+    border-color: @color-secondary;
+  }
+}
+
+.btn--tertiary {
+  color: @gray-lighter;
+  background-color: @color-tertiary;
+  border-color: @color-tertiary;
+
+  &:focus,
+  &:hover,
+  &:active,
+  &.btn--active {
+    color: @gray-lighter;
+    background-color: darken(@color-tertiary, 15%);
+    border-color: @color-tertiary;
+  }
+}
+
+// Small-Sized 
+.btn--sm {
+  padding: 4px 10px;
+  min-height: 29px;
+  font-size: 80%;
+}
+
+// Special styles
+.btn--lg {
+  font-size: inherit;
+  font-weight: 100;
+  min-height: 5.8rem;
+  line-height: 5.8rem;
+  vertical-align: middle;
+  padding: 15px 4rem;
+}
+
+.btn--condensed {
+  padding: 8px 15px;
+}
+
+.btn--full {
+  width: 100%;
+}
+
+.btn--clean { 
+  color: inherit;
+  border: none;
+  background-color: transparent;
+  line-height: normal;
+  min-height: unset;
+
+  &:focus,
+  &:hover,
+  &:active,
+  &.btn--active {
+    color: inherit;
+    background-color: inherit;
+    border-color: none;
+  }
+}
+
+.btn--link {
+  border: none;
+  background-color: transparent;
+}
+
+.btn--link-clean {
+  border: none;
+  background-color: transparent;
+  padding: 0;
+  margin: 0;
+  height: auto;
+  line-height: 1.4;
+  min-height: 100%;
+}
+
+.btn--link-clean {
+    &:focus,
+    &:hover,
+    &:active,
+    &.btn--active {
+      text-decoration: underline;
+      background-color: transparent;
+    }
+}
+
+// Raised Style
+.btn--raised {
+  border-width: 0;
+  border-bottom-width: 3px;
+  border-bottom-color: rgba(0,0,0,0.15);
+}
+
+//Tag style
+.btn--tag {
+    padding: 0 5px;
+    display: inline-block;
+    font-weight: normal;
+    background-color: @white;
+    border: 1px solid @gray-light;
+    vertical-align: top;
+    min-height: 27px;
+    line-height: 27px;
+    font-size: 16px;
+}
+
+.btn--tag.checked {
+    background-color: #333;
+    color: #fff;
+}
+
+.btn--tag:hover {
+    background-color: #333;
+    color: #fff;
+}
+
+//Radio tags
+.tag-btn-trigger {
+   visibility: hidden;
+   position: absolute;  
+} 
+
+.tag-btn-trigger:checked + .btn--tag {
+   background-color: #333;
+   color: #fff;
+}
+
+//Colorbox style
+.btn--colorbox {
+    width: 28px;
+    height: 28px;
+    min-height: 28px;
+    background-color: @gray;
+    padding: 0;
+}
+
+.btn--colorbox.checked {
+   border: 2px solid @gray-darker;
+}
+
+[type="submit"],
+[type="reset"],
+[type="button"] {
+  @extend .btn;
+}
+
+//Colorbox inside
+.btn__colorbox {
+    width: 22px;
+    height: 22px;
+    display: inline-block;
+    vertical-align: middle;
+    margin-bottom: 3px;
+}
+
+
+// Buttons collection
+.buttons-collection > * {
+    margin-right: @reflex-cell-spacing-md;
+    margin-bottom: 0;
+
+    &:last-child:not(&.buttons-collection--right) {
+        margin-right: 0;
+    }
+}
+
+.buttons-collection--right > * {
+    &:first-child {
+        margin-right: 0;
+    } 
+}
+
+
+//Specials
+.circle-icon-btn {
+    font-size: 10px;
+    font-weight: bold;
+    text-align: center;
+    line-height: 9px;
+    display: inline-block;
+    position: relative;
+    top: -4px;
+    width: 24px;
+}
+
+.circle-icon-btn::after {
+    content: '';
+    position: absolute;
+    border: 1px solid @text-color;
+    border-color: inherit;
+    border-radius: 100px;
+    margin: 0;
+    width: 24px;
+    height: 24px;
+    right: 0;
+    top: -8px;
+}
+
+.btn-spinner {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}

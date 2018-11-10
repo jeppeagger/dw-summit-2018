@@ -1,0 +1,198 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@{ 
+    string listPageId = GetGlobalValue("Global:Page.ID");
+    bool listOnlyPreview = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("OnlyPreviewForAnonymous") && Pageview.User == null;
+    bool listPointShopOnly = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("PointShopOnly");
+    string listCartIcon = Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetString("CartIcon") != null ? Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("CartIcon").SelectedValue : "fas fa-shopping-cart";
+    bool listViewShowCartButton = Pageview.AreaSettings.GetItem("ProductList").GetItem("ListView").GetString("ShowAddToCartButton") != null ? Pageview.AreaSettings.GetItem("ProductList").GetItem("ListView").GetBoolean("ShowAddToCartButton") : true;
+    bool listViewShowViewButton = Pageview.AreaSettings.GetItem("ProductList").GetItem("ListView").GetString("ShowViewButton") != null ? Pageview.AreaSettings.GetItem("ProductList").GetItem("ListView").GetBoolean("ShowViewButton") : true;
+    bool listViewShowStock = Pageview.AreaSettings.GetItem("ProductList").GetItem("ListView").GetString("ShowStockAndShipping") != null ? Pageview.AreaSettings.GetItem("ProductList").GetItem("ListView").GetBoolean("ShowStockAndShipping") : true;
+    bool listViewShowNumber = Pageview.AreaSettings.GetItem("ProductList").GetItem("ListView").GetString("ShowProductNumber") != null ? Pageview.AreaSettings.GetItem("ProductList").GetItem("ListView").GetBoolean("ShowProductNumber") : true;
+    string listViewMoreText = Pageview.AreaSettings.GetItem("ProductList").GetItem("ListView").GetString("ViewMoreText") != null ? Pageview.AreaSettings.GetItem("ProductList").GetItem("ListView").GetString("ViewMoreText") : "View";
+    bool listUseGoogleTagManager = !string.IsNullOrEmpty(Pageview.AreaSettings.GetItem("Settings").GetString("GoogleTagManagerID"));
+
+    BlocksPage productListViewListBlocksPage = BlocksPage.GetBlockPage("ProductList");
+
+    if (Pageview.AreaSettings.GetItem("ProductList").GetBoolean("EnableListView"))
+    {
+        Block newView = new Block
+        {
+            Id = "ProductItemContainer",
+            Name = "th-list",
+            SortId = 10
+        };
+        productListViewListBlocksPage.Add("Views", newView);
+    }
+}
+
+<script id="ProductItemContainer" type="text/x-template">
+	{{#.}}
+	    <div id="Product{{id}}" class="grid__col-12 u-no-padding-x js-product" data-template="ProductItem" data-preloader="overlay">
+		    {{#Product}}
+		        {{>ProductItem}}
+		    {{/Product}}
+	    </div>
+	{{/.}}
+</script>
+
+<script id="ProductItem" type="text/x-template">
+	{{#.}}
+        @if (listUseGoogleTagManager)
+        {
+            <text>{{{googleEnchantImpression 'Product catalogue' currency googleImpression}}}</text>
+        }
+	    <input type="hidden" name="ProductLoopCounter{{id}}" value="{{id}}" />
+	    <input type="hidden" name="ProductID{{id}}" value="{{productId}}" />
+	    <input type="hidden" value="{{variantid}}" name="VariantID{{id}}" id="Variant_{{id}}" />
+
+	    <div class="grid product-list__list-item dw-mod">
+		    <div class="grid__col-md-4 {{noImage}} product-list__list-item__left u-no-padding u-color-light--bg dw-mod">
+			    <div class="stickers-container dw-mod">
+				    {{#Stickers}}
+				        {{>Sticker}}
+				    {{/Stickers}}
+			    </div>
+			    <div class="grid__cell">
+				    <a href="{{link}}" onclick="Scroll.SavePosition(event); {{googleImpressionClick}}" title="{{name}}">
+                        <img class="grid__cell-img grid__cell-img--centered b-lazy" src="/Admin/Public/GetImage.ashx?width=300&amp;height=300&amp;crop=5&amp;Compression=75&amp;DoNotUpscale=true&amp;FillCanvas=true&amp;image=/Files/Images/placeholder.gif" data-src="/Admin/Public/GetImage.ashx?width=300&amp;height=300&amp;crop=5&amp;Compression=75&amp;DoNotUpscale=true&amp;FillCanvas=true&amp;image={{image}}" alt="{{name}}" />
+                    </a>
+			    </div>
+		    </div>
+		    <div class="grid__col-md-auto product-list__list-item__right dw-mod">
+			    <div>
+				    <div class="u-pull--left">
+					    <a href="{{link}}" onclick="Scroll.SavePosition(event); {{googleImpressionClick}}" title="{{name}}">
+                            <h2 class="u-no-margin">{{name}}</h2>
+                        </a>
+					    @if (listViewShowNumber) {
+                            <div class="item-number dw-mod">{{number}}</div>
+                        }
+
+                        @if (!listOnlyPreview && listViewShowStock)
+                        {
+                            <div>
+                                <span class="stock-icon {{stockState}} u-no-margin dw-mod" title="{{stockText}}"></span> {{stockText}}{{deliveryText}}
+                            </div>
+                        }
+				    </div>
+				    <div class="favorites u-pull--right {{hasVariants}} dw-mod" {{hasVariants}}>
+					    {{#Favorite}}
+					        {{>FavoriteTemplate}}
+					    {{/Favorite}}
+				    </div>
+			    </div>
+
+			    <div class="grid__cell">
+				    {{{description}}}
+			    </div>
+
+                @if (listViewShowCartButton) {
+			        <div data-template="VariantsTemplate" class="js-variants grid__cell" data-combinations="{{combinationsStringArray}}" data-variants="{{variantsStringArray}}" data-variant-selections="{{variantSelections}}" data-total-variant-groups="{{variantGroupsCount}}" data-selection-complete="UpdateData" data-page-id="@listPageId" data-product-id="{{productId}}">
+				        {{#Variants}}
+				            {{>VariantsTemplate}}
+				        {{/Variants}}
+			        </div>
+                    <small class="js-help-text help-text {{hideViewMore}} {{hideHelpText}}">@Translate("Please select variant!")</small>
+                }
+
+			    @if (!listOnlyPreview)
+			    {
+				    <div class="grid__cell-footer">
+					    <div class="grid__cell">
+						    <div class="product-list__list-item__price-actions dw-mod">
+							    <div class="u-margin-bottom">
+								    @if (listPointShopOnly)
+                                    {
+                                        <text>
+                                            {{#if havePointPrice}}
+                                                <div class="price price--product-list dw-mod">{{points}} @Translate("points")</div>
+                                            {{else}}
+                                                @Translate("Not avaliable")
+                                            {{/if}}
+                                        </text>
+                                    }
+                                    else
+                                    {
+                                        <div class="before-price {{onSale}} dw-mod">{{discount}}</div>
+                                        <div class="price price--product-list dw-mod">{{price}}</div>
+                                    }
+							    </div>
+
+                                @if (listViewShowCartButton)
+                                {
+							        <div class="buttons-collection buttons-collection--right">
+                                        @if (listPointShopOnly)
+                                        {
+                                            <button type="button" id="CartButton_{{id}}" class="btn btn--primary btn--condensed u-no-margin dw-mod js-cart-btn {{disabledBuyButton}} {{#unless canBePurchasedWithPoints}}js-stay-disabled{{/unless}}" name="CartCmd" value="addWithPoints" 
+                                                    onclick="Cart.AddToCart(event, {
+                                                        id: '{{productId}}', 
+                                                        variantId: '{{variantid}}', 
+                                                        unitId: '{{unitId}}', 
+                                                        quantity: 1, 
+                                                        buyForPoints: true,
+                                                        productInfo: {{productInfo}}
+                                                    }); {{facebookPixelAction}}" {{disabledBuyButton}}>
+                                                    <i class="@listCartIcon"></i><span class="u-hidden-xs u-hidden-xxs"> @Translate("Buy with points")</span>
+                                            </button>
+                                            <text>
+                                                {{#unless canBePurchasedWithPoints}}
+                                                    {{#if havePointPrice}}
+                                                        <small class="help-text u-no-margin u-margin-top">@Translate("Not enough points to buy this")</small>
+                                                    {{/if}}
+                                                {{/unless}}
+                                            </text>
+                                        }
+                                        else
+                                        {
+                                            <button type="button" id="CartButton_{{id}}" class="js-cart-btn btn btn--primary btn--condensed u-pull--right dw-mod {{disabledBuyButton}}" name="submit" 
+                                                    onclick="Cart.AddToCart(event, {
+                                                        id: '{{productId}}', 
+                                                        variantId: '{{variantid}}', 
+                                                        unitId: '{{unitId}}', 
+                                                        quantity: document.getElementById('Quantity_{{id}}').value,
+                                                        productInfo: {{productInfo}}
+                                                    }); {{facebookPixelAction}}" {{disabledBuyButton}}>
+                                                    <i class="@listCartIcon"></i><span class="u-hidden-xs u-hidden-xxs"> @Translate("Add to cart")</span>
+                                            </button>
+                                            <input type="number" class="u-w80px u-margin-right u-pull--right" id="Quantity_{{id}}" name="Quantity{{id}}" value="1" min="1">
+                                        }
+
+								        <input type="checkbox" id="UnitOptions_{{id}}" class="dropdown-trigger" />
+								        <div class="dropdown u-w150px u-w100px--xs {{hasUnits}} dw-mod">
+									        <label class="dropdown__header dropdown__btn dw-mod" for="UnitOptions_{{id}}">{{unitName}}</label>
+									        <div id="unitOptions" class="dropdown__content dw-mod">
+										        {{#unitOptions}}
+										            {{>UnitOption}}
+										        {{/unitOptions}}
+									        </div>
+									        <label class="dropdown-trigger-off" for="UnitOptions_{{id}}"></label>
+								        </div>
+								        <input type="hidden" value="{{unitId}}" name="Unit{{id}}" id="Unit_{{id}}" />
+							        </div>
+                                }
+                                else if (listViewShowViewButton)
+                                {
+                                    <div class="buttons-collection buttons-collection--right">
+                                        <a href="{{link}}" id="CartButton_{{id}}" title="@Translate(listViewMoreText)" onclick="Scroll.SavePosition(event); {{googleImpressionClick}}" class="btn btn--secondary btn--full u-no-margin dw-mod">
+                                            @Translate(listViewMoreText)
+                                        </a>
+                                    </div>
+                                }
+						    </div>
+					    </div>
+				    </div>
+			    }
+			    else
+			    {
+				    <button type="button" id="CartButton_{{id}}" class="u-hidden"></button>
+			    }
+		    </div>
+	    </div>
+	{{/.}}
+</script>

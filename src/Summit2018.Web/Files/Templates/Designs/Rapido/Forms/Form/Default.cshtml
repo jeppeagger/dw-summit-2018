@@ -1,0 +1,112 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+
+@GetValue("Form.FormStart")
+@GetValue("Form.SystemFields")
+
+@foreach (LoopItem field in GetLoop("Fields"))
+{
+    string required = field.GetBoolean("Field.Required") ? "required" : "";
+
+    if (field.GetString("Field.Type") == "TextInput")
+    {
+        <div class="form__field-group dw-mod">
+            <label for="@field.GetValue("Field.SystemName")">@Translate(@field.GetString("Field.Name"))</label>
+            <input type="text" name="@field.GetString("Field.SystemName")" id="@field.GetValue("Field.SystemName")" value="@field.GetString("Field.Value")" placeholder="@field.GetString("Field.Placeholder")" @required/>
+            @field.GetValue("Field.Description")
+        </div>
+    }
+    else if (field.GetString("Field.Type") == "Textarea")
+    {
+        <div class="form__field-group dw-mod">
+            <label for="@field.GetValue("Field.SystemName")">@Translate(@field.GetString("Field.Name"))</label>
+            <textarea name="@field.GetString("Field.SystemName")" id="@field.GetValue("Field.SystemName")" placeholder="@field.GetString("Field.Placeholder")" @required >@field.GetString("Field.Value")</textarea>
+            @field.GetValue("Field.Description")
+        </div>
+    }
+    else if (field.GetString("Field.Type") == "CheckBox")
+    {
+        <div class="form__field-group dw-mod">
+            <input type="checkbox" class="form__control" name="@field.GetString("Field.SystemName")" id="@field.GetValue("Field.SystemName")" value="@field.GetString("Field.Value")" @required />
+            <label for="@field.GetValue("Field.SystemName")">@Translate(@field.GetString("Field.Name"))</label>
+            <span class="u-color-light-gray">@field.GetValue("Field.Description")</span>
+        </div>
+    }
+    else if (field.GetString("Field.Type") == "Hidden")
+    {
+        @field.GetString("Field.Control");
+    }
+    else if (field.GetString("Field.Type") == "File")
+    {
+        <div class="form__field-group dw-mod">
+            <label for="@field.GetValue("Field.SystemName")">@field.GetValue("Field.Name")</label>
+            <span class="u-color-light-gray">@field.GetValue("Field.Description")</span>
+            @field.GetString("Field.Control")
+        </div>
+    }
+    else if (field.GetString("Field.Type") == "Image")
+    {
+        <div class="form__field-group dw-mod">
+            <label for="@field.GetValue("Field.SystemName")">@field.GetValue("Field.Name")</label>
+            <span class="u-color-light-gray">@field.GetValue("Field.Description")</span>
+            @field.GetString("Field.Control")
+        </div>
+    }
+    else if (field.GetString("Field.Type") == "Radio")
+    {
+        <div class="form__field-group dw-mod">
+            <label for="@field.GetValue("Field.SystemName")">@field.GetValue("Field.Name")</label>
+            <span class="u-color-light-gray">@field.GetValue("Field.Description")</span>
+
+            @foreach (LoopItem option in field.GetLoop("Options"))
+            {
+                <div class="form__field-combi u-pull--left dw-mod">
+                    <input type="radio" id="@field.GetValue("Field.Name")@option.GetValue("Option.ID")" class="form__control" name="@field.GetValue("Field.Name")" value="@option.GetValue("Option.Value")" />
+                    <label for="@field.GetValue("Field.Name")@option.GetValue("Option.ID")">@option.GetValue("Option.Text")</label>
+                </div>
+            }
+        </div>
+    }
+    else if (field.GetString("Field.Type") == "CheckBoxList")
+    {
+        <div class="form__field-group dw-mod">
+            <label for="@field.GetValue("Field.SystemName")">@field.GetValue("Field.Name")</label>
+            <div class="u-color-light-gray">@field.GetValue("Field.Description")</div>
+            @field.GetString("Field.Control")
+        </div>
+    }
+    else if (field.GetString("Field.Type") == "Reset")
+    {
+        <div class="u-inline-block u-full-width">
+            <div class="u-block">
+                @field.GetString("Field.Control").Replace(" id", " class=\"btn btn--secondary dw-mod u-pull--right\" onclick=\"Buttons.LockButton(event)\" id")
+            </div>
+        </div>
+    }
+    else if (field.GetString("Field.Type") == "Submit")
+    {
+        <div class="u-inline-block u-full-width">
+            <div class="u-block">
+                @field.GetString("Field.Control").Replace(" id", " class=\"btn btn--primary dw-mod u-pull--right\" onclick=\"Buttons.LockButton(event)\" id")
+            </div>
+        </div>
+    }
+    else if (field.GetString("Field.Type") == "Text")
+    {
+        <div class="form__field-group dw-mod">
+            <label for="@field.GetValue("Field.SystemName")">@field.GetValue("Field.Name")</label>
+            <div class="u-block">@field.GetString("Field.Control")</div>
+            @field.GetValue("Field.Description")
+        </div>
+    }
+    else
+    {
+        <div class="form__field-group dw-mod">
+            <label for="@field.GetValue("Field.SystemName")">@field.GetValue("Field.Name")</label>
+            @field.GetString("Field.Control")
+            @field.GetValue("Field.Description")
+        </div>
+    }
+}
+
+@GetValue("Form.FormEnd")

@@ -1,0 +1,194 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Ecommerce.Products;
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using Dynamicweb.Core
+@using System
+@using System.Web;
+
+@{ 
+    int areaId = Int32.Parse(GetGlobalValue("Global:Area.ID"));
+    int pageId = Int32.Parse(GetGlobalValue("Global:Page.ID"));
+    string detailsPageID = Converter.ToString(GetPageIdByNavigationTag("ProductsPage"));
+    string pid = "CC" + GetString("Ecom:CustomerCenter.PID");
+    string favoriteIcon = Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetString("FavoriteIcon") != null ? "fas fa-" + Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("FavoriteIcon").SelectedValue : "fas fa-star";
+}
+
+@* SHOW ALL LISTS *@    
+
+@if (GetString("Ecom:CustomerCenter.ProductList.Mode").Contains("showAll") && 
+    !GetString("Ecom:CustomerCenter.ProductList.Mode").Contains("edit") && 
+    !GetString("Ecom:CustomerCenter.ProductList.Mode").Contains("create"))
+{
+    <div class="grid__col-12 grid__col--bleed">
+        <div class="grid__cell">
+            <h2><i class="@favoriteIcon"></i> @GetGlobalValue("Global:Page.Name")</h2>
+            @if (GetInteger("Ecom:CustomerCenter.List.Count") <= 0)
+            {
+                <div class="u-margin-bottom--lg">@Translate("No favorites lists found")</div>
+            }
+        </div>
+    </div>
+
+    <a href="@GetString("Ecom:CustomerCenter.List.AddURL")" class="media-list-item__add-new dw-mod">
+        <span>@Translate("Add new list")</span>
+    </a>
+
+    if (GetInteger("Ecom:CustomerCenter.List.Count") > 0)
+    {
+        foreach (LoopItem listitem in GetLoop("Lists").OrderByDescending(listitem => listitem.GetString("Ecom:CustomerCenter.List.IsDefault")).ToList())
+        {
+            string isPublic = listitem.GetBoolean("Ecom:CustomerCenter.List.IsPublished") ? Translate("Yes") : Translate("No");
+            string isDefault = listitem.GetBoolean("Ecom:CustomerCenter.List.IsDefault") ? "u-color-light-gray--bg" : "";
+            string listLink = "/Default.aspx?ID=" + detailsPageID + "&ListID=" + listitem.GetString("Ecom:CustomerCenter.ListTypes.List.ID") + "&ListName=" + listitem.GetString("Ecom:CustomerCenter.List.Name");
+
+            <!-- Trigger for the warning modal -->
+            <input type="checkbox" id="DeleteWarningModalTrigger_@listitem.GetString("Ecom:CustomerCenter.ListTypes.List.ID")" class="modal-trigger" />
+
+            <!-- Warning modal -->
+            <div class="modal-container">
+                <label for="DeleteWarningModalTrigger_@listitem.GetString("Ecom:CustomerCenter.ListTypes.List.ID")" class="modal-overlay"></label>
+                <div class="modal modal--xs">
+                    <div class="modal__header">
+                        <h2>@Translate("Warning")</h2>
+                    </div>
+                    <div class="modal__body">
+                        <p>@Translate("Are you sure you wish to delete this favorite list?")</p>
+                        <p></p>
+                        <a href="@listitem.GetString("Ecom:CustomerCenter.List.RemoveURL")" class="btn btn--primary btn--full u-no-margin dw-mod">@Translate("Yes")</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid__col-md-12 media-list-item dw-mod">
+                <div class="grid__cell">
+                    <div class="media-list-item__column dw-mod">
+                        <a href="@listLink" class="media-list-item__sticker dw-mod">
+                            <span>@listitem.GetString("Ecom:CustomerCenter.List.ProductCount")<br />@Translate("Prod").</span>
+                        </a>
+                        <div class="media-list-item__info dw-mod">
+                            <div class="media-list-item__header dw-mod">
+                                <a href="@listLink" class="media-list-item__name dw-mod">@listitem.GetString("Ecom:CustomerCenter.List.Name")</a>
+                                @if (listitem.GetBoolean("Ecom:CustomerCenter.List.IsDefault"))
+                                {
+                                    <div class="media-list-item__state dw-mod">@Translate("Default")</div>
+                                }
+                            </div>
+                            <div>
+                                <span class="media-list-item__parameter-label dw-mod">@Translate("Published until"):</span>
+                                @if (listitem.GetBoolean("Ecom:CustomerCenter.List.IsPublished")) {
+                                    @listitem.GetDate("Ecom:CustomerCenter.List.PublishToDate").ToString("d")
+                                }
+                                else
+                                {
+                                    @Translate("Never")
+                                }
+                            </div>
+
+                        </div>
+                    </div>
+                    <div class="media-list-item__actions dw-mod">
+                        <a href="@listitem.GetString("Ecom:CustomerCenter.List.EditURL")" class="media-list-item__action dw-mod" title="@Translate("Edit")">@Translate("Edit")</a>
+                        <label for="DeleteWarningModalTrigger_@listitem.GetString("Ecom:CustomerCenter.ListTypes.List.ID")" class="media-list-item__action link dw-mod" title="@Translate("Delete")">@Translate("Delete")</label>
+                        @if (!listitem.GetBoolean("Ecom:CustomerCenter.List.IsDefault"))
+                        {
+                            <a href="/Default.aspx?ID=@pageId&@pid=EditList&ListID=@listitem.GetString("Ecom:CustomerCenter.ListTypes.List.ID")&CC_IsDefault=on&CC_Name=@listitem.GetString("Ecom:CustomerCenter.ListTypes.List.Name")" class="media-list-item__action dw-mod" title="@Translate("Set as default")">@Translate("Set as default")</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    }
+}
+
+
+@* LIST EDITING / CREATION *@
+
+@if (GetString("Ecom:CustomerCenter.ProductList.Mode").Contains("edit") || GetString("Ecom:CustomerCenter.ProductList.Mode").Contains("create"))
+{
+    string actionType = "";
+    string action = "";
+
+    if (GetString("Ecom:CustomerCenter.ProductList.Mode").Contains("edit"))
+    {
+        actionType = "EditListForm";
+        action = GetString("Ecom:CustomerCenter.List.EditList");
+        //action = new Regex("([?&]ID)=[^?&]+").Replace(action, "?ID=" + detailsPageID);
+
+        <div class="grid__col-12 grid__col--bleed">
+            <h2><i class="fas fa-pencil"></i> @Translate("Edit list")</h2>
+        </div>
+    }
+    else
+    {
+        actionType = "AddListForm";
+        action = GetString("Ecom:CustomerCenter.List.CreateList");
+
+        <div class="grid__col-12 grid__col--bleed">
+            <h2><i class="fas fa-plus-square"></i> @Translate("Create new list")</h2>
+        </div>
+    }
+
+    <form class="form dw-mod" id="@GetString("ParagraphID")@actionType" name="@GetString("ParagraphID")@actionType" action="@action" method="post">
+        <div class="form__field-group dw-mod">
+            <label>@Translate("Name", "Name")</label>
+            @GetString("Ecom:CustomerCenter.List.Name.Input").Replace("id", "required id")
+        </div>
+        
+        <input type='hidden' id='CC_Type' name='CC_Type' value='0' />
+
+        <div class="form__field-group dw-mod">
+            <label>@Translate("Description", "Description")</label>
+            @GetString("Ecom:CustomerCenter.List.Description.Input")
+        </div>
+
+        <label>@Translate("Published to", "Published to")</label>
+        <select name="CC_PublishedToDay">
+            @GetString("Ecom:CustomerCenter.List.PublishToDate.Days")
+        </select>
+        <select name="CC_PublishedToMonth">
+            @GetString("Ecom:CustomerCenter.List.PublishToDate.MonthNames")
+        </select>
+        <select name="CC_PublishedToYear">
+            @GetString("Ecom:CustomerCenter.List.PublishToDate.Years")
+        </select>
+
+        <div class="form__field-group dw-mod">
+            @GetString("Ecom:CustomerCenter.List.IsPublished.Input")
+            <label for="CC_IsPublished">@Translate("Should the list be public?", "Should the list be public?")</label>
+        </div>
+
+        <div class="form__field-group dw-mod">
+            @GetString("Ecom:CustomerCenter.List.IsDefault.Input")
+            <label for="CC_IsDefault">@Translate("Is this the default list?", "Is this the default list?")</label>
+        </div>
+
+        @if (GetString("Ecom:CustomerCenter.ProductList.Mode").Contains("edit"))
+        {
+            <input id="Submit" type="submit" value="@Translate("Save")" class="btn btn--primary u-pull--right dw-mod" />
+        }
+        else
+        {
+            <input id="Submit" type="submit" value="@Translate("Create list")" class="btn btn--primary u-pull--right dw-mod" />
+        }
+    </form>
+}
+
+
+@* WILD HACK TO MAKE REDIRECTION TO THE FAVORITE LIST WORK *@
+
+
+@if (String.IsNullOrEmpty(GetString("Ecom:CustomerCenter.ProductList.Mode")))
+{
+    string listId = HttpContext.Current.Request.QueryString.Get("ListID");
+    string listName = "";
+
+    foreach (LoopItem listitem in GetLoop("Lists"))
+    {
+        listName = listitem.GetString("Ecom:CustomerCenter.List.Name");
+    }
+
+    <script>
+        window.location = "/Default.aspx?ID=@detailsPageID&ListID=@listId&ListName=@listName";
+    </script>
+}

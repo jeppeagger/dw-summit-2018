@@ -1,0 +1,382 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Globalization;
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@functions {
+    BlocksPage productFieldsPage = BlocksPage.GetBlockPage("Product");
+    List<LoopItem> downloadDocuments = new List<LoopItem>();
+
+    static string ConvertBytes(long bytes)
+    {
+        double size = bytes / 1024; //KB
+        if (size > 1024)
+        {
+            size = (bytes / 1024f) / 1024f; //MB
+            return string.Format("{0:n1} MB", size);
+        }
+        else
+        {
+            return string.Format("{0:n0} KB", size);
+        }
+    }
+
+    static bool isImage(string path)
+    {
+        return new List<string> { ".jpg", ".jpeg", ".gif", ".png", ".svg" }.Contains(Path.GetExtension(path).ToLower());
+    }
+
+    string getIconForFile(string fileName)
+    {
+        string ext = Path.GetExtension(fileName);
+        string icon = "";
+        switch (ext.ToLower())
+        {
+            case ".xls":
+            case ".xlsx":
+                icon = "fa-file-excel";
+                break;
+            case ".ppt":
+            case ".pptx":
+                icon = "fa-file-powerpoint";
+                break;
+            case ".doc":
+            case ".docx":
+                icon = "fa-file-word";
+                break;
+            case ".jpg":
+            case ".jpeg":
+            case ".png":
+            case ".gif":
+            case ".pdf":
+                return "<img class='product__document-img' alt='" + fileName + "' src='/Admin/Public/GetImage.ashx?crop=5&height=70&width=120&Compression=75&DoNotUpscale=true&image=" + fileName + "' />";
+            default:
+                icon = "fa-file";
+                break;
+        }
+        return "<i class='product__document-icon far " + icon + "'></i> ";
+    }
+}
+
+@{ 
+    foreach (LoopItem customField in GetLoop("CustomFieldValues"))
+    {
+        if (!string.IsNullOrEmpty(customField.GetString("Product.CustomField.Name")) && !string.IsNullOrEmpty(customField.GetString("Product.CustomField.Value.Clean")) && customField.GetString("Product.CustomField.Name") != "Custom sticker")
+        {
+            if (!string.IsNullOrEmpty(customField.GetString("Document.FullPath")))
+            {
+                downloadDocuments.Add(customField);
+            }
+        }
+    }
+
+    foreach (LoopItem customField in GetLoop("ProductCategories"))
+    {
+        foreach (LoopItem field in customField.GetLoop("ProductCategoryFields"))
+        {
+            if (!string.IsNullOrEmpty(field.GetString("Ecom:Product.CategoryField.Label")) && !string.IsNullOrEmpty(field.GetString("Ecom:Product.CategoryField.Value")))
+            {
+                if (field.GetString("Ecom:Product.CategoryField.TypeID") == "9")
+                {
+                    downloadDocuments.Add(field);
+                }
+            }
+        }
+    }
+
+    string detailFieldsLayout = Pageview.AreaSettings.GetItem("ProductPage").GetList("DetailFieldsLayout") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetList("DetailFieldsLayout").SelectedValue : "Section";
+    detailFieldsLayout = detailFieldsLayout == "Ribbon" || string.IsNullOrEmpty(detailFieldsLayout) ? "Section" : detailFieldsLayout;
+    string categoryFieldsLayout = Pageview.AreaSettings.GetItem("ProductPage").GetList("CategoryFieldsLayout") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetList("CategoryFieldsLayout").SelectedValue : "Section";
+    categoryFieldsLayout = categoryFieldsLayout == "Ribbon" || string.IsNullOrEmpty(categoryFieldsLayout) ? "Section" : categoryFieldsLayout;
+    string downloadsFieldsLayout = Pageview.AreaSettings.GetItem("ProductPage").GetList("DownloadsLayout") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetList("DownloadsLayout").SelectedValue : "Section";
+    downloadsFieldsLayout = downloadsFieldsLayout == "Ribbon" || string.IsNullOrEmpty(downloadsFieldsLayout) ? "Section" : downloadsFieldsLayout;
+
+    if (GetLoop("CustomFieldValues").Count > 0 && detailFieldsLayout != "hide")
+    {
+        Block detailsCustom = new Block()
+        {
+            Name = detailFieldsLayout != "MainInformation" ? Translate("Details") : "",
+            Id = "CustomFields",
+            SortId = 30,
+            Template = RenderCustomData(detailFieldsLayout),
+            Design = new Design
+            {
+                Size = "12",
+                RenderType = RenderType.Column,
+                HidePadding = true
+            }
+        };
+
+        productFieldsPage.Add(detailFieldsLayout, detailsCustom);
+    }
+
+    if (categoryFieldsLayout != "hide") {
+        foreach (LoopItem categoryGroup in GetLoop("ProductCategories"))
+        {
+            bool hasFields = categoryGroup.GetLoop("ProductCategoryFields").FirstOrDefault(cf => !string.IsNullOrEmpty(cf.GetString("Ecom:Product.CategoryField.Value"))) != null;
+            if (hasFields)
+            {
+                Block detailsCategoryFields = new Block()
+                {
+                    Name = categoryFieldsLayout != "MainInformation" ? categoryGroup.GetString("Ecom:Product.Category.Name") : "",
+                    Id = ToPascalCase(categoryGroup.GetString("Ecom:Product.Category.Name")),
+                    SortId = 40,
+                    Template = RenderProductCategory(categoryGroup.GetString("Ecom:Product.Category.Name"), categoryGroup, categoryFieldsLayout),
+                    Design = new Design
+                    {
+                        Size = "12",
+                        RenderType = RenderType.Column,
+                        HidePadding = true
+                    }
+                };
+
+                productFieldsPage.Add(categoryFieldsLayout, detailsCategoryFields);
+            }
+        }
+    }
+
+    if (downloadDocuments.Count > 0 && downloadsFieldsLayout != "hide")
+    {
+        Block detailsDownloads = new Block()
+        {
+            Name = downloadsFieldsLayout != "MainInformation" ? Translate("Downloads") : "",
+            Id = "Downloads",
+            SortId = 50,
+            Template = RenderProductDownloads(downloadsFieldsLayout),
+            Design = new Design
+            {
+                Size = "12",
+                RenderType = RenderType.Column,
+                HidePadding = true
+            }
+        };
+
+        productFieldsPage.Add(downloadsFieldsLayout, detailsDownloads);
+    }
+}
+
+@helper RenderCustomData(string layout)
+{
+    string viewType = Pageview.AreaSettings.GetItem("ProductPage").GetString("DetailFieldsView") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetList("DetailFieldsView").SelectedValue : "grid";
+    string ribbonClasses = Pageview.AreaSettings.GetItem("ProductPage").GetList("DetailFieldsLayout").SelectedValue == "Ribbon" ? "product__section--ribbon paragraph-container paragraph-container--full-width" : "";
+    string ribbonSubClasses = Pageview.AreaSettings.GetItem("ProductPage").GetList("DetailFieldsLayout").SelectedValue == "Ribbon" ? "u-padding--lg" : "";
+
+    <div class="product__section @ribbonClasses dw-mod">
+        <div class="center-container @ribbonSubClasses dw-mod">
+            @if (layout == "Section") {
+               <h2>@Translate("Information")</h2>
+            }
+
+            @if (viewType != "table") {
+                <div class="grid grid--external-bleed-x u-margin-bottom--lg">
+                    @RenderCustomFields(GetLoop("CustomFieldValues"), viewType)
+                </div>                                                              
+            } else {
+                string tableWidth = layout != "MainInformation" ? "grid__col-md-6" : "grid__col-md-12";
+
+                <div class="grid grid--external-bleed-x u-margin-bottom--lg">
+                    <div class="@tableWidth grid__col-sm-12 grid__col-xs-12">
+                        <table class="table--no-top-border">
+                            @RenderCustomFields(GetLoop("CustomFieldValues"), viewType)
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@helper RenderCustomFields(List<LoopItem> fieldsLoop, string viewType)
+{
+    foreach (LoopItem customField in fieldsLoop)
+    {
+        string fieldValue = customField.GetString("Product.CustomField.Value.Clean");
+        fieldValue = fieldValue == "False" ? Translate("No") : fieldValue;
+        fieldValue = fieldValue == "True" ? Translate("Yes") : fieldValue;
+
+        if (customField.GetLoop("Product.CustomField.Options").Count > 0)
+        {
+            fieldValue = customField.GetString("Product.CustomField.Label");
+        }
+
+        if (!string.IsNullOrEmpty(customField.GetString("Product.CustomField.Name")) && !string.IsNullOrEmpty(fieldValue) && customField.GetString("Product.CustomField.Name") != "Custom sticker")
+        {
+            if (string.IsNullOrEmpty(customField.GetString("Document.FullPath")))
+            {
+                @RenderFieldItem(customField.GetString("Product.CustomField.Name"), fieldValue, viewType);
+            }
+        }
+    }
+}
+
+@helper RenderProductCategory(string name, LoopItem categoryGroup, string layout)
+{
+    string viewType = Pageview.AreaSettings.GetItem("ProductPage").GetString("CategoryFieldsView") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetList("CategoryFieldsView").SelectedValue : "grid";
+    string ribbonClasses = Pageview.AreaSettings.GetItem("ProductPage").GetList("CategoryFieldsLayout").SelectedValue == "Ribbon" ? "product__section--ribbon paragraph-container paragraph-container--full-width" : "";
+    string ribbonSubClasses = Pageview.AreaSettings.GetItem("ProductPage").GetList("CategoryFieldsLayout").SelectedValue == "Ribbon" ? "u-padding--lg" : "";
+
+    <div class="product__section @ribbonClasses dw-mod">
+        <div class="center-container @ribbonSubClasses dw-mod">
+            @if (layout == "Section") {
+               <h2>@name</h2>
+            }
+
+            @if (viewType != "table") {
+                <div class="grid grid--external-bleed-x u-margin-bottom--lg">
+                    @RenderProductCategoryFields(categoryGroup.GetLoop("ProductCategoryFields"), viewType)
+                </div>                                                              
+            } else {
+                string tableWidth = layout != "MainInformation" ? "grid__col-md-6" : "grid__col-md-12";
+
+                <div class="grid grid--external-bleed-x u-margin-bottom--lg">
+                    <div class="@tableWidth grid__col-sm-12 grid__col-xs-12">
+                        <table class="table--no-top-border">
+                            @RenderProductCategoryFields(categoryGroup.GetLoop("ProductCategoryFields"), viewType)
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@helper RenderProductCategoryFields(List<LoopItem> fieldsLoop, string viewType) {
+    foreach (LoopItem categoryField in fieldsLoop)
+    {
+        string fieldValue = categoryField.GetString("Ecom:Product.CategoryField.Value");
+        fieldValue = fieldValue == "False" ? Translate("No") : fieldValue;
+        fieldValue = fieldValue == "True" ? Translate("Yes") : fieldValue;
+
+        if (!string.IsNullOrEmpty(categoryField.GetString("Ecom:Product.CategoryField.Label")) && !string.IsNullOrEmpty(fieldValue))
+        {
+            if (categoryField.GetString("Ecom:Product.CategoryField.TypeID") != "9") {
+                if (categoryField.GetString("Ecom:Product.CategoryField.TypeID") == "15")
+                {
+                    @RenderFieldItem(categoryField.GetString("Ecom:Product.CategoryField.Label"), categoryField.GetString("Ecom:Product.CategoryField.OptionLabel"), viewType);
+                }
+                else if (categoryField.GetString("Ecom:Product.CategoryField.TypeID") == "8")
+                {
+                    @RenderFieldItem(categoryField.GetString("Ecom:Product.CategoryField.Label"), fieldValue, viewType, "link");
+                }
+                else
+                {
+                    @RenderFieldItem(categoryField.GetString("Ecom:Product.CategoryField.Label"), fieldValue, viewType);
+                }
+            }
+        }
+    }
+}
+
+@helper RenderProductDownloads(string layout)
+{
+    string viewType = Pageview.AreaSettings.GetItem("ProductPage").GetString("DownloadsView") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetList("DownloadsView").SelectedValue : "grid";
+    string ribbonClasses = Pageview.AreaSettings.GetItem("ProductPage").GetList("DownloadsLayout").SelectedValue == "Ribbon" ? "product__section--ribbon paragraph-container paragraph-container--full-width" : "";
+    string ribbonSubClasses = Pageview.AreaSettings.GetItem("ProductPage").GetList("DownloadsLayout").SelectedValue == "Ribbon" ? "u-padding--lg" : "";
+
+    <div class="product__section @ribbonClasses dw-mod">
+        <div class="center-container @ribbonSubClasses dw-mod">
+            @if (layout == "Section") {
+               <h2>@Translate("Downloads")</h2>
+            }
+
+            @if (viewType != "table") {
+                <div class="grid grid--external-bleed-x u-margin-bottom--lg">
+                    @RenderProductDownloadsFields(downloadDocuments, viewType)
+                </div>                                                              
+            } else {
+                string tableWidth = layout != "MainInformation" ? "grid__col-md-6" : "grid__col-md-12";
+
+                <div class="grid grid--external-bleed-x u-margin-bottom--lg">
+                    <div class="@tableWidth grid__col-sm-12 grid__col-xs-12">
+                        <table class="table--no-top-border">
+                            @RenderProductDownloadsFields(downloadDocuments, viewType)
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@helper RenderProductDownloadsFields(List<LoopItem> fieldsLoop, string viewType) { 
+    foreach (LoopItem document in fieldsLoop)
+    {
+        string fieldValue;
+        if (!string.IsNullOrEmpty(document.GetString("Document.FullPath")))
+        {
+            fieldValue = document.GetString("Product.CustomField.Value.Clean");
+            @RenderFieldItem(fieldValue, document.GetString("Document.FullPath"), viewType, "download")
+        }
+
+        if (document.GetString("Ecom:Product.CategoryField.TypeID") == "9")
+        {
+            fieldValue = document.GetString("Ecom:Product.CategoryField.Value");
+            @RenderFieldItem(fieldValue, fieldValue, viewType, "download")
+        }
+    }
+}
+
+@helper RenderFieldItem(string name, string value, string viewType, string fieldType = "clean")
+{
+    if (viewType != "table") {
+        string fieldColumns = viewType == "list" ? "12" : "4";
+        <div class="grid__col-md-@fieldColumns u-margin-bottom">
+            <div class="u-bold">
+                @name
+            </div>
+            <div>
+                @RenderFieldItemContent(name, value, fieldType)
+            </div>
+        </div>
+    } else {
+        <tr>
+            @if (fieldType == "download") {
+                <td colspan="2">
+                    @RenderFieldItemContent(name, value, fieldType)
+                </td>
+            }
+            else
+            {
+                <td class="u-bold">@name</td>
+                <td>
+                    @RenderFieldItemContent(name, value, fieldType)
+                </td>
+           }
+       </tr>
+    }
+}
+
+@helper RenderFieldItemContent(string name, string value, string fieldType = "clean")
+{
+    if (fieldType == "link")
+    {
+        <a target="_blank" href="@value">
+            @if (isImage(value)) {
+                @getIconForFile(value)
+            } else {
+                @value
+            }
+        </a>
+    } 
+    else if (fieldType == "download") 
+    {
+        FileInfo info = new FileInfo(Dynamicweb.Core.SystemInformation.MapPath(value));
+
+        if (info.Exists) {
+            <div class="grid grid--no-wrap">
+                <a href="@name" download title="@Translate("Download")" class="product__document u-min-w120px u-ta-center dw-mod">@getIconForFile(value)</a>
+                <div class="product__document-info dw-mod">
+                    <a href="@name" download title="@Translate("Download")" class="product__document dw-mod">@Path.GetFileName(value)</a>
+                    <small class="u-block u-margin-top">@ConvertBytes(info.Length)</small>
+                </div>
+            </div>
+        }
+    } 
+    else 
+    {
+        @value
+    }
+}

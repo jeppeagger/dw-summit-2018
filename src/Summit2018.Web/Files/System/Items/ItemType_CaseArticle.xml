@@ -1,0 +1,187 @@
+﻿<?xml version="1.0" encoding="utf-16" standalone="yes"?>
+<items>
+  <item category="Article" name="Case article" systemName="CaseArticle" description="" icon="Briefcase" iconColor="" includeInUrlIndex="False" pageDefaultView="item" fieldForTitle="Title" title="" inherits="BaseArticle" useCache="False">
+    <fields>
+      <field name="Banner heading" systemName="BannerHeading" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Banner subheading" systemName="BannerSubheading" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.LongTextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.LongTextEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Rows" value="" /><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Cols" value="" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Text color" systemName="TextColor" description="" type="Dynamicweb.Imaging.Colors.Color, Dynamicweb.Imaging" excludeFromSearch="False" defaultValueCulture="" defaultValue="#FFFFFF">
+        <editor type="Dynamicweb.Content.Items.Editors.ColorEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.ColorEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.ColorEditor" name="Presets" value="" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Challenge" systemName="Challenge" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.LongTextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.LongTextEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Rows" value="10" /><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Cols" value="" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Solution" systemName="Solution" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.LongTextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.LongTextEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Rows" value="10" /><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Cols" value="" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Results" systemName="Results" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.LongTextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.LongTextEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Rows" value="10" /><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Cols" value="" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Gallery" systemName="Gallery" description="" type="System.Int32, mscorlib" excludeFromSearch="False" defaultValueCulture="" defaultValue="0">
+        <editor type="Dynamicweb.Content.Items.Editors.ItemRelationListEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.ItemRelationListEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.ItemRelationListEditor" name="Item type" value="Image" /><Parameter addin="Dynamicweb.Content.Items.Editors.ItemRelationListEditor" name="Sort by" value="" /><Parameter addin="Dynamicweb.Content.Items.Editors.ItemRelationListEditor" name="Sort order" value="ASC" /><Parameter addin="Dynamicweb.Content.Items.Editors.ItemRelationListEditor" name="Item source" value="ListItem" /><Parameter addin="Dynamicweb.Content.Items.Editors.ItemRelationListEditor" name="Minumum number of items" value="" /><Parameter addin="Dynamicweb.Content.Items.Editors.ItemRelationListEditor" name="Maximum number of items" value="" /></Parameters></editorConfuguration>
+        </editor>
+        <options sourceType="Static">
+          <Static>
+            <option name="Image path" value="ImagePath" icon="" />
+          </Static>
+        </options>
+      </field>
+      <field name="Solution type" systemName="SolutionType" description="" type="System.Collections.Generic.IEnumerable`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]], mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.CheckboxListEditor`1, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.CheckboxListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]"><Parameter addin="Dynamicweb.Content.Items.Editors.CheckboxListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="LabelPosition" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.CheckboxListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconPosition" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.CheckboxListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconMaxWidth" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.CheckboxListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconMaxHeight" value="0" /></Parameters></editorConfuguration>
+        </editor>
+        <options sourceType="Static">
+          <Static>
+            <option name="B2C" value="0" icon="" />
+            <option name="B2B" value="1" icon="" />
+            <option name="CMS" value="2" icon="" />
+            <option name="Marketing" value="3" icon="" />
+          </Static>
+        </options>
+      </field>
+      <field name="Industry" systemName="Industry" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.DropDownListEditor`1, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]"><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="LabelPosition" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="LabelWidth" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconMaxWidth" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconMaxHeight" value="0" /></Parameters></editorConfuguration>
+        </editor>
+        <options sourceType="Static">
+          <Static>
+            <option name="Distribution" value="0" icon="" />
+            <option name="Manufacturing" value="1" icon="" />
+            <option name="Organization" value="2" icon="" />
+            <option name="Retail" value="3" icon="" />
+          </Static>
+        </options>
+      </field>
+      <field name="Integration" systemName="Integration" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.DropDownListEditor`1, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]"><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="LabelPosition" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="LabelWidth" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconMaxWidth" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconMaxHeight" value="0" /></Parameters></editorConfuguration>
+        </editor>
+        <options sourceType="Static">
+          <Static>
+            <option name="C5" value="0" icon="" />
+            <option name="CRM" value="1" icon="" />
+            <option name="D365" value="2" icon="" />
+            <option name="Dynamics NAV" value="3" icon="" />
+            <option name="Dynamics AX" value="4" icon="" />
+            <option name="Jeeves" value="5" icon="" />
+            <option name="PIM" value="6" icon="" />
+            <option name="Sap Busineess One" value="7" icon="" />
+            <option name="SalesForce" value="8" icon="" />
+            <option name="Visma" value="9" icon="" />
+          </Static>
+        </options>
+      </field>
+      <field name="Logo" systemName="CustomerLogo" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.FileEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.FileEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Base directory" value="/Images" /><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Extensions" value="" /><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Allow file upload from frontend" value="False" /><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Max files to add" value="" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Company name" systemName="CustomerCompanyName" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Location" systemName="CustomerLocation" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Website url" systemName="CustomerWebsiteUrl" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Partner link" systemName="PartnerLink" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.ItemLinkEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.ItemLinkEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.ItemLinkEditor" name="EnablePageSelection" value="True" /><Parameter addin="Dynamicweb.Content.Items.Editors.ItemLinkEditor" name="EnableParagraphSelection" value="False" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Profile image" systemName="QuoteImage" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.FileEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.FileEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Base directory" value="/Images" /><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Extensions" value="" /><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Allow file upload from frontend" value="False" /><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Max files to add" value="" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Quote description" systemName="QuoteDescription" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.LongTextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.LongTextEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Rows" value="8" /><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Cols" value="" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Quote author" systemName="QuoteAuthor" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+    </fields>
+    <rules>
+      <rule name="Allow in websites" type="Dynamicweb.Content.Items.Activation.AreaRestrictionRule, Dynamicweb" value="*" />
+      <rule name="" type="Dynamicweb.Content.Items.Activation.ModuleAttachmentRestrictionRule, Dynamicweb" value="Nothing" />
+      <rule name="Enable item type for" type="Dynamicweb.Content.Items.Activation.StructureRestrictionRule, Dynamicweb" value="Pages" />
+    </rules>
+    <layout>
+      <groups>
+        <group name="General" systemName="General" collapsibleState="None" visibilityField="" visibilityCondition="" visibilityConditionValueType="" visibilityConditionValue="">
+          <fields>
+            <field systemName="Title" />
+            <field systemName="Summary" />
+          </fields>
+        </group>
+        <group name="Top banner" systemName="TopBanner" collapsibleState="None" visibilityField="" visibilityCondition="0" visibilityConditionValueType="" visibilityConditionValue="">
+          <fields>
+            <field systemName="Image" />
+            <field systemName="BannerHeading" />
+            <field systemName="BannerSubheading" />
+            <field systemName="TextColor" />
+          </fields>
+        </group>
+        <group name="Case" systemName="Case" collapsibleState="None" visibilityField="" visibilityCondition="0" visibilityConditionValueType="" visibilityConditionValue="">
+          <fields>
+            <field systemName="Challenge" />
+            <field systemName="Solution" />
+            <field systemName="Results" />
+            <field systemName="Gallery" />
+            <field systemName="SolutionType" />
+            <field systemName="Industry" />
+            <field systemName="Integration" />
+          </fields>
+        </group>
+        <group name="Customer" systemName="Customer" collapsibleState="None" visibilityField="" visibilityCondition="0" visibilityConditionValueType="" visibilityConditionValue="">
+          <fields>
+            <field systemName="CustomerLogo" />
+            <field systemName="CustomerCompanyName" />
+            <field systemName="CustomerLocation" />
+            <field systemName="CustomerWebsiteUrl" />
+            <field systemName="PartnerLink" />
+          </fields>
+        </group>
+        <group name="Quote" systemName="Quote" collapsibleState="None" visibilityField="" visibilityCondition="0" visibilityConditionValueType="" visibilityConditionValue="">
+          <fields>
+            <field systemName="QuoteImage" />
+            <field systemName="QuoteDescription" />
+            <field systemName="QuoteAuthor" />
+          </fields>
+        </group>
+        <group name="Extra" systemName="Extra" collapsibleState="Collapsed" visibilityField="Title" visibilityCondition="0" visibilityConditionValueType="0" visibilityConditionValue="SHOWEXTRAS">
+          <fields>
+            <field systemName="Text" />
+          </fields>
+        </group>
+      </groups>
+    </layout>
+  </item>
+</items>

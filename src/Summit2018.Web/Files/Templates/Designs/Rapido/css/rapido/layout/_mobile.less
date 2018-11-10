@@ -1,0 +1,107 @@
+﻿// -----------------------------------------------------------------------------
+// Contains all styles related to the Website settings Mobile navigation section
+// -----------------------------------------------------------------------------
+
+.menu-mobile__trigger-align-mixin() when (@layout-mobile-navigation-text-alignment = "right") {   
+	right: 0;
+    left: .5em;
+}
+
+.menu-mobile__submenu-mixin() when (@layout-mobile-navigation-design = "Slides") {   
+	position: absolute;
+    left: @mobile-navigation-width;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+    transition: all 0.25s ease-in-out;
+    display: block;
+    
+    .expand-trigger:checked ~ & {
+        left: 0;
+    }
+}
+
+.menu-mobile__trigger-mixin() when (@layout-mobile-navigation-design = "Slides") {  
+    content: "\f105"; //fa-angle-right
+    margin: -3px auto 1px;
+}
+
+//Main navigation
+.mobile-navigation.dw-mod {
+   .background-color(@layout-mobile-navigation-background-color);
+}
+
+//Menu item specifics
+.menu-mobile__link.dw-mod,
+.mobile-navigation__link.dw-mod,
+.menu-mobile__header.dw-mod {
+    .font-mixin(
+        @layout-mobile-navigation-font-font-family-family,
+        @layout-mobile-navigation-font-font-family-style,
+        @layout-mobile-navigation-font-font-size,
+        @layout-mobile-navigation-font-font-family-weight,
+        @layout-mobile-navigation-font-line-height,
+        @layout-mobile-navigation-font-font-color,
+        @layout-mobile-navigation-font-casing
+    );
+}
+
+//Menu item specifics
+.menu-mobile__link.dw-mod,
+.mobile-navigation__link.dw-mod {
+    .border-bottom-color(@layout-mobile-navigation-border-color);
+    .text-align(@layout-mobile-navigation-text-alignment);
+}
+
+.menu-mobile__trigger {
+    .menu-mobile__trigger-align-mixin();
+}
+
+.mobile-navigation.dw-mod div.btn.dw-mod, 
+.mobile-navigation.dw-mod label.btn.dw-mod,
+.mobile-navigation.dw-mod .circle-icon-btn.dw-mod,
+.menu-mobile__link--closed:before {
+    .color(@layout-mobile-navigation-font-font-color);
+}
+
+.mobile-navigation.dw-mod .circle-icon-btn.dw-mod:after {
+    .border-color(@layout-mobile-navigation-font-font-color);
+}
+
+.menu-mobile__link--active.dw-mod, 
+.menu-mobile__header.dw-mod,
+.menu-mobile__link--highlighted.dw-mod {
+    .background-color(@layout-mobile-navigation-active-background-color);
+    .border-bottom-color(@layout-mobile-navigation-active-border-color);
+    .color(@layout-mobile-navigation-active-font-color);
+} 
+
+.mobile-navigation__link.dw-mod,
+.menu-mobile__link--active.dw-mod, 
+.menu-mobile__link.dw-mod,
+.menu-mobile__header.dw-mod,
+.menu-mobile__link--highlighted.dw-mod {
+    &:hover,
+    &:focus,
+    &:active {
+        .background-color(@layout-mobile-navigation-active-background-color);
+        .border-bottom-color(@layout-mobile-navigation-active-border-color);
+        .color(@layout-mobile-navigation-active-font-color);
+    }
+} 
+
+/* slides design */
+
+.menu-mobile__submenu {
+    .menu-mobile__submenu-mixin();
+    .background-color(@layout-mobile-navigation-background-color);
+}
+
+.menu-mobile__trigger:before {
+    .color(@layout-mobile-navigation-font-font-color);
+}
+
+.menu-mobile__trigger:before,
+.expand-trigger:checked ~ .menu-mobile__link__wrap .menu-mobile__trigger:before {
+    .menu-mobile__trigger-mixin();
+}

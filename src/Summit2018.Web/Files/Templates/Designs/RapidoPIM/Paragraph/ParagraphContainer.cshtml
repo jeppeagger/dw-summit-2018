@@ -1,0 +1,135 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.ParagraphViewModel>
+
+@Include("ParagraphRender.cshtml")
+
+@{
+    string fontColor = !string.IsNullOrEmpty(Model.Item.GetList("FontColor").SelectedValue) ? "u-" + Model.Item.GetList("FontColor").SelectedValue : "";
+    string backgroundColor = !string.IsNullOrEmpty(Model.Item.GetList("BackgroundColor").SelectedValue) ? "u-" + Model.Item.GetList("BackgroundColor").SelectedValue + "--bg" : "";
+    string paragraphContainerClasses = "";
+    string containerClasses = string.IsNullOrEmpty(Model.Item.GetList("Width").SelectedValue) ? "center-container dw-mod" : "";
+    string gridClasses = "grid";
+    string spacingSize = Model.Item.GetList("Spacing") != null && Model.Item.GetList("Spacing").SelectedValue != "" ? Model.Item.GetList("Spacing").SelectedValue : "lg";
+
+    int columnCount = 0;
+    int paragraphCount = 0;
+    int totalParagraphs = Model.Item.GetItems("Paragraph").Count;
+    int totalSlides = 1;
+
+    if (Model.Item.GetList("Width").SelectedValue == "center") {
+        containerClasses = fontColor + " " + backgroundColor + " center-container";
+    }
+
+    if (Model.Item.GetList("Width").SelectedValue == "full")
+    {
+        containerClasses = fontColor + " " + backgroundColor;
+    }
+
+    if (Model.Item.GetList("Width").SelectedValue == "combi")
+    {
+        paragraphContainerClasses = @fontColor + " " + @backgroundColor;
+        containerClasses = "center-container";
+    }
+
+    string fullBackgroundImage = "";
+    if (Model.Item.GetFile("BackgroundImage") != null)
+    {
+        fullBackgroundImage = "background-image:url(/Admin/Public/GetImage.ashx?width=2500&amp;height=1100&amp;crop=0&amp;Compression=85&amp;DoNotUpscale=true&amp;image=" + Model.Item.GetFile("BackgroundImage").PathUrlEncoded + ");";
+        fullBackgroundImage += " background-position: center center; background-size: cover; ";
+    } else if (string.IsNullOrEmpty(Model.Item.GetList("BackgroundColor").SelectedValue)) {
+        backgroundColor = "u-color-light--bg";
+        gridClasses += " ";
+    }
+
+    if (Model.Item.GetBoolean("SeperationLineAfter") && Model.Item.GetList("Width").SelectedValue != "center") {
+        paragraphContainerClasses += " multiple-paragraphs-container--seperation-line-after";
+    } else if (Model.Item.GetBoolean("SeperationLineAfter")) {
+        containerClasses += " multiple-paragraphs-container--seperation-line-after";
+    }
+
+    gridClasses += !string.IsNullOrEmpty(Model.Item.GetList("Height").SelectedValue) ? " paragraph-container--height-" + Model.Item.GetList("Height").SelectedValue : "";
+
+    string carouselContainerClass = "";
+    string carouselSlideClass = "";
+    string containerId = "";
+
+    //Set as carousel
+    if (Model.Item.GetBoolean("EnableCarousel"))
+    {
+        containerClasses += " carousel js-carousel-container";
+        carouselContainerClass += "carousel__container dw-mod";
+        carouselSlideClass += "carousel__container__slide dw-mod";
+        containerId = "Carousel_" + Model.ID;
+    }
+}
+
+@* Escape the container and section *@
+</div>
+</section>
+@* ----------------------------------- *@
+
+<section class="multiple-paragraphs-container @paragraphContainerClasses multiple-paragraphs-container--spacing-@spacingSize dw-mod" style="@fullBackgroundImage">          
+    <div class="@containerClasses dw-mod" id="@containerId">
+        <div class="@carouselContainerClass">
+            <div class="@carouselSlideClass">
+                <div class="@gridClasses">
+                    @foreach (var paragraph in Model.Item.GetItems("Paragraph"))
+                    {
+                        int columnWidth = Pageview.Device.ToString() != "Mobile" ? Int32.Parse(paragraph.GetList("Width").SelectedValue) : 12;
+                        if (columnCount < 12)
+                        {
+                            columnCount += columnWidth;
+                        }
+                        else
+                        {
+                            columnCount = columnWidth;
+                        }
+
+                        string columnCssClasses = "grid__col-md-" + columnWidth + " grid__col-xs-" + paragraph.GetList("WidthMobile").SelectedValue;
+                        string backgroundImage = "";
+                        string imageStyle = paragraph.GetList("ImageStyle").SelectedValue;
+
+                        if (paragraph.GetString("WidthMobile") == "hide")
+                        {
+                            columnCssClasses = "grid__col-md-" + columnWidth + " grid__col-xs--hidden";
+                        }
+
+                        if (imageStyle == "background" && paragraph.GetFile("Image") != null)
+                        {
+                            columnCssClasses += " grid__col--bg";
+                            string cropMode = paragraph.GetList("ImageCrop").SelectedValue != null ? paragraph.GetList("ImageCrop").SelectedValue : "0";
+                            backgroundImage = "background-image:url(/Admin/Public/GetImage.ashx?width=2500&amp;height=1100&amp;crop=" + cropMode + "&amp;Compression=85&amp;DoNotUpscale=true&amp;image=" + paragraph.GetFile("Image").PathUrlEncoded + ");";
+                        }
+
+                        <div class="@columnCssClasses paragraph-container" style="@backgroundImage">
+                            @RenderContent(paragraph, Model.Item.GetBoolean("EnableCarousel"))
+                        </div>
+
+                        paragraphCount++;
+                        if (paragraphCount != totalParagraphs) {
+                            string breakMarkup = string.Empty;
+                            if (columnCount == 12)
+                            {
+                                breakMarkup = "</div></div><div class=\"" + carouselSlideClass + "\"><div class=\"" + gridClasses + "\">";
+                                totalSlides++;
+                            }
+                            @breakMarkup
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (Model.Item.GetBoolean("EnableCarousel") && totalSlides > 1)
+        {
+            <div class="js-carousel-data" data-total-slides="@totalSlides" data-carousel-slide-time="@Model.Item.GetString("SlideTime")">
+                <div class="carousel-prev-btn dw-mod" onclick="Carousel.GetPreviousSlide('@containerId', true)"></div>
+                <div class="carousel-next-btn dw-mod" onclick="Carousel.GetNextSlide('@containerId', true)"></div>
+            </div>
+        }
+    </div>
+</section>
+
+@* Re-enter the container and section *@
+<section class="content-container center-container dw-mod">
+<div class="grid">
+@* ----------------------------------- *@

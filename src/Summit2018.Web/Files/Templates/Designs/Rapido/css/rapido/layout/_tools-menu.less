@@ -1,0 +1,32 @@
+﻿// -----------------------------------------------------------------------------
+// Contains all styles related to the Wbsite settings Tools menu section
+// -----------------------------------------------------------------------------
+
+.tools-navigation.dw-mod {
+	.background-color(@layout-header-tools-background-color);
+	.font-mixin(
+        @layout-header-tools-font-font-family-family, 
+        @layout-header-tools-font-font-family-style, 
+        @layout-header-tools-font-font-size, 
+        @layout-header-tools-font-font-family-weight, 
+        @layout-header-tools-font-line-height, 
+        @layout-header-tools-font-font-color, 
+        @layout-header-tools-font-casing
+    );
+}
+
+.menu-tools__link.dw-mod {
+    .font-mixin(
+        @layout-header-tools-font-font-family-family, 
+        @layout-header-tools-font-font-family-style, 
+        @layout-header-tools-font-font-size, 
+        @layout-header-tools-font-font-family-weight, 
+        @layout-header-tools-font-line-height, 
+        @layout-header-tools-font-font-color, 
+        @layout-header-tools-font-casing
+    );
+}
+
+.menu-tools__link.dw-mod:hover {
+   .color(@layout-header-tools-font-font-color);
+}

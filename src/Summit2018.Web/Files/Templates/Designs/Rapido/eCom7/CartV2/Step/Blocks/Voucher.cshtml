@@ -1,0 +1,94 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@{ 
+    BlocksPage voucherCheckoutPage = BlocksPage.GetBlockPage("CheckoutPage");
+
+    if (!Pageview.AreaSettings.GetItem("Ecommerce").GetItem("Checkout").GetBoolean("HideVoucher"))
+    {
+        Block voucherBlock = new Block()
+        {
+            Id = "Voucher",
+            SortId = 30,
+            Template = RenderVoucher(),
+            Design = new Design
+            {
+                RenderType = RenderType.Column,
+                Size = "auto"
+            }
+        };
+        voucherCheckoutPage.Add("OrderContainerRow", voucherBlock);
+    }
+}
+
+@helper RenderVoucher() {
+    string cardHeightClass = Pageview.Device.ToString() != "Tablet" ? "u-full-height" : "";
+
+    <div class="card-header u-color-light--bg dw-mod">
+        <h3><i class="fas fa-gift"></i> @Translate("Voucher")</h3>
+    </div>
+
+    <div class="card u-color-light--bg @cardHeightClass dw-mod">
+        <div class="form__field-combi">
+            <input type="text" class="u-full-width" placeholder="@Translate("Enter voucher code")" name="EcomOrderVoucherCode" id="EcomOrderVoucherCode" onkeyup="checkEmpty();" value="@GetString("Ecom:Order.Customer.VoucherCode")" />
+            <button type="submit" class="btn btn--primary dw-mod btn--condensed u-no-margin" id="EcomOrderVoucherApply" disabled>@Translate("Apply")</button>
+        </div>
+        <script>
+                function checkEmpty() {
+                    document.getElementById("EcomOrderVoucherApply").disabled = document.getElementById("EcomOrderVoucherCode").value.trim() == "";
+                }
+
+                checkEmpty();
+        </script>
+        @{
+            var errors = new List<string>();
+            string voucherCode = GetString("Ecom:Order.Customer.VoucherCode");
+            if (!string.IsNullOrWhiteSpace(voucherCode))
+            {
+                Order order = new OrderService().GetOrder(GetString("Ecom:Order.ID"));
+
+                IEnumerable<string> codes = new List<string>();
+
+                if (order.VoucherUseType.HasFlag(VoucherUseCategoryType.Discount))
+                {
+                    codes = voucherCode.Split(new string[] { ",", ";", " " }, StringSplitOptions.RemoveEmptyEntries);
+                }
+                else
+                {
+                    codes = new string[] { voucherCode.Trim() };
+                }
+
+                foreach (string code in codes)
+                {
+                    Voucher vouch = Voucher.GetVoucherByCode(code);
+                    if (vouch == null)
+                    {
+                        errors.Add(Translate("Voucher") + " <span class=u-bold>" + code + "</span> " + Translate("not found"));
+                        continue;
+                    }
+                    if (vouch.DateUsed.HasValue)
+                    {
+                        errors.Add(Translate("Voucher") + " <span class=u-bold>" + code + "</span> " + Translate("already used"));
+                        continue;
+                    }
+                    VoucherList voucherList = VoucherList.GetListById(vouch.ListId);
+                    if (!voucherList.ListActive)
+                    {
+                        errors.Add(Translate("Voucher") + " <span class=u-bold>" + code + "</span> " + Translate("is not active"));
+                        continue;
+                    }
+                    <div class="field-success u-margin-bottom dw-mod">@Translate("Voucher") <span class="u-bold">@code</span> @Translate("applied to order")</div>
+                }
+
+                foreach (string error in errors)
+                {
+                <div class="field-error u-margin-bottom dw-mod">@error</div>
+                }
+            }
+        }
+    </div>
+}

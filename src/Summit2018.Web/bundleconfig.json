@@ -1,0 +1,12 @@
+﻿[
+  {
+    "outputFileName": "Files/Templates/Designs/Rapido/js/custom.js",
+    "inputFiles": [
+      "Files/Templates/Designs/Rapido/js/source/Custom.js"
+    ],
+    "minify": {
+      "enabled": true,
+      "commentMode": "all"
+    }
+  }
+]

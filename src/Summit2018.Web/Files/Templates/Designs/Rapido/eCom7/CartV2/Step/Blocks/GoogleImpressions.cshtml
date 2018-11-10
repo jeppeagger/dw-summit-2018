@@ -1,0 +1,61 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@{
+    bool useGoogleTagManager = !string.IsNullOrEmpty(Pageview.AreaSettings.GetItem("Settings").GetString("GoogleTagManagerID"));
+
+    BlocksPage googleImpressionsPage = BlocksPage.GetBlockPage("CheckoutPage");
+
+    Block googleImpressionsBlock = new Block()
+    {
+        Id = "GoogleImpressionsBlock",
+        SortId = 10,
+        Template = RenderScript()
+    };
+
+    if (useGoogleTagManager)
+    {
+        googleImpressionsPage.Add("CheckoutBottomSnippets", googleImpressionsBlock);
+    }
+}
+
+@helper RenderScript() {
+    <script>
+        /**
+        * A function to handle a click on a checkout button. This function uses the eventCallback
+        * data layer variable to handle navigation after the ecommerce data has been sent to Google Analytics.
+        */
+        dataLayer.push({
+            'event': 'checkout',
+            'ecommerce': {
+                'checkout': {
+                    'actionField': {'step': 1},
+                    'products': [
+                        @foreach (LoopItem orderline in GetLoop("OrderLines"))
+                        {
+                            var groupObject = Dynamicweb.Ecommerce.Services.ProductGroups.GetGroup(orderline.GetString("Ecom:Product.PrimaryOrFirstGroupID"));
+                            <text>
+                            {
+                                'name': "@orderline.GetString("Ecom:Order:OrderLine.ProductName")",
+                                'id': "@orderline.GetString("Ecom:Product.ID")",
+                                'price': "@orderline.GetDouble("Ecom:Order:OrderLine.UnitPrice.Price")",
+                                'brand': "@orderline.GetString("Ecom:Product:Field.brand.Value")",
+                                'category': "@(groupObject != null ? groupObject.Name : "")",
+                                'variant': "@orderline.GetString("Ecom:Order:OrderLine.ProductVariantID")",
+                                'quantity': @orderline.GetInteger("Ecom:Order:OrderLine.Quantity")
+                            },
+                            </text>
+                        }
+                    ]
+                }
+            },
+            'eventCallback': function() {
+                document.location = 'checkout.html';
+            }
+        });
+    </script>
+}

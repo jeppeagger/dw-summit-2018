@@ -1,0 +1,60 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+<div id="cookieWarningDiv">
+    <script type="text/javascript">
+        function setOptInCookie(optInLevel) {
+            var xmlhttp;
+            if (window.XMLHttpRequest) {
+                xmlhttp = new XMLHttpRequest();
+            }
+            else {
+                xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+            }
+            xmlhttp.onreadystatechange = function () {
+                if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+                    document.getElementById("CookiePanelTrigger").checked = false;
+                    document.getElementById("CookiePanel").style.display = "none";
+                    return false;
+                }
+            }
+            xmlhttp.open("GET", "/admin/public/CookieOptInLevelConfig.aspx?cmd=SetCookieOptInLevel&OptInLevel=" + optInLevel, true);
+            xmlhttp.send();
+            return false;
+        }
+    </script>
+</div>
+
+
+<!-- Trigger for the cookie panel -->
+<input type="checkbox" class="panel-trigger js-remember-state" id="CookiePanelTrigger" checked />
+
+<!-- Cookie panel -->
+<aside class="panel panel--bottom dw-mod" id="CookiePanel">
+    <label for="CookiePanelTrigger" class="panel-trigger-btn grid--justify-center dw-mod"></label>
+
+    <div class="panel__content dw-mod">
+        <div class="panel__content__body dw-mod">
+            <h6 class="panel__header dw-mod u-margin-bottom">@Translate("This website use cookies")</h6>
+
+            <div>@Translate("This website uses cookies to track your behavior and to improve your experience on the site")</div>
+            <div class="u-margin-bottom--lg">@Translate("You can always delete saved cookies by visiting the advanced settings of your browser")</div>
+        </div>
+
+        <div class="panel__content__footer panel__content__footer--320px dw-mod">
+            <form method="get" id="CookieForm" class="u-no-margin" action="/admin/public/CookieOptInLevelConfig.aspx?cmd=SetCookieOptInLevel">
+                <input type="radio" name="OptInLevel" id="OptInLevel0" value="0" class="form__control" />
+                <label onclick="setOptInCookie(0);" for="OptInLevel0">
+                    @Translate("Do not accept cookies")
+                </label>
+                <input type="radio" name="OptInLevel" id="OptInLevel1" value="1" class="form__control" />
+                <label onclick="setOptInCookie(1);" for="OptInLevel1">
+                    @Translate("Only accept functional cookies")
+                </label>
+                <input type="radio" name="OptInLevel" id="OptInLevel2" value="2" class="form__control" />
+                <label onclick="setOptInCookie(2);" for="OptInLevel2">
+                    @Translate("Accept all cookies")
+                </label> 
+            </form>
+        </div>
+    </div>
+</aside>

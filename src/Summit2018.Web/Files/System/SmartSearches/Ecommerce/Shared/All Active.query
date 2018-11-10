@@ -1,0 +1,24 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="b255eb2c-7f2d-4934-bd15-440bc350c7ce" Name="All Active">
+  <Settings />
+  <Source Repository="Products" Item="Products.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="Active" />
+        </Left>
+        <Right>
+          <TermExpression Value="True" DisplayValue="True" Type="System.Boolean" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields>
+    <Field Name="Active" SystemName="" Source="ProductActive" Sort="0" />
+    <Field Name="Product name" SystemName="" Source="ProductName" Sort="1" />
+    <Field Name="Product number" SystemName="" Source="ProductNumber" Sort="2" />
+    <Field Name="Price" SystemName="" Source="ProductPrice" Sort="3" />
+  </ViewFields>
+  <ViewLanguages />
+</Query>

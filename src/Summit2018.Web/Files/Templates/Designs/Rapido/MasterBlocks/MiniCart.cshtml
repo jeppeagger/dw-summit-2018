@@ -1,0 +1,252 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.PageViewModel>
+
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks.Extensibility
+@using Dynamicweb.Rapido.Blocks
+
+@{
+    BlocksPage miniCartBlocksPage = BlocksPage.GetBlockPage("Master");
+    bool navigationItemsHideCart = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("HideCart");
+
+    if (!navigationItemsHideCart)
+    {
+        Block miniCartScriptTemplates = new Block()
+        {
+            Id = "MasterMiniCartTemplates",
+            SortId = 1,
+            Template = RenderMiniCartScriptTemplates(),
+            SkipRenderBlocksList = true,
+            BlocksList = new List<Block>
+            {
+                new Block {
+                    Id = "MiniCartHeader",
+                    SortId = 10,
+                    Template = RenderMiniCartHeader()
+                },
+                new Block {
+                    Id = "MiniCartOrderLines",
+                    SortId = 20,
+                    Template = RenderMiniCartOrderLines()
+                },
+                new Block {
+                    Id = "MiniCartFees",
+                    SortId = 30,
+                    Template = RenderMiniCartFees()
+                },
+                new Block {
+                    Id = "MiniCartPoints",
+                    SortId = 40,
+                    Template = RenderMiniCartPoints()
+                },
+                new Block {
+                    Id = "MiniCartTotal",
+                    SortId = 50 ,
+                    Template = RenderMiniCartTotal()
+                }
+            }
+        };
+
+        miniCartBlocksPage.Add(MasterBlockId.MasterBottomSnippets, miniCartScriptTemplates);
+    }
+}
+
+@helper RenderMiniCartScriptTemplates()
+{
+    List<Block> subBlocks = this.masterPage.GetBlockListById("MasterMiniCartTemplates").OrderBy(item => item.SortId).ToList();
+
+    int cartPageId = GetPageIdByNavigationTag("CartPage");
+    bool showPriceInMiniCartCounter = Model.Area.Item.GetItem("Ecommerce").GetItem("MiniCart").GetBoolean("ShowPrice");
+    showPriceInMiniCartCounter = Model.Area.Item.GetItem("Ecommerce").GetItem("MiniCart").GetList("CounterPosition").SelectedValue == "right" ? showPriceInMiniCartCounter : false;
+    showPriceInMiniCartCounter = Pageview.Device.ToString() == "Mobile" ? false : showPriceInMiniCartCounter;
+    bool useGoogleTagManager = !string.IsNullOrEmpty(Pageview.AreaSettings.GetItem("Settings").GetString("GoogleTagManagerID"));
+    bool onlyPreview = Model.Area.Item.GetItem("Ecommerce").GetBoolean("OnlyPreviewForAnonymous") && Model.CurrentUser.ID == 0;
+    string addingToCartNotification = Model.Area.Item.GetItem("Ecommerce").GetItem("MiniCart").GetList("AddToCartNotificationType") != null ? Model.Area.Item.GetItem("Ecommerce").GetItem("MiniCart").GetList("AddToCartNotificationType").SelectedValue : "";
+    int miniCartFeedPageId = GetPageIdByNavigationTag("MiniCartFeed");
+
+
+    <script id="MiniCartCounterContent" type="text/x-template">
+        {{#.}}
+        <div class="js-mini-cart-counter-content dw-mod">
+            @if (showPriceInMiniCartCounter) {
+                @Translate("Cart")<text>({{numberofproducts}}) {{totalprice}}</text>
+            } else {
+                <text>{{numberofproducts}}</text>
+            }
+        </div>
+        {{/.}}
+    </script>
+
+    <script id="MiniCartContent" type="text/x-template">
+        {{#.}}
+        @if (useGoogleTagManager)
+        {
+            <text>{{{googleEnchantImpressionEmptyCart OrderLines}}}</text>
+        }
+        <div class="mini-cart-dropdown__inner {{isempty}} dw-mod">
+            <h4 class="u-ta-center u-no-margin u-margin-bottom u-margin-top">@Translate("Shopping cart")</h4>
+            <div class="mini-cart-dropdown__body dw-mod">
+                <table class="table mini-cart-table dw-mod">
+                    @RenderBlockList(subBlocks)
+                </table>
+            </div>
+
+            <table class="table mini-cart-table dw-mod">
+                <tr class="mini-cart-orderlines__footer dw-mod">
+                    <td colspan="2"><button type="button" class="btn btn--secondary u-pull--left u-no-margin dw-mod btn--sm" onclick="googleEnchantImpressionEmptyCart(); Cart.EmptyCart(event);">@Translate("Empty cart")</button></td>
+                    <td colspan="2" class="u-ta-right"><a href="/Default.aspx?ID=@cartPageId" class="btn btn--primary u-pull--right u-no-margin dw-mod btn--sm">@Translate("Proceed to checkout")</a></td>
+                </tr>
+            </table>
+        </div>
+        {{/.}}
+    </script>
+
+    <script id="MiniCartOrderline" type="text/x-template">
+        <tr class="{{isempty}}">
+            <td><a href="{{link}}" class="{{hideimage}}"><img src="/Admin/Public/GetImage.ashx?width=50&height=50&crop=5&Compression=75&image={{image}}" alt="{{name}}"></a></td>
+            <td>
+                <a href="{{link}}" class="mini-cart-orderlines__name" title="{{name}}">{{name}}</a>
+                {{#if variantname}}
+                <a href="{{link}}" class="mini-cart-orderlines__name mini-cart-orderlines__name--small">{{variantname}}</a>
+                {{/if}}
+                {{#if unitname}}
+                <div class="mini-cart-orderlines__name mini-cart-orderlines__name--small">{{unitname}}</div>
+                {{/if}}
+            </td>
+            <td class="u-ta-right">{{quantity}}</td>
+            <td class="u-ta-right">
+                {{#if pointsTotal}}
+                <span class="u-color--loyalty-points">{{pointsTotal}}</span> @Translate("points")
+                {{else}}
+                {{totalprice}}
+                {{/if}}
+            </td>
+        </tr>
+    </script>
+
+    <script id="MiniCartOrderlineDiscount" type="text/x-template">
+        <tr class="table__row--no-border {{isempty}}">
+            <td>&nbsp;</td>
+            <td><div class="mini-cart-orderlines__name dw-mod">{{name}}</div></td>
+            <td class="u-ta-right">&nbsp;</td>
+            <td class="u-ta-right">{{totalprice}}</td>
+        </tr>
+    </script>
+
+    if (!onlyPreview && addingToCartNotification == "modal")
+    {
+        <div id="LastAddedProductModal" data-template="LastAddedProductTemplate"></div>
+
+        <script id="LastAddedProductTemplate" type="text/x-template">
+            <!-- Trigger for the login modal -->
+            <input type="checkbox" id="LastAddedProductModalTrigger" class="modal-trigger" />
+
+            <!-- Login modal -->
+            <div class="modal-container">
+                <label for="LastAddedProductModalTrigger" class="modal-overlay"></label>
+                <div class="modal modal--md">
+                    <div class="modal__header">
+                        <h2>@Translate("Product is added to the cart")</h2>
+                    </div>
+                    <div class="modal__body">
+                        <div class="grid">
+                            <div>
+                                <a href="{{productInfo.link}}"><img src="{{productInfo.image}}" alt="{{productInfo.name}}" /></a>
+                            </div>
+                            <div class="u-padding">
+                                <span>{{quantity}}</span> x
+                            </div>
+                            <div class="grid__col-auto">
+                                <div>{{productInfo.name}}</div>
+                                {{#if productInfo.variantName}}
+                                <small class="u-margin-bottom-5px">{{productInfo.variantName}}</small>
+                                {{/if}}
+                                {{#if productInfo.unitName}}
+                                <small class="u-margin-bottom-5px">{{productInfo.unitName}}</small>
+                                {{/if}}
+                            </div>
+                        </div>
+                        <div class="modal__footer u-margin-top--lg">
+                            <label class="btn btn--secondary u-pull--left u-no-margin dw-mod btn--sm" for="LastAddedProductModalTrigger">@Translate("Continue shopping")</label>
+                            <a href="/cart" class="btn btn--primary u-pull--right u-no-margin dw-mod btn--sm">@Translate("Proceed to checkout")</a>
+                        </div>
+                    </div>
+                    <label class="modal__close-btn" for="LastAddedProductModalTrigger"></label>
+                </div>
+            </div>
+        </script>
+        <script>
+            document.addEventListener('addToCart', function (event) {
+                Cart.ShowLastAddedProductModal(event.detail);
+            });
+        </script>
+    }
+    else if (!onlyPreview && addingToCartNotification == "toggle")
+    {
+        <script>
+            document.addEventListener('addToCart', function () {
+                Cart.ToggleMiniCart('miniCartWrapper', 'miniCart', 'cartCounter', '@miniCartFeedPageId');
+            });
+        </script>
+    }
+}
+
+@helper RenderMiniCartHeader() {
+    <thead>
+        <tr>
+            <td>&nbsp;</td>
+            <td>@Translate("Product")</td>
+            <td class="u-ta-right">@Translate("Qty")</td>
+            <td class="u-ta-right" width="120">@Translate("Price")</td>
+        </tr>
+    </thead>
+}
+
+@helper RenderMiniCartOrderLines() {
+    <text>
+    {{#OrderLines}}
+        {{#ifCond template "===" "CartOrderline"}}
+            {{>MiniCartOrderline}}
+        {{/ifCond}}
+        {{#ifCond template "===" "CartOrderlineMobile"}}
+            {{>MiniCartOrderline}}
+        {{/ifCond}}
+        {{#ifCond template "===" "CartOrderlineDiscount"}}
+            {{>MiniCartOrderlineDiscount}}
+        {{/ifCond}}
+    {{/OrderLines}}
+    </text>
+}
+
+@helper RenderMiniCartFees() {
+    <tr>
+        <td><i class="fas fa-credit-card"></i></td>
+        <td>{{paymentmethod}}</td>
+        <td colspan="2" class="u-ta-right" width="130">{{paymentfee}}</td>
+    </tr>
+    <tr>
+        <td><i class="fas fa-truck"></i></td>
+        <td>{{shippingmethod}}</td>
+        <td colspan="2" class="u-ta-right" width="130">{{shippingfee}}</td>
+    </tr>
+}
+
+@helper RenderMiniCartPoints() { 
+    <text>
+    {{#if earnings}}
+        <tr>
+            <td colspan="2">@Translate("Earnings")</td>
+            <td colspan="2" class="u-ta-right" width="130"><span class="u-color--loyalty-points">{{earnings}}</span> @Translate("points")</td>
+        </tr>
+    {{/if}}
+    </text>    
+}
+
+@helper RenderMiniCartTotal() {
+    <tr class="mini-cart-totals dw-mod">
+        <td colspan="2">@Translate("Total")</td>
+        <td class="u-ta-right">{{numberofproducts}}</td>
+        <td class="u-ta-right" width="130">{{totalprice}}</td>
+    </tr>
+}

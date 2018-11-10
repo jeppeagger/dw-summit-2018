@@ -1,0 +1,42 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="079a54b6-8f2a-4176-b43c-b827047324b0" Name="[Channel] Amazon (US).query">
+  <Meta />
+  <Settings />
+  <Source Repository="PIM" Item="PIM.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <Parameters>
+    <Parameter Name="ContextLanguage" Type="System.String" DefaultValue="" />
+  </Parameters>
+  <SortOrder>
+    <Sort Field="Number" Direction="Ascending" />
+  </SortOrder>
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="ShopIDs" />
+        </Left>
+        <Right>
+          <TermExpression Value="SHOP8" DisplayValue="Amazon (US)" Type="System.String[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="Active" />
+        </Left>
+        <Right>
+          <TermExpression Value="True" DisplayValue="True" Type="System.Boolean" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="LanguageID" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="ContextLanguage" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields />
+  <ViewLanguages />
+</Query>

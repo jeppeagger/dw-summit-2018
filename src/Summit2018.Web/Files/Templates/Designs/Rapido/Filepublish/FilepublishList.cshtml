@@ -1,0 +1,45 @@
+@using System.Text.RegularExpressions
+    
+<table>
+    <thead>
+        <tr>
+            <th colspan="2">@Translate("File name")</th>
+            <th class="u-ta-right">@Translate("Date")</th>
+            <th class="u-ta-right">@Translate("File size")</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (LoopItem folder in GetLoop("FoldersLoop"))
+        {
+            Match match = Regex.Match(folder.GetString("FilepublishFileIcon"), "src=\\\"(.*?)\\\"");
+            <tr>
+                <td class="u-w50px u-ta-right">
+                    <a href="@folder.GetString("FilepublishFileLink")">
+                        @if (!string.IsNullOrEmpty(folder.GetString("FilepublishFileDatemodified"))) {
+                            <img src="@match.Groups[1]" />
+                        }
+                        else
+                        {
+                            <i class="fas fa-arrow-left"></i>
+                        }
+                    </a>
+                </td>
+                <td><a href="@folder.GetString("FilepublishFileLink")" class="u-color-inherit u-break--break-word">@folder.GetString("FilepublishFileName")</a></td>
+                <td class="u-ta-right u-color-gray">@folder.GetString("FilepublishFileDatemodified")</td>
+                <td class="u-ta-right u-color-gray">@folder.GetString("FilepublishFileSizeKB").Replace(" ", "&nbsp;")</td>
+            </tr>
+        }
+
+        @foreach (LoopItem file in GetLoop("FilesLoop"))
+        {
+            Match match = Regex.Match(file.GetString("FilepublishFileIcon"), "src=\\\"(.*?)\\\"");
+            <tr>
+                <td class="u-w50px"><a href="@file.GetString("FilepublishFileLink")"><img src="@match.Groups[1]" /></a></td>
+                <td><a href="@file.GetString("FilepublishFileLink")" class="u-color-inherit u-break--break-word">@file.GetString("FilepublishFileName")</a></td>
+                <td class="u-ta-right u-color-gray">@file.GetString("FilepublishFileDatemodified")</td>
+                <td class="u-ta-right u-color-gray">@file.GetString("FilepublishFileSizeKB").Replace(" ", "&nbsp;")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+@GetValue("FilepublishUpload")

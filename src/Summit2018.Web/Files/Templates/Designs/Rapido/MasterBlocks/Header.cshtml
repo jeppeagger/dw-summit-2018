@@ -1,0 +1,894 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.PageViewModel>
+
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks.Extensibility
+@using Dynamicweb.Rapido.Blocks
+
+@functions {
+    BlocksPage headerBlocksPage = BlocksPage.GetBlockPage("Master");
+}
+
+@{
+    bool renderPagesInToolBar = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("RenderPagesInToolBar");
+    bool navigationActionHideSearch = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("HideSearch");
+    bool hideMyFavoritesLink = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("SignInHideFavorites");
+    bool showSearchIcon = false;
+    string topLayout = Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("TopLayout") != null ? Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("TopLayout").SelectedValue : "normal";
+
+    if (topLayout == "minimal" || topLayout == "minimal-right" || topLayout == "two-lines" || topLayout == "two-lines-centered")
+    {
+        showSearchIcon = true;
+    }
+    bool headerOnlyPreview = Model.Area.Item.GetItem("Ecommerce").GetBoolean("OnlyPreviewForAnonymous") && Model.CurrentUser.ID == 0;
+
+    if (renderPagesInToolBar && Pageview.Device.ToString() != "Mobile" && Pageview.Device.ToString() != "Tablet")
+    {
+        Block masterTools = new Block()
+        {
+            Id = "MasterDesktopTools",
+            SortId = 10,
+            Template = RenderDesktopTools(),
+            SkipRenderBlocksList = true,
+            BlocksList = new List<Block>
+            {
+                new Block {
+                    Id = "MasterDesktopToolsText",
+                    SortId = 10,
+                    Template = RenderDesktopToolsText(),
+                    Design = new Design
+                    {
+                        Size = "auto",
+                        HidePadding = true,
+                        RenderType = RenderType.Column
+                    }
+                },
+                new Block {
+                    Id = "MasterDesktopToolsNavigation",
+                    SortId = 20,
+                    Template = RenderDesktopToolsNavigation(),
+                    Design = new Design
+                    {
+                        Size = "auto-width",
+                        HidePadding = true,
+                        RenderType = RenderType.Column
+                    }
+                }
+            }
+        };
+        headerBlocksPage.Add(MasterBlockId.MasterHeader, masterTools);
+    };
+
+    Block masterDesktopExtra = new Block()
+    {
+        Id = "MasterDesktopExtra",
+        SortId = 10,
+        Template = RenderDesktopExtra(),
+        SkipRenderBlocksList = true
+    };
+    headerBlocksPage.Add(MasterBlockId.MasterHeader, masterDesktopExtra);
+
+    Block masterDesktopNavigation = new Block()
+    {
+        Id = "MasterDesktopNavigation",
+        SortId = 20,
+        Template = RenderDesktopNavigation(),
+        SkipRenderBlocksList = true
+    };
+    headerBlocksPage.Add(MasterBlockId.MasterHeader, masterDesktopNavigation);
+
+    Block masterDesktopLogo = new Block
+    {
+        Id = "MasterDesktopLogo",
+        SortId = 10,
+        Template = RenderDesktopLogo(),
+        Design = new Design
+        {
+            Size = "auto-width",
+            HidePadding = true,
+            RenderType = RenderType.Column
+        }
+    };
+
+    Block masterDesktopMenu = new Block
+    {
+        Id = "MasterDesktopMenu",
+        SortId = 20,
+        Template = RenderDesktopMenu(),
+        Design = new Design()
+        {
+            Size = "auto",
+            HidePadding = true,
+            RenderType = RenderType.Column
+        }
+    };
+
+    Block masterDesktopActionsMenuContainer = new Block
+    {
+        Id = "MasterDesktopActionsMenuContainer",
+        SortId = 30,
+        Design = new Design
+        {
+            RenderType = RenderType.Column,
+            Size = "auto"
+        }
+    };
+
+    Block masterDesktopActionsMenu = new Block
+    {
+        Id = "MasterDesktopActionsMenu",
+        SortId = 10,
+        Template = RenderDesktopActionsMenu(),
+        SkipRenderBlocksList = true
+    };
+
+    if (!navigationActionHideSearch && showSearchIcon)
+    {
+        Block masterDesktopActionsMenuSearch = new Block
+        {
+            Id = "MasterDesktopActionsMenuSearch",
+            SortId = 10,
+            Template = RenderMiniSearch()
+        };
+        masterDesktopActionsMenu.Add(masterDesktopActionsMenuSearch);
+    }
+
+    Block masterDesktopActionsMenuSignIn = new Block
+    {
+        Id = "MasterDesktopActionsMenuSignIn",
+        SortId = 20,
+        Template = RenderSignIn()
+    };
+    masterDesktopActionsMenu.Add(masterDesktopActionsMenuSignIn);
+
+    if (!hideMyFavoritesLink && Model.CurrentUser.ID > 0)
+    {
+        Block masterDesktopActionsMenuFavorites = new Block
+        {
+            Id = "MasterDesktopActionsMenuFavorites",
+            SortId = 30,
+            Template = RenderFavorites()
+        };
+        masterDesktopActionsMenu.Add(masterDesktopActionsMenuFavorites);
+    }
+
+    Block masterDesktopActionsMenuLanguageSelector = new Block
+    {
+        Id = "MasterDesktopActionsMenuLanguageSelector",
+        SortId = 40,
+        Template = RenderLanguageSelector()
+    };
+    masterDesktopActionsMenu.Add(masterDesktopActionsMenuLanguageSelector);
+
+    if (!headerOnlyPreview)
+    {
+        Block masterDesktopActionsMenuMiniCart = new Block
+        {
+            Id = "MasterDesktopActionsMenuMiniCart",
+            SortId = 50,
+            Template = RenderMiniCart()
+        };
+        masterDesktopActionsMenu.Add(masterDesktopActionsMenuMiniCart);
+    }
+
+    if (!string.IsNullOrWhiteSpace(Model.Area.Item.GetItem("Layout").GetItem("Header").GetString("HeaderButtonLink")))
+    {
+        Block masterDesktopActionsHeaderButton = new Block
+        {
+            Id = "MasterDesktopActionsHeaderButton",
+            SortId = 60,
+            Template = RenderHeaderButton()
+        };
+        masterDesktopActionsMenu.Add(masterDesktopActionsHeaderButton);
+    }
+
+    Block searchBar = new Block()
+    {
+        Id = "SearchBar",
+        SortId = 40,
+        Template = RenderSearchBar(),
+        Design = new Design()
+        {
+            Size = "auto",
+            HidePadding = true,
+            RenderType = RenderType.Column
+        }
+    };
+
+    if (Model.CurrentUser.ID > 0 && Model.SecondaryUsers.Count > 0)
+    {
+        Block impersonationBar = new Block()
+        {
+            Id = "ImpersonationBar",
+            SortId = 50,
+            Template = RenderImpersonationBar(),
+            Design = new Design()
+            {
+                Size = "auto-width",
+                HidePadding = true,
+                RenderType = RenderType.Column
+            }
+        };
+        headerBlocksPage.Add(MasterBlockId.MasterHeader, impersonationBar);
+    }
+
+    switch (topLayout)
+    {
+        case "condensed": //2
+            masterDesktopLogo.SortId = 10;
+            masterDesktopLogo.Design.Size = "auto-width";
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopLogo);
+            masterDesktopMenu.SortId = 20;
+            masterDesktopMenu.Design.Size = "auto";
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopMenu);
+            masterDesktopActionsMenuContainer.SortId = 30;
+            masterDesktopActionsMenuContainer.Design.Size = "auto-width";
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopActionsMenuContainer);
+            if (!navigationActionHideSearch)
+            {
+                searchBar.SortId = 40;
+                searchBar.Design.Size = "12";
+                masterDesktopExtra.SortId = 50;
+                headerBlocksPage.Add("MasterDesktopExtra", searchBar);
+            }
+            break;
+        case "minimal": //4
+            masterDesktopLogo.SortId = 10;
+            masterDesktopLogo.Design.Size = "auto-width";
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopLogo);
+            masterDesktopMenu.SortId = 10;
+            masterDesktopMenu.Design.Size = "auto";
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopMenu);
+            masterDesktopActionsMenuContainer.SortId = 20;
+            masterDesktopActionsMenuContainer.Design.Size = "auto-width";
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopActionsMenuContainer);
+            break;
+        case "minimal-right": //5
+            masterDesktopLogo.SortId = 10;
+            masterDesktopLogo.Design.Size = "auto-width";
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopLogo);
+            masterDesktopMenu.SortId = 10;
+            masterDesktopMenu.Design.Size = "auto";
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopMenu);
+            masterDesktopActionsMenuContainer.SortId = 20;
+            masterDesktopActionsMenuContainer.Design.Size = "auto-width";
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopActionsMenuContainer);
+            break;
+        case "two-lines": //6
+            masterDesktopLogo.SortId = 10;
+            masterDesktopLogo.Design.Size = "auto";
+            headerBlocksPage.Add("MasterDesktopExtra", masterDesktopLogo);
+            masterDesktopMenu.SortId = 10;
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopMenu);
+            masterDesktopActionsMenuContainer.SortId = 20;
+            masterDesktopActionsMenuContainer.Design.Size = "auto-width";
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopActionsMenuContainer);
+            break;
+        case "two-lines-centered": //7
+            masterDesktopLogo.SortId = 10;
+            masterDesktopLogo.Design.Size = "auto";
+            headerBlocksPage.Add("MasterDesktopExtra", masterDesktopLogo);
+            masterDesktopMenu.SortId = 10;
+            masterDesktopMenu.Design.Size = "auto";
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopMenu);
+            masterDesktopActionsMenuContainer.SortId = 20;
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopActionsMenuContainer);
+            break;
+        case "splitted": //3
+            masterDesktopLogo.SortId = 10;
+            masterDesktopLogo.Design.Size = "auto";
+            headerBlocksPage.Add("MasterDesktopExtra", masterDesktopLogo);
+            if (!navigationActionHideSearch)
+            {
+                searchBar.SortId = 20;
+                searchBar.Design.Size = "auto";
+                headerBlocksPage.Add("MasterDesktopExtra", searchBar);
+            }
+            masterDesktopMenu.SortId = 10;
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopMenu);
+            masterDesktopActionsMenuContainer.SortId = 20;
+            masterDesktopActionsMenuContainer.Design.Size = "auto-width";
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopActionsMenuContainer);
+            break;
+        case "normal": //1
+        default:
+            masterDesktopLogo.SortId = 10;
+            headerBlocksPage.Add("MasterDesktopExtra", masterDesktopLogo);
+            if (!navigationActionHideSearch)
+            {
+                searchBar.SortId = 20;
+                headerBlocksPage.Add("MasterDesktopExtra", searchBar);
+            }
+            masterDesktopActionsMenuContainer.SortId = 30;
+            headerBlocksPage.Add("MasterDesktopExtra", masterDesktopActionsMenuContainer);
+            masterDesktopMenu.SortId = 10;
+            masterDesktopActionsMenuContainer.Design.Size = "auto-width";
+            headerBlocksPage.Add("MasterDesktopNavigation", masterDesktopMenu);
+            break;
+    }
+
+    headerBlocksPage.Add("MasterDesktopActionsMenuContainer", masterDesktopActionsMenu);
+}
+
+@helper RenderDesktopTools()
+{
+    List<Block> subBlocks = this.headerBlocksPage.GetBlockListById("MasterDesktopTools").OrderBy(item => item.SortId).ToList();
+
+    <div class="tools-navigation dw-mod">
+        <div class="center-container grid top-container__center-container dw-mod">
+            @RenderBlockList(subBlocks)
+        </div>
+    </div>
+}
+
+@helper RenderDesktopToolsText()
+{
+    string toolsText = Model.Area.Item.GetItem("Layout").GetItem("Header").GetString("ToolsText");
+
+    <div class="u-margin-top">@toolsText</div>
+}
+
+@helper RenderDesktopToolsNavigation()
+{
+    <div>
+        @RenderNavigation(new
+       {
+           id = "topToolsNavigation",
+           cssclass = "menu menu-tools dw-mod dwnavigation",
+           template = "TopMenu.xslt"
+       })
+    </div>
+}
+
+@helper RenderDesktopNavigation()
+{
+    List<Block> subBlocks = this.headerBlocksPage.GetBlockListById("MasterDesktopNavigation").OrderBy(item => item.SortId).ToList();
+
+    <nav class="main-navigation dw-mod">
+        <div class="center-container top-container__center-container grid grid--align-center dw-mod">
+            @RenderBlockList(subBlocks)
+        </div>
+    </nav>
+}
+
+@helper RenderDesktopExtra()
+{
+    List<Block> subBlocks = this.headerBlocksPage.GetBlockListById("MasterDesktopExtra").OrderBy(item => item.SortId).ToList();
+
+    if (subBlocks.Count > 0)
+    {
+        <div class="header header-top dw-mod">
+            <div class="center-container top-container__center-container grid grid--align-center dw-mod">
+                @RenderBlockList(subBlocks)
+            </div>
+        </div>
+    }
+}
+
+@helper RenderDesktopLogo()
+{
+    string firstPageId = Model.Area.FirstActivePage.ID.ToString();
+    string topLayout = Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("TopLayout") != null ? Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("TopLayout").SelectedValue : "normal";
+    string alignClass = topLayout == "two-lines-centered" || topLayout == "two-lines" ? "grid--align-self-center" : "";
+    string logo = Model.Area.Item.GetItem("Layout").GetFile("LogoImage") != null ? Model.Area.Item.GetItem("Layout").GetFile("LogoImage").PathUrlEncoded : "/Files/Images/logo-dynamicweb.png";
+    string logoHeight = !String.IsNullOrEmpty(Model.Area.Item.GetItem("Layout").GetString("LogoHeight")) ? Model.Area.Item.GetItem("Layout").GetString("LogoHeight") : "40";
+    logoHeight = logoHeight != "0" ? logoHeight : "40";
+    if (Path.GetExtension(logo).ToLower() != ".svg")
+    {
+        logo = "/Admin/Public/GetImage.ashx?height=" + logoHeight + "&amp;crop=5&amp;Compression=75&amp;image=" + logo;
+
+        if (Pageview.Device.ToString() == "Mobile")
+        {
+            logoHeight = "40";
+        }
+    }
+    else
+    {
+        logo = HttpUtility.UrlDecode(logo);
+    }
+
+    <div class="logo @alignClass dw-mod">
+        <a href="/Default.aspx?ID=@firstPageId" class="logo__img dw-mod u-block">
+            <img class="grid__cell-img logo__img dw-mod" src="@logo" />
+        </a>
+    </div>
+}
+
+@helper RenderDesktopMenu()
+{
+    string topLayout = Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("TopLayout") != null ? Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("TopLayout").SelectedValue : "normal";
+    string menuAlignment = topLayout == "two-lines-centered" || topLayout == "minimal-right" ? "u-pull--right" : "";
+
+    bool megaMenu = Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("NavigationMegaMenu").SelectedValue.ToLower() == "true" ? true : false;
+    string megamenuPromotionImage = Model.Area.Item.GetItem("Layout").GetItem("Header").GetFile("MegamenuPromotionImage") != null ? Model.Area.Item.GetItem("Layout").GetItem("Header").GetFile("MegamenuPromotionImage").PathUrlEncoded : "";
+    bool renderPagesInToolBar = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("RenderPagesInToolBar");
+    int startLevel = renderPagesInToolBar ? 1 : 0;
+
+    <div class="grid__cell">
+        <div class="@menuAlignment">
+            @if (!megaMenu)
+            {
+                @RenderNavigation(new
+                {
+                    id = "topnavigation",
+                    cssclass = "menu dw-mod dwnavigation u-full-max-width",
+                    startLevel = @startLevel,
+                    ecomStartLevel = @startLevel + 1,
+                    endlevel = 5,
+                    expandmode = "all",
+                    template = "BaseMenuWithDropdown.xslt"
+                });
+            }
+            else
+            {
+                @RenderNavigation(new
+                {
+                   id = "topnavigation",
+                   cssclass = "menu dw-mod dwnavigation u-full-max-width",
+                   startLevel = @startLevel,
+                   ecomStartLevel = @startLevel + 1,
+                   endlevel = 5,
+                   promotionImage = megamenuPromotionImage,
+                   promotionLink = Model.Area.Item.GetItem("Layout").GetItem("Header").GetString("MegamenuPromotionLink"),
+                   expandmode = "all",
+                   template = "BaseMegaMenu.xslt"
+               });
+            }
+        </div>
+    </div>
+}
+
+@helper RenderDesktopActionsMenu()
+{
+    List<Block> subBlocks = this.headerBlocksPage.GetBlockListById("MasterDesktopActionsMenu").OrderBy(item => item.SortId).ToList();
+
+    <ul class="menu dw-mod">
+        @RenderBlockList(subBlocks)
+    </ul>
+}
+
+@helper RenderLanguageSelector()
+{
+    string topLayout = Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("TopLayout") != null ? Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("TopLayout").SelectedValue : "normal";
+    string liClasses = topLayout != "normal" ? "menu__item menu__item--horizontal menu__item--top-level dw-mod u-hidden-xxs" : "menu__item menu__item--horizontal menu--clean dw-mod";
+    string menuLinkClass = topLayout != "normal" ? "menu__link" : "header-menu__link";
+    string languageViewType = !String.IsNullOrEmpty(Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("LanguageSelector").SelectedValue) ? Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("LanguageSelector").SelectedValue.ToLower() : "";
+
+    if (Model.Languages.Count > 1)
+    {
+        <li class="@liClasses is-dropdown is-dropdown--no-icon">
+            <div class="@menuLinkClass menu__link--icon dw-mod">
+                <i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("LanguageIcon").SelectedValue fa-1_5x"></i>
+            </div>
+            <div class="menu menu--dropdown dw-mod">
+                @foreach (var lang in Model.Languages)
+                {
+                    string langInfo = "<span class=\"flag-icon flag-icon-" + Dynamicweb.Services.Areas.GetArea(lang.ID).EcomCountryCode.ToLower() + " u-margin-right\"></span>" + lang.Name;
+
+                    if (languageViewType == "flag")
+                    {
+                        langInfo = "<span class=\"flag-icon flag-icon-" + Dynamicweb.Services.Areas.GetArea(lang.ID).EcomCountryCode.ToLower() + "\"></span>";
+                    }
+
+                    if (languageViewType == "name")
+                    {
+                        langInfo = lang.Name;
+                    }
+
+                    <a href="/Default.aspx?AreaID=@Dynamicweb.Services.Pages.GetPage(lang.Page.ID).Area.ID" class="menu-dropdown__item menu-dropdown__item--link dw-mod">@langInfo</a>
+                }
+            </div>
+        </li>
+    }
+}
+
+@helper RenderMiniCart()
+{
+    bool navigationItemsHideCart = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("HideCart");
+    int miniCartFeedPageId = GetPageIdByNavigationTag("MiniCartFeed");
+    int cartPageId = GetPageIdByNavigationTag("CartPage");
+    bool onlyPreview = Model.Area.Item.GetItem("Ecommerce").GetBoolean("OnlyPreviewForAnonymous") && Model.CurrentUser.ID == 0;
+
+    if (!onlyPreview && !navigationItemsHideCart)
+    {
+        string topLayout = Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("TopLayout") != null ? Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("TopLayout").SelectedValue : "normal";
+        string liClasses = topLayout != "normal" ? "menu__item menu__item--horizontal menu__item--top-level dw-mod" : "menu__item menu__item--horizontal menu--clean dw-mod";
+        string menuLinkClass = topLayout != "normal" ? "menu__link" : "header-menu__link";
+        string cartProductsCount = Model.Cart.TotalProductsCount.ToString();
+        string counterPosition = Model.Area.Item.GetItem("Ecommerce").GetItem("MiniCart").GetList("CounterPosition").SelectedValue;
+        bool showPrice = Model.Area.Item.GetItem("Ecommerce").GetItem("MiniCart").GetBoolean("ShowPrice");
+        string cartProductsTotalPrice = showPrice && Model.Cart.TotalPrice != null ? Model.Cart.TotalPrice.Price.Formatted : "";
+        cartProductsTotalPrice = counterPosition == "right" ? cartProductsTotalPrice : "";
+
+        if (showPrice && counterPosition == "right")
+        {
+            cartProductsCount = Translate("Cart") + "(" + cartProductsCount + ")";
+        }
+
+
+        <li class="@liClasses" id="miniCartWrapper" onmouseenter="Cart.UpdateMiniCart('miniCartWrapper', 'miniCart', 'cartCounter', '/Default.aspx?ID=@miniCartFeedPageId&feedType=MiniCart')">
+            <div class="mini-cart dw-mod">
+                <a href="/Default.aspx?ID=@cartPageId&Purge=True" id="miniCartCounterWrap" class="@menuLinkClass menu__link--icon dw-mod js-mini-cart-button">
+                    <i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("CartIcon").SelectedValue fa-1_5x"></i>
+                    <div class="mini-cart__counter dw-mod">
+                        <div class="js-handlebars-root js-mini-cart-counter" id="cartCounter" data-template="MiniCartCounterContent" data-json-feed="/Default.aspx?ID=@miniCartFeedPageId&feedType=Counter" data-init-onload="false" data-preloader="false">
+                            <div class="js-mini-cart-counter-content">
+                                @cartProductsCount
+                                @cartProductsTotalPrice
+                            </div>
+                        </div>
+                    </div>
+                </a>
+                @if (Pageview.Device.ToString() != "Mobile" && Pageview.Device.ToString() != "Tablet")
+                {
+                    <div class="mini-cart-dropdown js-handlebars-root js-mini-cart dw-mod" id="miniCart" data-template="MiniCartContent" data-cart-id="@miniCartFeedPageId" data-json-feed="/Default.aspx?ID=@miniCartFeedPageId&feedType=MiniCart" data-init-onload="false"></div>
+                }
+            </div>
+        </li>
+    }
+}
+
+@helper RenderSignIn()
+{
+    bool navigationItemsHideSignIn = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("HideSignIn");
+    string userInitials = "";
+    int pageId = Model.TopPage.ID;
+    int createAccountPageId = GetPageIdByNavigationTag("CreateAccount");
+    int myDashboardPageId = GetPageIdByNavigationTag("CustomerDashboard");
+    int myProfilePageId = GetPageIdByNavigationTag("CustomerProfile");
+    int myOrdersPageId = GetPageIdByNavigationTag("CustomerOrders");
+    int myFavoritesPageId = GetPageIdByNavigationTag("CustomerFavorites");
+    int mySavedCardsPageId = GetPageIdByNavigationTag("SavedCards");
+    int signInProfilePageId = GetPageIdByNavigationTag("SignInPage");
+    bool hideCreateAccountLink = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("SignInHideAccount");
+    bool hideMyProfileLink = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("SignInHideProfile");
+    bool hideMyOrdersLink = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("SignInHideOrders");
+    bool hideMySavedCardsLink = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("SignInHideSavedCards");
+    bool hideMyFavoritesLink = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("SignInHideFavorites");
+
+    string linkStart = "/Default.aspx?ID=";
+    if (Model.CurrentUser.ID <= 0)
+    {
+        linkStart = linkStart + signInProfilePageId + "&RedirectPageId=";
+    }
+
+    string forgotPasswordPageLink = "/Default.aspx?ID=" + signInProfilePageId + "&LoginAction=Recovery";
+    string myProfilePageLink = linkStart + myProfilePageId;
+    string myOrdersPageLink = linkStart + myOrdersPageId;
+    string myFavoritesPageLink = linkStart + myFavoritesPageId;
+    string mySavedCardsPageLink = linkStart + mySavedCardsPageId;
+
+    if (Model.CurrentUser.ID != 0)
+    {
+        if (!String.IsNullOrEmpty(Model.CurrentUser.Name))
+        {
+            string[] names = Model.CurrentUser.Name.Split(' ');
+            userInitials += Model.CurrentUser.Name.Substring(0, 1);
+
+            if (names.Length > 1)
+            {
+                userInitials += names[names.Length - 1].Substring(0, 1);
+            }
+        }
+        else
+        {
+            userInitials += Model.CurrentUser.FirstName != null && Model.CurrentUser.FirstName != "" ? Model.CurrentUser.FirstName.Substring(0, 1) : "";
+            userInitials += Model.CurrentUser.LastName != null && Model.CurrentUser.LastName != "" ? Model.CurrentUser.LastName.Substring(0, 1) : "";
+            userInitials += userInitials.Length == 1 && Model.CurrentUser.FirstName != null && Model.CurrentUser.FirstName.Length > 1 ? Model.CurrentUser.FirstName.Substring(1, 2) : "";
+            userInitials += userInitials == "" && Model.CurrentUser.Email != null && Model.CurrentUser.Email.Length > 1 ? Model.CurrentUser.Email.Substring(0, 2) : "";
+            userInitials += userInitials == "" ? Model.CurrentUser.UserName.Substring(0, 2) : "";
+        }
+    }
+
+    if (!navigationItemsHideSignIn)
+    {
+        string topLayout = Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("TopLayout") != null ? Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("TopLayout").SelectedValue : "normal";
+        string liClasses = topLayout != "normal" ? "menu__item menu__item--horizontal menu__item--top-level dw-mod u-hidden-xxs" : "menu__item menu__item--horizontal menu__item--clean dw-mod";
+        string menuLinkClass = topLayout != "normal" ? "menu__link" : "header-menu__link";
+
+        <li class="@liClasses is-dropdown is-dropdown--no-icon">
+            <div class="@menuLinkClass menu__link--icon dw-mod">
+                @if (Model.CurrentUser.ID <= 0)
+                {
+                    <i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("SignInProfileIcon").SelectedValue fa-1_5x"></i>
+                }
+                else
+                {
+                    <a href="/default.aspx?ID=@myDashboardPageId" class="u-color-inherit"><div class="circle-icon-btn">@userInitials.ToUpper()</div></a>
+                }
+            </div>
+            <div class="menu menu--dropdown sign-in-dropdown dw-mod">
+                <ul class="list list--clean dw-mod">
+                    @if (Model.CurrentUser.ID <= 0)
+                    {
+                        <li>
+                            <label for="SignInModalTrigger" class="btn btn--primary btn--full u-no-margin sign-in-modal-trigger-button dw-mod" onclick="setTimeout(function () { document.getElementById('LoginUsername').focus() }, 10)">@Translate("Sign in")</label>
+                        </li>
+                        if (!hideCreateAccountLink)
+                        {
+                            <li>
+                                <a href="/default.aspx?ID=@createAccountPageId" class="list__link dw-mod">@Translate("Create account")</a>
+                            </li>
+                        }
+                        <li>
+                            <a href="@forgotPasswordPageLink" class="list__link dw-mod">@Translate("Forgot your password?")</a>
+                        </li>
+                        if (!hideMyProfileLink || !hideMyOrdersLink || !hideMyFavoritesLink || !hideMySavedCardsLink)
+                        {
+                            <li class="list__seperator dw-mod"></li>
+                        }
+                    }
+                    @if (!hideMyProfileLink)
+                    {
+                        <li>
+                            <a href="@myProfilePageLink" class="list__link dw-mod"><i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("SignInProfileIcon").SelectedValue u-margin-right"></i>@Translate("My Profile")</a>
+                        </li>
+                    }
+                    @if (!hideMyOrdersLink)
+                    {
+                        <li>
+                            <a href="@myOrdersPageLink" class="list__link dw-mod"><i class="fas fa-list u-margin-right"></i>@Translate("My Orders")</a>
+                        </li>
+                    }
+                    @if (!hideMyFavoritesLink)
+                    {
+                        <li>
+                            <a href="@myFavoritesPageLink" class="list__link dw-mod"><i class="fas fa-@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("FavoriteIcon").SelectedValue u-margin-right"></i>@Translate("My Favorites")</a>
+                        </li>
+                    }
+                    @if (!hideMySavedCardsLink)
+                    {
+                        <li>
+                            <a href="@mySavedCardsPageLink" class="list__link dw-mod"><i class="fas fa-credit-card u-margin-right"></i>@Translate("My Saved cards")</a>
+                        </li>
+                    }
+                    @if (Model.CurrentUser.ID > 0)
+                    {
+                        if (!hideMyProfileLink || !hideMyOrdersLink || !hideMyFavoritesLink || !hideMySavedCardsLink)
+                        {
+                            <li class="list__seperator dw-mod"></li>
+                        }
+                        <li>
+                            <a href="/Admin/Public/ExtranetLogoff.aspx?ID=@pageId" class="list__link dw-mod">@Translate("Sign out")</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </li>
+    }
+}
+
+@helper RenderFavorites()
+{
+    bool navigationItemsHideFavorites = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("HideFavorites");
+    int signInProfilePageId = GetPageIdByNavigationTag("SignInPage");
+    int myFavoritesPageId = GetPageIdByNavigationTag("CustomerFavorites");
+
+    string linkStart = "/Default.aspx?ID=";
+    if (Model.CurrentUser.ID <= 0)
+    {
+        linkStart = linkStart + signInProfilePageId + "&RedirectPageId=";
+    }
+
+    string myFavoritesPageLink = linkStart + myFavoritesPageId;
+    string topLayout = Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("TopLayout") != null ? Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("TopLayout").SelectedValue : "normal";
+    string liClasses = topLayout != "normal" ? "menu__item menu__item--horizontal menu__item--top-level dw-mod u-hidden-xxs" : "menu__item menu__item--horizontal menu--clean dw-mod";
+    string menuLinkClass = topLayout != "normal" ? "menu__link" : "header-menu__link";
+
+    <li class="@liClasses">
+        <a href="@myFavoritesPageLink" class="@menuLinkClass menu__link--icon dw-mod">
+            <i class="fas fa-@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("FavoriteIcon").SelectedValue fa-1_5x"></i>
+        </a>
+    </li>
+}
+
+@helper RenderHeaderButton()
+{
+    string headerButtonText = Model.Area.Item.GetItem("Layout").GetItem("Header").GetString("HeaderButtonText");
+    string headerButtonLink = Model.Area.Item.GetItem("Layout").GetItem("Header").GetString("HeaderButtonLink");
+    string headerButtonType = Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("HeaderButtonType") != null ? "btn--" + Model.Area.Item.GetItem("Layout").GetItem("Header").GetList("HeaderButtonType").SelectedName.ToLower() : "";
+
+    <li class="menu__item menu__item--horizontal menu--clean dw-mod">
+        <a class="btn @headerButtonType dw-mod u-no-margin u-margin-top u-margin-left" href="@headerButtonLink">@headerButtonText</a>
+    </li>
+}
+
+@helper RenderSearchBar(string alignment = "left")
+{
+    string searchFeedId = "";
+    string searchSecondFeedId = "";
+    int groupsFeedId;
+    int productsPageId = GetPageIdByNavigationTag("ProductsPage");
+    string contentSearchPageLink = GetPageIdByNavigationTag("ContentSearchResults") + "&Areaid=" + Model.Area.ID;
+    string resultPageLink;
+    string searchPlaceholder;
+    string searchType = "product-search";
+    string searchTemplate;
+    string searchContentTemplate = "";
+    string searchValue = HttpContext.Current.Request.QueryString.Get("Search") != null ? HttpContext.Current.Request.QueryString.Get("Search") : "";
+    bool showGroups = true;
+
+    if (Model.Area.Item.GetItem("Layout").GetList("TopSearch").SelectedValue == "contentSearch")
+    {
+        searchFeedId = GetPageIdByNavigationTag("ContentSearchFeed") + "&Areaid=" + Model.Area.ID + "&pagesOnly=true";
+        resultPageLink = contentSearchPageLink;
+        searchPlaceholder = Translate("Search page");
+        groupsFeedId = 0;
+        searchType = "content-search";
+        searchTemplate = "SearchPagesTemplate";
+        showGroups = false;
+    }
+    else if (Model.Area.Item.GetItem("Layout").GetList("TopSearch").SelectedValue == "combinedSearch")
+    {
+        searchFeedId = productsPageId + "&feed=true";
+        searchSecondFeedId = GetPageIdByNavigationTag("ContentSearchFeed") + "&Areaid=" + Model.Area.ID + "&pagesOnly=true";
+        resultPageLink = Converter.ToString(productsPageId);
+        searchPlaceholder = Translate("Search products or pages");
+        groupsFeedId = GetPageIdByNavigationTag("ProductGroupsFeed");
+        searchType = "combined-search";
+        searchTemplate = "SearchProductsTemplateWrap";
+        searchContentTemplate = "SearchPagesTemplateWrap";
+        showGroups = Model.Area.Item.GetItem("Layout").GetBoolean("ShowGroupsSelector");
+    }
+    else
+    {
+        resultPageLink = Converter.ToString(productsPageId);
+        searchFeedId = productsPageId + "&feed=true";
+        groupsFeedId = GetPageIdByNavigationTag("ProductGroupsFeed");
+        searchPlaceholder = Translate("Search products");
+        searchTemplate = "SearchProductsTemplate";
+        searchType = "product-search";
+        showGroups = Model.Area.Item.GetItem("Layout").GetBoolean("ShowGroupsSelector");
+    }
+
+    <div class="typeahead typeahead--centered u-color-inherit js-typeahead dw-mod" data-page-size="7" id="ProductSearchBar" data-search-feed-id="@searchFeedId" data-search-second-feed-id="@searchSecondFeedId" data-result-page-id="@resultPageLink" data-groups-page-id="@groupsFeedId" data-search-type="@searchType">
+        @if (showGroups)
+        {
+            <button type="button" class="btn btn--condensed u-color-light-gray--bg typeahead-group-btn dw-mod js-typeahead-groups-btn" data-group-id="all">@Translate("All")</button>
+            <ul class="dropdown dropdown--absolute-position u-min-w220px js-handlebars-root js-typeahead-groups-content dw-mod" id="ProductSearchBarGroupsContent" data-template="SearchGroupsTemplate" data-json-feed="/Default.aspx?ID=@groupsFeedId&feedType=productGroups" data-init-onload="false" data-preloader="minimal"></ul>
+        }
+        <div class="typeahead-search-field">
+            <input type="text" class="u-no-margin u-full-width u-full-height js-typeahead-search-field" placeholder="@searchPlaceholder" value="@searchValue">
+            @if (string.IsNullOrEmpty(searchSecondFeedId))
+            {
+                <ul class="dropdown dropdown--absolute-position u-min-w220px u-full-width js-handlebars-root js-typeahead-search-content dw-mod" id="ProductSearchBarContent" data-template="@searchTemplate" data-json-feed="/Default.aspx?ID=@searchFeedId&feedType=productsOnly" data-init-onload="false"></ul>
+            }
+            else
+            {
+                <div class="dropdown dropdown--absolute-position dropdown--combined grid @(alignment == "right" ? "dropdown--right-aligned" : "")">
+                    <div class="js-handlebars-root js-typeahead-search-content grid__col-sm-7 grid__col--bleed-y" id="ProductSearchBarContent" data-template="@searchTemplate" data-json-feed="/Default.aspx?ID=@searchFeedId&feedType=productsOnly" data-init-onload="false"></div>
+                    <div class="js-handlebars-root js-typeahead-additional-search-content grid__col-sm-5 grid__col--bleed-y" id="ContentSearchBarContent" data-template="@searchContentTemplate" data-json-feed="/Default.aspx?ID=@searchSecondFeedId" data-init-onload="false"></div>
+                </div>
+            }
+        </div>
+        <button type="button" class="btn btn--condensed btn--primary u-no-margin dw-mod js-typeahead-enter-btn"><i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("SearchIcon").SelectedValue"></i></button>
+    </div>
+}
+
+@helper RenderMiniSearch()
+{
+    string searchFeedId = "";
+    string searchSecondFeedId = "";
+    int groupsFeedId;
+    int productsPageId = GetPageIdByNavigationTag("ProductsPage");
+    string contentSearchPageLink = GetPageIdByNavigationTag("ContentSearchResults") + "&Areaid=" + Model.Area.ID;
+    string resultPageLink;
+    string searchPlaceholder;
+    string searchType = "product-search";
+    string searchTemplate;
+    string searchContentTemplate = "";
+    string searchValue = HttpContext.Current.Request.QueryString.Get("Search") != null ? HttpContext.Current.Request.QueryString.Get("Search") : "";
+    bool showGroups = true;
+
+    if (Model.Area.Item.GetItem("Layout").GetList("TopSearch").SelectedValue == "contentSearch")
+    {
+        searchFeedId = GetPageIdByNavigationTag("ContentSearchFeed") + "&Areaid=" + Model.Area.ID + "&pagesOnly=true";
+        resultPageLink = contentSearchPageLink;
+        searchPlaceholder = Translate("Search page");
+        groupsFeedId = 0;
+        searchType = "content-search";
+        searchTemplate = "SearchPagesTemplate";
+        showGroups = false;
+    }
+    else if (Model.Area.Item.GetItem("Layout").GetList("TopSearch").SelectedValue == "combinedSearch")
+    {
+        searchFeedId = productsPageId + "&feed=true";
+        searchSecondFeedId = GetPageIdByNavigationTag("ContentSearchFeed") + "&Areaid=" + Model.Area.ID + "&pagesOnly=true";
+        resultPageLink = Converter.ToString(productsPageId);
+        searchPlaceholder = Translate("Search products or pages");
+        groupsFeedId = GetPageIdByNavigationTag("ProductGroupsFeed");
+        searchType = "combined-search";
+        searchTemplate = "SearchProductsTemplateWrap";
+        searchContentTemplate = "SearchPagesTemplateWrap";
+        showGroups = Model.Area.Item.GetItem("Layout").GetBoolean("ShowGroupsSelector");
+    }
+    else
+    {
+        resultPageLink = Converter.ToString(productsPageId);
+        searchFeedId = productsPageId + "&feed=true";
+        groupsFeedId = GetPageIdByNavigationTag("ProductGroupsFeed");
+        searchPlaceholder = Translate("Search products");
+        searchTemplate = "SearchProductsTemplate";
+        searchType = "product-search";
+        showGroups = Model.Area.Item.GetItem("Layout").GetBoolean("ShowGroupsSelector");
+    }
+
+    <li class="menu__item menu__item--horizontal menu__item--top-level u-hidden-xxs is-dropdown is-dropdown--no-icon dw-mod" onmouseover="document.getElementById('headerSearch').focus()">
+        <div class="menu__link menu__link--icon dw-mod">
+            <i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("SearchIcon").SelectedValue fa-1_5x"></i>
+        </div>
+        <div class="menu menu--dropdown u-w380px top-micro-search dw-mod">
+            <div class="typeahead js-typeahead" data-page-size="7" id="ProductSearchBar" data-search-feed-id="@searchFeedId" data-search-second-feed-id="@searchSecondFeedId" data-result-page-id="@resultPageLink" data-search-type="@searchType">
+                <div class="typeahead-search-field">
+                    <input type="text" class="u-no-margin u-full-width js-typeahead-search-field" id="headerSearch" placeholder="@searchPlaceholder" value="@searchValue">
+                    @if (string.IsNullOrEmpty(searchSecondFeedId))
+                    {
+                        <ul class="dropdown dropdown--absolute-position u-min-w220px u-full-width js-handlebars-root js-typeahead-search-content dw-mod" id="ProductSearchBarContent" data-template="@searchTemplate" data-json-feed="/Default.aspx?ID=@searchFeedId&feedType=productsOnly" data-init-onload="false"></ul>
+                    }
+                    else
+                    {
+                        <div class="dropdown dropdown--absolute-position dropdown--combined grid dropdown--right-aligned">
+                            <div class="js-handlebars-root js-typeahead-search-content grid__col-sm-7 grid__col--bleed-y" id="ProductSearchBarContent" data-template="@searchTemplate" data-json-feed="/Default.aspx?ID=@searchFeedId&feedType=productsOnly" data-init-onload="false"></div>
+                            <div class="js-handlebars-root js-typeahead-additional-search-content grid__col-sm-5 grid__col--bleed-y" id="ContentSearchBarContent" data-template="@searchContentTemplate" data-json-feed="/Default.aspx?ID=@searchSecondFeedId" data-init-onload="false"></div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </li>
+}
+
+@helper RenderImpersonationBar()
+{
+    int impersonationPageId = GetPageIdByNavigationTag("Impersonation");
+
+    <div class="u-color-warning--bg">
+        <div class="center-container top-container__center-container dw-mod">
+            @*Impersonation*@
+            <div class="grid">
+                <div class="grid--align-self-center grid__col-x">
+                    @if (Model.CurrentSecondaryUser != null && Model.CurrentSecondaryUser.ID > 0)
+                    {
+                        string stopImpersonateTranslation = Translate("Stop impersonation");
+                        string username = "";
+                        if (!string.IsNullOrEmpty(Model.CurrentSecondaryUser.FirstName) && !string.IsNullOrEmpty(Model.CurrentSecondaryUser.LastName))
+                        {
+                            username = Model.CurrentSecondaryUser.FirstName + " " + Model.CurrentSecondaryUser.LastName;
+                        }
+                        else if (!string.IsNullOrEmpty(Model.CurrentSecondaryUser.Name))
+                        {
+                            username = Model.CurrentSecondaryUser.Name;
+                        }
+                        else if (!string.IsNullOrEmpty(Model.CurrentSecondaryUser.Email))
+                        {
+                            username = Model.CurrentSecondaryUser.Email;
+                        }
+                        else
+                        {
+                            username = Model.CurrentSecondaryUser.UserName;
+                        }
+                        <div class="grid-cell">
+                            <div class="u-pull--left u-bold u-margin-top">
+                                <i class="fas fa-user-secret"></i>
+                                @Pageview.User.UserName<text>&nbsp;</text>@Translate("is impersonating")<text>&nbsp;</text>@username
+                            </div>
+                            <form method="post" class="u-pull--right u-no-margin">
+                                <input type="submit" class="btn btn--secondary dw-mod u-no-margin" name="DwExtranetRemoveSecondaryUser" value="@stopImpersonateTranslation">
+                            </form>
+                        </div>
+                    }
+                    else
+                    {
+                        string viewListTranslation = Translate("View the list of users you can impersonate");
+                        <div class="grid-cell u-bold">
+                            <i class="fas fa-user-secret"></i>
+                            <a href="/Default.aspx?ID=@impersonationPageId" title="@viewListTranslation" class="u-color-font-black">@viewListTranslation</a>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+

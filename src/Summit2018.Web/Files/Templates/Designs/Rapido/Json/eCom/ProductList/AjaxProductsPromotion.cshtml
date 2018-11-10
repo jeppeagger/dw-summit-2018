@@ -1,0 +1,158 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+@using Dynamicweb.Configuration;
+@using Dynamicweb.Core;
+@{
+    bool pointShopOnly = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("PointShopOnly");
+}
+
+@functions {
+    public class Sticker
+    {
+        public string className { get; set; }
+        public string text { get; set; }
+    }
+
+    public class Product
+    {
+        public string id { get; set; }
+        public string name { get; set; }
+        public string number { get; set; }
+        public string price { get; set; }
+        public string viewMoreText { get; set; }
+        public string discount { get; set; }
+        public string onSale { get; set; }
+        public string shortGridInfo { get; set; }
+        public string link { get; set; }
+        public string image { get; set; }
+        public string noImage { get; set; }
+        public List<Sticker> Stickers { get; set; }
+    }
+}
+
+@{
+    List<Product> feedObject = new List<Product>();
+    Boolean onlyPreview = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("OnlyPreviewForAnonymous") && Pageview.User == null;
+
+    foreach (LoopItem product in GetLoop("Products"))
+    {
+        Product productObject = new Product();
+        productObject.id = product.GetString("Ecom:Product.ID");
+        productObject.name = product.GetString("Ecom:Product.Name");
+        productObject.number = product.GetString("Ecom:Product.Number");
+        productObject.discount = product.GetString("Ecom:Product.Discount.Price.PriceFormatted") != product.GetString("Ecom:Product.Price.PriceFormatted") ? product.GetString("Ecom:Product.Price.PriceFormatted") : "";
+        productObject.price = product.GetString("Ecom:Product.Discount.Price.PriceFormatted") != product.GetString("Ecom:Product.Price.PriceFormatted") ? product.GetString("Ecom:Product.Discount.Price.PriceFormatted") : product.GetString("Ecom:Product.Price.PriceFormatted");
+        productObject.onSale = product.GetString("Ecom:Product.Discount.Price.PriceFormatted") == product.GetString("Ecom:Product.Price.PriceFormatted") ? "u-hidden" : "";
+        productObject.link = "/" + product.GetString("Ecom:Product.LinkGroup.Clean") + (!String.IsNullOrEmpty(product.GetString("Ecom:Product.VariantID")) ? "&VariantID=" + product.GetString("Ecom:Product.VariantID") : "");
+        productObject.image = product.GetString("Ecom:Product.ImageDefault.Default.Clean");
+        productObject.noImage = string.IsNullOrEmpty(product.GetString("Ecom:Product.ImageDefault.Default.Clean")) ? "u-hidden" : "";
+        productObject.viewMoreText = Translate("View");
+        productObject.shortGridInfo = onlyPreview ? "product-list__grid-item__price-info--short" : "";
+
+        productObject.Stickers = new List<Sticker>();
+
+        if (Pageview.AreaSettings.GetItem("Ecommerce").GetItem("SaleSticker").GetBoolean("Enable") && !pointShopOnly)
+        {
+            string contentType = Pageview.AreaSettings.GetItem("Ecommerce").GetItem("SaleSticker").GetString("ContentType") != null ? Pageview.AreaSettings.GetItem("Ecommerce").GetItem("SaleSticker").GetString("ContentType") : "Name";
+            var currency = Dynamicweb.Ecommerce.Services.Currencies.GetDefaultCurrency();
+            Sticker saleSticker = new Sticker();
+
+            switch (contentType)
+            {
+                case "Name":
+                    foreach (LoopItem discount in product.GetLoop("ProductDiscounts"))
+                    {
+                        saleSticker = new Sticker();
+                        saleSticker.text = discount.GetString("Ecom:Product.Discount.Name");
+                        saleSticker.className = "stickers-container__tag--sale";
+                        productObject.Stickers.Add(saleSticker);
+                    }
+                    break;
+                case "Amount":
+                    if (product.GetLoop("ProductDiscounts").Count > 0)
+                    {
+                        saleSticker = new Sticker();
+                        saleSticker.text = Dynamicweb.Ecommerce.Services.Currencies.Format(currency, product.GetDouble("Ecom:Product.Discount.Price.Price") - product.GetDouble("Ecom:Product.Price.Price"));
+                        saleSticker.className = "stickers-container__tag--sale";
+                        productObject.Stickers.Add(saleSticker);
+                    }
+                    break;
+                case "Percents":
+                    double percents = 0;
+                    foreach (LoopItem discount in product.GetLoop("ProductDiscounts"))
+                    {
+                        percents += discount.GetDouble("Ecom:Product.Discount.PercentWithoutVAT");
+                    }
+                    if (percents > 0) {
+                        saleSticker = new Sticker();
+                        saleSticker.text = Math.Round(percents, 0) + "%";
+                        saleSticker.className = "stickers-container__tag--sale";
+                        productObject.Stickers.Add(saleSticker);
+                    }
+                    break;
+                case "Amount+and+percents":
+                    double amount = 0;
+                    double percent = 0;
+                    foreach (LoopItem discount in product.GetLoop("ProductDiscounts"))
+                    {
+                        if (discount.GetString("Ecom:Product.Discount.Type") == "PERCENT")
+                        {
+                            percent += discount.GetDouble("Ecom:Product.Discount.PercentWithoutVAT");
+                        }
+                        else if (discount.GetString("Ecom:Product.Discount.Type") == "AMOUNT")
+                        {
+                            amount += discount.GetDouble("Ecom:Product.Discount.AmountWithVAT");
+                        }
+                    }
+
+                    if (percent > 0)
+                    {
+                        saleSticker = new Sticker();
+                        saleSticker.text = percent + "%";
+                        saleSticker.className = "stickers-container__tag--sale";
+                        productObject.Stickers.Add(saleSticker);
+                    }
+
+                    if (amount > 0)
+                    {
+                        saleSticker = new Sticker();
+                        saleSticker.text = "-" + Dynamicweb.Ecommerce.Services.Currencies.Format(currency, amount);
+                        saleSticker.className = "stickers-container__tag--sale";
+                        productObject.Stickers.Add(saleSticker);
+                    }
+                    break;
+                default:
+                    if (product.GetLoop("ProductDiscounts").Count > 0)
+                    {
+                        saleSticker = new Sticker();
+                        saleSticker.text = Translate("Sale!");
+                        saleSticker.className = "stickers-container__tag--sale";
+                        productObject.Stickers.Add(saleSticker);
+                    }
+                    break;
+            }
+        }
+
+        if (!pointShopOnly && Pageview.AreaSettings.GetItem("Ecommerce").GetItem("NewSticker").GetBoolean("Enable") && GetDate("Ecom:Product.Created").AddDays(Converter.ToDouble(Pageview.AreaSettings.GetItem("Ecommerce").GetItem("NewSticker").GetString("Expiration"))) > DateTime.Now)
+        {
+            Sticker newSticker = new Sticker();
+            newSticker.className = "stickers-container__tag--new";
+            newSticker.text = Translate("New!");
+            productObject.Stickers.Add(newSticker);
+        }
+
+        if (!pointShopOnly && !String.IsNullOrEmpty(product.GetString("Ecom:Product:Field.CustomSticker.Value")))
+        {
+            Sticker customSticker = new Sticker();
+            customSticker.className = "stickers-container__tag--custom";
+            customSticker.text = product.GetString("Ecom:Product:Field.CustomSticker.Value");
+            productObject.Stickers.Add(customSticker);
+        }
+
+        feedObject.Add(productObject);
+    }
+
+    string jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(feedObject);
+}
+
+@jsonFeed

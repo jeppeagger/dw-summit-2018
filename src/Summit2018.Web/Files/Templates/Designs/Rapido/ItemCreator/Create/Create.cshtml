@@ -1,0 +1,16 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@GetString("ItemCreator:Edit.Form.Begin")
+<p> @GetString("ItemCreator:Edit.Status") </p>
+
+<div class="item-edit-fields-outer">
+    @GetString("ItemCreator:Edit.Form")
+</div>
+
+<div class="item-edit-submission">
+    <input type="button" value='Cancel' />
+    <input type="submit" value='Save' />
+</div>
+
+<div class="items-clear"></div>
+@GetString("ItemCreator:Edit.Form.End")

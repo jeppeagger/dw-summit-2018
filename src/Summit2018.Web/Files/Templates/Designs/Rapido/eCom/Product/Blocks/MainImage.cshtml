@@ -1,0 +1,227 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@functions {
+    BlocksPage mainImagePage = BlocksPage.GetBlockPage("Product");
+}
+
+@{
+    string imageBlockPosition = !String.IsNullOrEmpty(Pageview.AreaSettings.GetItem("ProductPage").GetString("ImageSectionPosition")) ? Pageview.AreaSettings.GetItem("ProductPage").GetList("ImageSectionPosition").SelectedValue : "right-right";
+    string imageBlockWidth = !String.IsNullOrEmpty(Pageview.AreaSettings.GetItem("ProductPage").GetString("TopLayout")) ? Pageview.AreaSettings.GetItem("ProductPage").GetList("TopLayout").SelectedValue : "6";
+    imageBlockWidth = imageBlockPosition == "left-left" || imageBlockPosition == "left-right" ? Converter.ToString(12 - Converter.ToInt32(imageBlockWidth)) : imageBlockWidth;
+
+    Block mainImageBlock = new Block()
+    {
+        Id = "MainImage",
+        SortId = imageBlockPosition == "left-left" || imageBlockPosition == "left-right" ? 1 : 2,
+        Template = RenderMainImageContainer(),
+        Design = new Design
+        {
+            Size = imageBlockWidth,
+            RenderType = RenderType.Column
+        }
+    };
+
+    mainImagePage.Add("Top", mainImageBlock);
+}
+
+@helper RenderModal()
+{
+    string imagePrefix = "/Admin/Public/GetImage.ashx?width=800&amp;height=800&amp;crop=5&FillCanvas=True&DoNotUpscale=true&amp;Compression=75&amp;image=";
+
+    <!-- Trigger for the gallery modal -->
+    <input type="checkbox" id="GalleryModalTrigger" class="modal-trigger" />
+
+    if (!String.IsNullOrEmpty(GetString("Ecom:Product.ImageLarge.Default.Clean")))
+    {
+        <!-- Gallery modal -->
+        <div class="modal-container">
+            <label for="GalleryModalTrigger" id="GalleryModalOverlay" class="modal-overlay"></label>
+            <div class="modal modal--full" id="GalleryModal">
+                <div class="modal__body modal__body--full">
+                    <div class="gallery-slider">
+                        <div class="gallery-slider__image">
+                            <img id="FullImage" src="@GetString("Ecom:Product.ImageLarge.Default.Clean")" class="modal--full__img js-gallery-image" alt="@GetString("Ecom:Product.Name")" />
+                        </div>
+                        <div class="gallery-slider__image-counter" id="FullImage_counter"></div>
+                        <label class="gallery-slider__close-btn" for="GalleryModalTrigger"></label>
+                        <button class="gallery-slider__previous-btn" id="FullImage_prev" onclick="Gallery.prevImage('FullImage')"></button>
+                        <button class="gallery-slider__next-btn" id="FullImage_next" onclick="Gallery.nextImage('FullImage')"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+}
+
+@helper RenderMainImageContainer()
+{
+    string imageBlockPosition = !String.IsNullOrEmpty(Pageview.AreaSettings.GetItem("ProductPage").GetString("ImageSectionPosition")) ? Pageview.AreaSettings.GetItem("ProductPage").GetList("ImageSectionPosition").SelectedValue : "right-right";
+    @RenderModal()
+
+    <div class="grid grid--bleed">
+        @if (imageBlockPosition == "left-left" || imageBlockPosition == "right-left")
+        {
+            @RenderThumbnails()
+            @RenderImage()
+        }
+        else
+        {
+            @RenderImage()
+            @RenderThumbnails()
+        }
+    </div>
+}
+
+@helper RenderImage()
+{
+    string imagePrefix = "/Admin/Public/GetImage.ashx?width=800&amp;height=800&amp;crop=5&FillCanvas=True&DoNotUpscale=true&amp;Compression=75&amp;image=";
+    string productId = GetString("Ecom:Product.ID");
+    bool pointShopOnly = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("PointShopOnly") && Pageview.User == null;
+
+    <div class="grid__col-auto">
+        <div class="stickers-container dw-mod">
+            @{
+                if (Pageview.AreaSettings.GetItem("Ecommerce").GetItem("SaleSticker").GetBoolean("Enable") && !pointShopOnly)
+                {
+                    string contentType = Pageview.AreaSettings.GetItem("Ecommerce").GetItem("SaleSticker").GetString("ContentType");
+                    string text = "";
+                    var currency = Dynamicweb.Ecommerce.Services.Currencies.GetDefaultCurrency();
+
+                    switch (contentType)
+                    {
+                        case "Name":
+                            foreach (LoopItem discount in GetLoop("ProductDiscounts"))
+                            {
+                                text = discount.GetString("Ecom:Product.Discount.Name");
+                                <div class="stickers-container__tag stickers-container__tag--sale dw-mod">@text</div>
+                            }
+                            break;
+                        case "Amount":
+                            if (GetLoop("ProductDiscounts").Count > 0)
+                            {
+                                text = Dynamicweb.Ecommerce.Services.Currencies.Format(currency, GetDouble("Ecom:Product.Discount.Price.Price") - GetDouble("Ecom:Product.Price.Price"));
+                                <div class="stickers-container__tag stickers-container__tag--sale dw-mod">@text</div>
+                            }
+                            break;
+                        case "Percents":
+                            double percents = 0;
+                            foreach (LoopItem discount in GetLoop("ProductDiscounts"))
+                            {
+                                percents += discount.GetDouble("Ecom:Product.Discount.PercentWithoutVAT");
+                            }
+                            if (percents > 0)
+                            {
+                                text = Math.Round(percents, 0) + "%";
+                                <div class="stickers-container__tag stickers-container__tag--sale dw-mod">@text</div>
+                            }
+                            break;
+                        case "Amount and percents":
+                            double amount = 0;
+                            double percent = 0;
+                            foreach (LoopItem discount in GetLoop("ProductDiscounts"))
+                            {
+                                if (discount.GetString("Ecom:Product.Discount.Type") == "PERCENT")
+                                {
+                                    percent += discount.GetDouble("Ecom:Product.Discount.PercentWithoutVAT");
+                                }
+                                else if (discount.GetString("Ecom:Product.Discount.Type") == "AMOUNT")
+                                {
+                                    amount += discount.GetDouble("Ecom:Product.Discount.AmountWithVAT");
+                                }
+                            }
+                            if (percent > 0)
+                            {
+                                text = percent + "%";
+                                <div class="stickers-container__tag stickers-container__tag--sale dw-mod">@text</div>
+                            }
+                            if (amount > 0)
+                            {
+                                text = Dynamicweb.Ecommerce.Services.Currencies.Format(currency, amount);
+                                <div class="stickers-container__tag stickers-container__tag--sale dw-mod">@text</div>
+                            }
+                            break;
+                        default:
+                            if (GetLoop("ProductDiscounts").Count > 0)
+                            {
+                                text = Translate("Sale!");
+                                <div class="stickers-container__tag stickers-container__tag--sale dw-mod">@text</div>
+                            }
+                            break;
+                    }
+                }
+
+                if (!pointShopOnly && Pageview.AreaSettings.GetItem("Ecommerce").GetItem("NewSticker").GetBoolean("Enable") && GetDate("Ecom:Product.Created").AddDays(Converter.ToDouble(Pageview.AreaSettings.GetItem("Ecommerce").GetItem("NewSticker").GetString("Expiration"))) > DateTime.Now)
+                {
+                    <div class="stickers-container__tag stickers-container__tag--new dw-mod">@Translate("New!")</div>
+                }
+
+                if (!pointShopOnly && !String.IsNullOrEmpty(GetString("Ecom:Product:Field.CustomSticker.Value")))
+                {
+                    <div class="stickers-container__tag stickers-container__tag--custom dw-mod">@GetString("Ecom:Product:Field.CustomSticker.Value")</div>
+                }
+            }
+        </div>
+        <label for="GalleryModalTrigger" class="product__image-container">
+            <img class="thumb-image-view product__image-container__image dw-mod b-lazy" src="/Files/Images/placeholder.gif" data-src="@imagePrefix@GetString("Ecom:Product.ImageDefault.Default.Clean")" alt="@GetString("Ecom:Product.Name")" id="Image_@productId" data-for="FullImage" data-number="0" onclick="Gallery.openImageByNum(this)" />
+        </label>
+    </div>
+}
+
+@helper RenderThumbnails()
+{
+    <div class="grid__col-2 u-hidden-xxs dw-mod">
+        <div class="product__thumbs dw-mod">
+            <i class="fas fa-circle-notch fa-spin preloader js-remove-after-load"></i> <!--preloader-->
+            <div class="carousel js-carousel-container carousel--hidden dw-mod" id="leftCarousel">
+                <div class="thumb-list carousel__container dw-mod">
+                    @*Main image thumb*@
+                    @RenderThumbnail(GetString("Ecom:Product.ImageDefault.Default.Clean"))
+
+                    @foreach (LoopItem alternativeImage in GetLoop("Ecom:Product.AlternativeImages"))
+                    {
+                        if (!String.IsNullOrEmpty(alternativeImage.GetString("Ecom:Product.AlternativeImages.Image")))
+                        {
+                            @RenderThumbnail(alternativeImage.GetString("Ecom:Product.AlternativeImages.Image"))
+                        }
+                    }
+
+                    @foreach (LoopItem detail in GetLoop("Details"))
+                    {
+                        if (!String.IsNullOrEmpty(detail.GetString("Ecom:Product:Detail.Image.Clean")))
+                        {
+                            string ext = Path.GetExtension(detail.GetString("Ecom:Product:Detail.Image.Clean")).ToLower();
+                            if (ext == ".jpg" || ext == ".jpeg" || ext == ".gif" || ext == ".png")
+                            {
+                                @RenderThumbnail(detail.GetString("Ecom:Product:Detail.Image.Clean"))
+                            }
+                        }
+                    }
+                </div>
+                <div class="js-carousel-data" data-carousel-slide-time="0" data-direction="vertical" data-sliding-type="items" data-slides-in-view="5">
+                    <div class="carousel-prev-btn carousel-prev-btn--vertical dw-mod" onclick="Carousel.GetPreviousSlide('leftCarousel')"></div>
+                    <div class="carousel-next-btn carousel-next-btn--vertical dw-mod" onclick="Carousel.GetNextSlide('leftCarousel')"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@helper RenderThumbnail(string image)
+{
+    string productId = GetString("Ecom:Product.ID");
+    string thumbPrefix = "/Admin/Public/GetImage.ashx?width=200&amp;height=200&amp;crop=5&FillCanvas=True&DoNotUpscale=true&amp;Compression=75&amp;image=";
+    string imagePrefix = "/Admin/Public/GetImage.ashx?width=800&amp;height=800&amp;crop=5&FillCanvas=True&DoNotUpscale=true&amp;Compression=75&amp;image=";
+
+    <div class="carousel__slide carousel__slide--vertical dw-mod">
+        <div class="thumb-list__item thumb-list__item--active dw-mod js-thumb js-gallery" data-for="Image_@productId" data-image="@imagePrefix@image" onmouseover="Gallery.openImage(this)">
+            <label for="GalleryModalTrigger">
+                <img src="@thumbPrefix@image" alt="@GetString("Ecom:Product.Name")" class="js-gallery" data-for="FullImage" data-image="@image" onclick="Gallery.openImage(this)">
+            </label>
+        </div>
+    </div>
+}

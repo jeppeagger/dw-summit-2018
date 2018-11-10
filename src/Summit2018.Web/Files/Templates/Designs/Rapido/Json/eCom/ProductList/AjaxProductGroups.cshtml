@@ -1,0 +1,32 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+
+@functions {
+    public class Group
+    {
+        public string id { get; set; }
+        public string name { get; set; }
+    }
+}
+
+@{
+    List<Group> feedObject = new List<Group>();
+
+    Group defaultGroup = new Group();
+    defaultGroup.id = "all";
+    defaultGroup.name = Translate("All");
+
+    feedObject.Add(defaultGroup);
+
+    foreach (LoopItem groupItem in GetLoop("ProductGroups"))
+    {
+        Group group = new Group();
+        group.id = groupItem.GetString("Ecom:Group.ID");
+        group.name = HttpUtility.JavaScriptStringEncode(groupItem.GetString("Ecom:Group.Name"));
+        feedObject.Add(group);
+    }
+
+    string jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(feedObject);
+}
+
+@jsonFeed

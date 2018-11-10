@@ -1,0 +1,289 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+@using Dynamicweb.Configuration;
+@using Dynamicweb.Core;
+
+@{
+    string feedType = HttpContext.Current.Request.QueryString.Get("feedtype");
+    string searchParameter = !String.IsNullOrEmpty(HttpContext.Current.Request["Search"]) ? HttpContext.Current.Request.QueryString.Get("Search") : "";
+    string groupId = !String.IsNullOrEmpty(HttpContext.Current.Request["GroupID"]) ? HttpContext.Current.Request.QueryString.Get("GroupID") : "";
+    string template = !String.IsNullOrEmpty(HttpContext.Current.Request["Template"]) ? HttpContext.Current.Request.QueryString.Get("Template") : "SearchContentTemplate";
+    bool isLoadMore = !String.IsNullOrEmpty(HttpContext.Current.Request["pagenum"]);
+
+    string listCookie = "";
+    if (HttpContext.Current.Request.Cookies["ProductsContainerTemplate"] != null)
+    {
+        listCookie = HttpContext.Current.Request.Cookies["ProductsContainerTemplate"].Value;
+    }
+
+    string listMode = !String.IsNullOrEmpty(listCookie) ? listCookie : Pageview.Area.Item["ProductDefaultListView"].ToString();
+    listMode = !String.IsNullOrEmpty(listMode) ? listMode : "ProductItemContainer";
+
+    int defaultFacetsState = Converter.ToInt32(Pageview.Area.Item["OpenFacetGroups"]);
+}
+
+@functions {
+    public class FacetSelection
+    {
+        public string template { get; set; }
+        public string group { get; set; }
+        public string name { get; set; }
+        public string label { get; set; }
+        public string value { get; set; }
+        public string queryParameter { get; set; }
+    }
+
+    public class FacetOption
+    {
+        public string template { get; set; }
+        public string name { get; set; }
+        public string value { get; set; }
+        public string queryParameter { get; set; }
+        public string currency { get; set; }
+        public string weight { get; set; }
+        public string label { get; set; }
+        public string count { get; set; }
+        public string disabled { get; set; }
+        public string selected { get; set; }
+    }
+
+    public class FacetGroup
+    {
+        public string counter { get; set; }
+        public string name { get; set; }
+        public string defaultState { get; set; }
+        public List<FacetOption> FacetOptions { get; set; }
+    }
+
+    public class Product
+    {
+        public string id { get; set; }
+        public string template { get; set; }
+        public string productLoopCounter { get; set; }
+        public string zIndex { get; set; }
+        public string name { get; set; }
+        public string number { get; set; }
+        public string discount { get; set; }
+        public string onSale { get; set; }
+        public string link { get; set; }
+        public string description { get; set; }
+        public string image { get; set; }
+        public string noImage { get; set; }
+        public string groupId { get; set; }
+        public string searchParameter { get; set; }
+        public string listIcon { get; set; }
+        public string listLink { get; set; }
+    }
+
+    public class ProductsContainer
+    {
+        public string template { get; set; }
+        public string id { get; set; }
+        public List<Product> Product { get; set; }
+    }
+
+    public class Root
+    {
+        public string listTemplate { get; set; }
+        public string currentPage { get; set; }
+        public string totalPages { get; set; }
+        public string pageSize { get; set; }
+        public int pageSizeText { get; set; }
+        public string header { get; set; }
+        public string prevdisabled { get; set; }
+        public string nextdisabled { get; set; }
+        public string prevPage { get; set; }
+        public string nextPage { get; set; }
+
+        public List<ProductsContainer> ProductsContainer { get; set; }
+        public List<FacetGroup> FacetGroups { get; set; }
+        public List<FacetSelection> FacetSelections { get; set; }
+    }
+}
+
+@{
+    List<Root> feedObject = new List<Root>();
+    List<ProductsContainer> productFeedObject = new List<ProductsContainer>();
+
+    string pageName = GetString("Ecom:Group.Name") != "" ? GetString("Ecom:Group.Name") : Translate("Products");
+    string listHeader = HttpContext.Current.Request.QueryString.Get("Search") != null ? Translate("Search result for") + " \"" + HttpContext.Current.Request.QueryString.Get("Search") + "\" : " : pageName + ": ";
+    listHeader += GetString("Ecom:ProductList.PageProdCnt");
+
+    Root feedRoot = new Root();
+    feedRoot.listTemplate = listMode;
+    feedRoot.currentPage = GetString("Ecom:ProductList.CurrentPage");
+    feedRoot.totalPages = GetString("Ecom:ProductList.TotalPages");
+    feedRoot.pageSize = GetString("Ecom:ProductList.PageSize");
+    feedRoot.pageSizeText = GetInteger("Ecom:ProductList.CurrentPage") != GetInteger("Ecom:ProductList.TotalPages") - 1 ? GetInteger("Ecom:ProductList.PageSize") : GetInteger("Ecom:ProductList.PageProdCnt") - (GetInteger("Ecom:ProductList.PageSize") * (GetInteger("Ecom:ProductList.TotalPages") - 1));
+    feedRoot.header = listHeader;
+    feedRoot.prevdisabled = string.IsNullOrWhiteSpace(GetString("Ecom:ProductList.PrevPage.Clean")) ? "u-hidden" : "";
+    feedRoot.nextdisabled = string.IsNullOrWhiteSpace(GetString("Ecom:ProductList.NextPage.Clean")) ? "u-hidden" : ""; //can be 'disabled'
+    feedRoot.prevPage = GetString("Ecom:ProductList.PrevPage.Clean");
+    feedRoot.nextPage = GetString("Ecom:ProductList.NextPage.Clean");
+    feedRoot.ProductsContainer = new List<ProductsContainer>();
+
+    //PRODUCTS
+    int zIndex = GetLoop("Products").Count;
+
+    foreach (LoopItem product in GetLoop("Products"))
+    {
+        zIndex--;
+
+        ProductsContainer productsContainerObject = new ProductsContainer();
+        productsContainerObject.template = listMode;
+        productsContainerObject.id = product.GetString("Ecom:Product.ID");
+        productsContainerObject.Product = new List<Product>();
+
+        Product productObject = new Product();
+
+        productObject.template = template;
+        productObject.id = product.GetString("Ecom:Product.ID");
+        productObject.productLoopCounter = product.GetString("Ecom:Product.LoopCounter");
+        productObject.zIndex = zIndex.ToString();
+        productObject.name = product.GetString("Ecom:Product.Name");
+        productObject.number = product.GetString("Ecom:Product.Number");
+        productObject.discount = product.GetString("Ecom:Product.Discount.Price.PriceFormatted") != product.GetString("Ecom:Product.Price.PriceFormatted") ? product.GetString("Ecom:Product.Price.PriceFormatted") : "";
+        productObject.onSale = product.GetString("Ecom:Product.Discount.Price.PriceFormatted") == product.GetString("Ecom:Product.Price.PriceFormatted") ? "u-hidden" : "";
+
+        productObject.link = "/" + product.GetString("Ecom:Product.LinkGroup.Clean"); // + (!string.IsNullOrEmpty(product.GetString("Ecom:Product.VariantID")) ? "&VariantID=" + product.GetString("Ecom:Product.VariantID") : "");
+        productObject.description = product.GetString("Ecom:Product.ShortDescription");
+        productObject.image = product.GetString("Ecom:Product.ImageDefault.Default.Clean");
+        productObject.noImage = string.IsNullOrEmpty(product.GetString("Ecom:Product.ImageDefault.Default.Clean")) ? "u-hidden" : "";
+
+        productObject.listIcon = product.GetBoolean("Ecom:Product.IsProductInFavoriteList") ? "fa-minus" : "fa-plus";
+        productObject.listLink = product.GetBoolean("Ecom:Product.IsProductInFavoriteList") ? product.GetString("Ecom:Product.RemoveFromList") : product.GetString("Ecom:Product.AddToList");
+
+        productsContainerObject.Product.Add(productObject);
+        feedRoot.ProductsContainer.Add(productsContainerObject);
+
+        if (feedType == "productsOnly")
+        {
+            productFeedObject.Add(productsContainerObject);
+        }
+
+        //FACETS
+
+        string currencySymbol = product.GetString("Ecom:Product.Price.Currency.Symbol");
+        string weightUnit = SystemConfiguration.Instance.GetValue("/Globalsettings/Ecom/Unit/Weight");
+
+        if (feedType != "productsOnly")
+        {
+            feedRoot.FacetGroups = new List<FacetGroup>();
+
+            foreach (LoopItem facetGroup in GetLoop("FacetGroups"))
+            {
+                foreach (LoopItem facetItem in facetGroup.GetLoop("Facets"))
+                {
+                    if (facetItem.GetInteger("Facet.OptionWithResultCount") > 0 && facetItem.GetInteger("Facet.OptionResultTotalCount") > 0)
+                    {
+                        FacetGroup facetGroupObject = new FacetGroup();
+                        facetGroupObject.counter = facetItem.GetString("Facets.LoopCounter");
+                        facetGroupObject.name = Translate(facetItem.GetString("Facet.Name"));
+                        facetGroupObject.defaultState = facetItem.GetInteger("Facets.LoopCounter") <= defaultFacetsState ? "checked" : "";
+                        facetGroupObject.defaultState = Pageview.Device.ToString() == "Mobile" ? "" : facetGroupObject.defaultState;
+                        facetGroupObject.FacetOptions = new List<FacetOption>();
+
+                        foreach (LoopItem facetOption in facetItem.GetLoop("FacetOptions"))
+                        {
+                            string facetLabel = facetOption.GetString("FacetOption.Label");
+
+                            if (facetLabel.ToLower() == "true")
+                            {
+                                facetLabel = Translate("Yes");
+                            }
+
+                            if (facetLabel.ToLower() == "false")
+                            {
+                                facetLabel = Translate("No");
+                            }
+
+                            FacetOption facetOptionObject = new FacetOption();
+                            facetOptionObject.template = facetItem.GetString("Facet.RenderType");
+                            facetOptionObject.name = facetOption.GetString("FacetOption.Name");
+                            facetOptionObject.count = facetOption.GetString("FacetOption.Count");
+                            facetOptionObject.label = facetLabel;
+                            facetOptionObject.value = facetOption.GetString("FacetOption.Value");
+                            facetOptionObject.queryParameter = facetItem.GetString("Facet.QueryParameter");
+                            facetOptionObject.currency = currencySymbol;
+                            facetOptionObject.weight = weightUnit;
+                            facetOptionObject.disabled = facetOption.GetInteger("FacetOption.Count") == 0 ? "disabled" : "";
+                            facetOptionObject.selected = facetOption.GetBoolean("FacetOption.Selected") ? "checked" : "";
+                            facetGroupObject.FacetOptions.Add(facetOptionObject);
+                        }
+
+                        feedRoot.FacetGroups.Add(facetGroupObject);
+                    }
+                }
+            }
+
+            feedRoot.FacetSelections = new List<FacetSelection>();
+
+            int facetSelectionCount = 0;
+
+            foreach (LoopItem facetGroup in GetLoop("FacetGroups"))
+            {
+                foreach (LoopItem facetItem in facetGroup.GetLoop("Facets"))
+                {
+                    if (facetItem.GetInteger("Facet.OptionWithResultCount") > 0 && facetItem.GetInteger("Facet.OptionResultTotalCount") > 0)
+                    {
+                        foreach (LoopItem facetOption in facetItem.GetLoop("FacetOptions"))
+                        {
+                            if (facetOption.GetBoolean("FacetOption.Selected"))
+                            {
+                                FacetSelection facetSelectionObject = new FacetSelection();
+                                facetSelectionObject.template = facetOption.GetString("FacetOption.Value").Contains("#") ? "SelectedColorFilter" : "SelectedFilter";
+                                facetSelectionObject.group = Translate(facetItem.GetString("Facet.Name"));
+                                facetSelectionObject.name = facetOption.GetString("FacetOption.Name");
+                                facetSelectionObject.label = facetOption.GetString("FacetOption.Label");
+                                facetSelectionObject.value = facetOption.GetString("FacetOption.Value");
+                                facetSelectionObject.queryParameter = facetItem.GetString("Facet.QueryParameter");
+                                feedRoot.FacetSelections.Add(facetSelectionObject);
+
+                                facetSelectionCount++;
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (facetSelectionCount > 2)
+            {
+                FacetSelection facetAllObject = new FacetSelection();
+                facetAllObject.template = "ResetFilters";
+                feedRoot.FacetSelections.Insert(0, facetAllObject);
+            }
+        }
+    }
+
+    feedObject.Add(feedRoot);
+
+    string jsonFeed = "";
+    if (GetLoop("Products").Count == 0)
+    {
+        jsonFeed = "[]";
+    }
+    else if (feedType == "productsOnly")
+    {
+        if (!string.IsNullOrEmpty(searchParameter) && !isLoadMore)
+        {
+            ProductsContainer productsContainerObject = new ProductsContainer();
+            productsContainerObject.Product = new List<Product>();
+
+            Product searchMoreObject = new Product();
+            searchMoreObject.template = "SearchMore";
+            searchMoreObject.searchParameter = searchParameter;
+            searchMoreObject.groupId = groupId;
+
+            productsContainerObject.Product.Add(searchMoreObject);
+            productFeedObject.Add(productsContainerObject);
+        }
+
+        jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(productFeedObject);
+    }
+    else
+    {
+        jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(feedObject);
+    }
+}
+
+@jsonFeed

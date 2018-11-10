@@ -1,0 +1,98 @@
+﻿<script type="text/javascript" src="//maps.googleapis.com/maps/api/js?v=3&key=@GetString("GoogleMapsAPIKey")"></script>
+<script src="/Files/Templates/Designs/Rapido/js/source/DynamicwebMap.js"></script>
+<div class="dynamicweb-map" id="@GetString("ElementID")" data-list-position="@GetString("ListPosition")">
+	<div class="dynamicweb-map__wrap" style="width: @GetString("MapWidth"); height: @GetString("MapHeight");">
+		<div id="@GetString("MapElementID")" class="dynamicweb-map__map"></div>
+	</div>
+    <form class="u-no-margin">
+        <div class="grid grid--justify-center">
+            <div class="grid__col--bleed-y grid__col-md-4">
+                @if (GetLoop("GroupGroups").Count > 0)
+                {
+                    <select class="js-locations-filter">
+                        <option value="*">@Translate("All")</option>
+                        @foreach (var group in GetLoop("GroupGroups"))
+                        {
+                            <option value="@group.GetString("ID")">@group.GetString("Name")</option>
+                        }
+                    </select>
+                }
+            </div>
+            <div class="grid__col--bleed-y grid__col-md-4">
+                <div class="form__field-combi u-full-width">
+                    <input type="text" class="u-full-width" id="dynamicweb-map-query" data-search="byName" placeholder="@Translate("Search")" value="" />
+                    <button type="submit" class="btn btn--primary btn--condensed dw-mod js-dynamicweb-map-btn" data-search="nearest" title="@Translate("Find nearest")"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        </div>
+    </form>
+	<div class="dynamicweb-map__locations">
+		<h2 class="u-hidden js-no-matches u-ta-center">@Translate("No matches")</h2>
+		<div id="@GetString("ListElementID")" data-sort-order="desc" class="grid">
+            @foreach (var location in GetLoop("Locations"))
+            {
+                string lat = location.GetString("Lat");
+                string lng = location.GetString("Lng");
+                string name = location.GetString("Name");
+                string groupId = location.GetString("GroupID");
+                string parentGroupId = location.GetString("ParentGroupID");
+                string groupIdList = location.GetString("GroupIDList");
+                string icon = location.GetString("Icon");
+                string address = location.GetString("Address");
+                string address2 = location.GetString("Address2");
+                string zip = location.GetString("Zip");
+                string city = location.GetString("City");
+                string country = location.GetString("Country");
+                string phone = location.GetString("Phone");
+                string email = location.GetString("Email");
+
+                <div class="grid__col-md-3" data-lat="@lat" data-lng="@lng" data-title="@name" data-filter-values="@groupId,@parentGroupId,@groupIdList" data-icon="@icon" data-sort-value="@name"> <!-- icon ? -->
+				    <div class="dynamicweb-map__location-item">
+                        <div class="dynamicweb-map__location-name js-location-search-item">@name</div>				    
+				        <div class="dynamicweb-map__location-info">
+					        <div class="js-location-search-item">@address</div>
+					        <div class="js-location-search-item">@address2</div>
+					        <span class="js-location-search-item">@zip</span>
+					        <span class="js-location-search-item">@city</span>
+					        <div class="js-location-search-item">@country</div>
+				        </div>
+                        <div>
+                            @if (!string.IsNullOrEmpty(phone))
+                            {
+                                <div><span class="u-bold">@Translate("Phone"):</span> <span class="dynamicweb-map__location-contact js-location-search-item">@phone</span></div>
+                            }
+                            @if (!string.IsNullOrEmpty(email))
+                            {
+                                <div><span class="u-bold">@Translate("Email"):</span> <span class="dynamicweb-map__location-contact js-location-search-item">@email</span></div>
+                            }
+                        </div>
+                    </div>
+			    </div>
+            }
+		</div>
+    </div>
+
+    @if (GetInteger("NumberOfLocations") == 0)
+    {
+        <h2>@Translate("No locations found")</h2>
+    }
+</div>
+
+<script>
+    (function () {
+        Dynamicweb.MapSettings = {
+            search: {
+                byName: function (marker, element) {
+                    var query = document.getElementById('dynamicweb-map-query').value;
+                    var array = element.querySelectorAll('.js-location-search-item');
+                    for (var i = 0; i < array.length; i++) {
+                        if (array[i].innerText.toLocaleLowerCase().indexOf(query.toLocaleLowerCase()) > -1) {
+                            return true;
+                        }
+                    };
+                    return false;
+                }
+            }
+        }
+    }());
+</script>

@@ -1,0 +1,81 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using Dynamicweb.Core
+@using System
+@using Dynamicweb.Rapido.Blocks
+
+
+@functions{
+    BlocksPage checkoutPage = BlocksPage.GetBlockPage("CheckoutPage");
+    string checkoutPageType = "multistep";
+}
+
+@{ 
+    string pageId = GetGlobalValue("Global:Page.ID");
+    int cartOrderlinesFeedPageId = GetPageIdByNavigationTag("CartOrderlinesFeed");
+    int quotesCartPageId = GetPageIdByNavigationTag("QuotesCartPage");
+
+    Block checkoutTopSnippets = new Block()
+    {
+        Id = "CheckoutTopSnippets",
+        SortId = 10
+    };
+    checkoutPage.Add(checkoutTopSnippets);
+
+    Block orderContainer = new Block()
+    {
+        Id = "OrderContainer",
+        SortId = 30,
+        Design = new Design
+        {
+            RenderType = RenderType.Column,
+            Size = "12",
+            HidePadding = true
+        },
+        BlocksList = new List<Block> {
+            new Block()
+            {
+                Id = "OrderContainerRow",
+                SortId = 10,
+                Design = new Design
+                {
+                    RenderType = RenderType.Row
+                }
+            }
+        }
+    };
+    checkoutPage.Add(orderContainer);
+
+    Block checkoutBottomSnippets = new Block()
+    {
+        Id = "CheckoutBottomSnippets",
+        SortId = 40
+    };
+    checkoutPage.Add(checkoutBottomSnippets);
+}
+
+@* Include the required Grid builder (Contains the methods @RenderBlockList and @RenderBlock) *@
+@Include("../../../Components/GridBuilder.cshtml")
+
+@* Include the Blocks for the page *@
+@Include("Blocks/StepBar.cshtml")
+@Include("Blocks/ReviewOrder.cshtml")
+@Include("Blocks/StepNavigation.cshtml")
+@Include("Blocks/GoogleImpressions.cshtml")
+@Include("Blocks/Custom__Blocks.cshtml")
+
+
+<section class="multiple-paragraphs-container u-color-light-gray--bg paragraph-container--full-width">
+    <div class="center-container center-container--with-background-image dw-mod">
+        <div class="paragraph-container">
+            <form name="ordersubmit" id="OrderSubmit" method="post" action="/Default.aspx?ID=@pageId" autocomplete="off">
+                <div class="grid grid--external-bleed">
+                    @* The @RenderBlockList base helper is included in Components/GridBuilder.cshtml *@
+                    @RenderBlockList(checkoutPage.BlocksRoot.BlocksList)
+                </div>
+            </form>
+        </div>
+    </div>
+</section>

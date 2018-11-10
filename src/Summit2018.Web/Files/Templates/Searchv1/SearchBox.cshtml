@@ -1,0 +1,9 @@
+<form action="@GetString("Global:Pageview.Url.Raw")" method="get" name="SearchForm1" class="u-no-margin">
+    <input type="hidden" name="ID" value="@GetString("DwPageID")">
+    <div class="form__field-combi u-no-margin">
+        <input name="q" type="text" value="@GetString("DwSearchPhrase")" placeholder="@Translate("Search")" class="u-full-width">
+        <button class="btn btn--primary btn--condensed dw-mod" type="submit">
+            <i class="fas fa-search"></i>
+        </button>
+    </div>
+</form>

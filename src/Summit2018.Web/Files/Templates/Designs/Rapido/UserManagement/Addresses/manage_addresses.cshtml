@@ -1,0 +1,238 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@using Dynamicweb.Ecommerce.International;
+@using System.Linq;
+
+@GetString("UserManagement:User.ManageAddresses.MakeDefault.Javascript")
+@*@GetString("UserManagement:User.ManageAddresses.DeleteAddress.Javascript")*@
+@GetString("UserManagement:User.ManageAddresses.AddAddress.Javascript")
+@GetString("UserManagement:User.ManageAddresses.UpdateAddress.Javascript")
+@{
+    var countryList = GlobalISO.GetGlobalISOs().Cast<GlobalISO>().GroupBy(x => x.Code2).Select(x => x.FirstOrDefault()).ToDictionary(x => x.Code2, y => y.CountryUK);
+}
+
+<div class="grid__col-12 grid__col--bleed">
+    <div class="grid__cell">
+        <h2><i class="far fa-address-card"></i> @Translate("My addresses")</h2>
+    </div>
+</div>
+
+<script>
+    function removeAddress(addressId) {
+        if (document.getElementById('UserId').value == addressId) {
+            document.getElementById('MainAddressModalTrigger').checked = true;
+            return;
+        } else if (document.getElementById('DefaultAddressId').value == addressId) {
+            document.getElementById('DefaultAddressModalTrigger').checked = true;
+            return;
+        } else {
+            document.getElementById('DeleteWarningModalTrigger_' + addressId).checked = true;
+        }
+    }
+
+    function deleteAddress(addressId) {
+        document.getElementById('SelectedAddressId').value = addressId;
+        document.getElementById('ManageAddressesFormAction').value = 'Delete';
+        document.getElementById('UserManagementManageAddressesForm').submit();
+    }
+</script>
+
+<!-- Trigger for the warning modal -->
+<input type="checkbox" id="MainAddressModalTrigger" class="modal-trigger" />
+
+<!-- Main address modal -->
+<div class="modal-container">
+    <label for="MainAddressModalTrigger" class="modal-overlay"></label>
+    <div class="modal modal--xs">
+        <div class="modal__header">
+            <h2>@Translate("Error")</h2>
+        </div>
+        <div class="modal__body">
+            <p>@Translate("Main address can not be deleted.")</p>
+            <p></p>
+            <label for="MainAddressModalTrigger" class="btn btn--primary btn--full u-no-margin dw-mod">@Translate("Close")</label>
+        </div>
+    </div>
+</div>
+
+<!-- Trigger for the warning modal -->
+<input type="checkbox" id="DefaultAddressModalTrigger" class="modal-trigger" />
+
+<!-- Default address modal -->
+<div class="modal-container">
+    <label for="DefaultAddressModalTrigger" class="modal-overlay"></label>
+    <div class="modal modal--xs">
+        <div class="modal__header">
+            <h2>@Translate("Error")</h2>
+        </div>
+        <div class="modal__body">
+            <p>@Translate("You can’t delete a default address. Set another address as default before delete this address.")</p>
+            <p></p>
+            <label for="DefaultAddressModalTrigger" class="btn btn--primary btn--full u-no-margin dw-mod">@Translate("Close")</label>
+        </div>
+    </div>
+</div>
+
+
+@helper AddressInfo(LoopItem address, IDictionary<string, string> countryList) {
+    <div>
+        @if (!string.IsNullOrEmpty(address.GetString("UserManagement:User.UserAddress.Description")))
+        {
+            <div>@address.GetString("UserManagement:User.UserAddress.Address")</div>
+        }
+        <div>@address.GetString("UserManagement:User.UserAddress.Zip") @address.GetString("UserManagement:User.UserAddress.City")</div>
+        <div>
+            @if (!string.IsNullOrEmpty(address.GetString("UserManagement:User.UserAddress.State")))
+            {
+                <text>@address.GetString("UserManagement:User.UserAddress.State"), </text>
+            }
+            @{
+                string countryName = address.GetString("UserManagement:User.UserAddress.Country");
+                if (countryList.ContainsKey(countryName))
+                {
+                    countryName = countryList[countryName];
+                }
+            }
+            @countryName
+        </div>
+    </div>
+}
+
+@helper UserInfo(LoopItem address)
+{
+    string userIcon = Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetString("SignInProfileIcon") != null ? Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("SignInProfileIcon").SelectedValue : "fas fa-user";
+
+    <div>
+        @if (!string.IsNullOrEmpty(address.GetString("UserManagement:User.UserAddress.AccessUserAddress_UserName")))
+        {
+            <div>
+                <i class="@userIcon media-list-item__parameter-icon dw-mod"></i>@address.GetString("UserManagement:User.UserAddress.AccessUserAddress_UserName")
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(address.GetString("UserManagement:User.UserAddress.Email")))
+        {
+            <div>
+                <i class="fas fa-envelope media-list-item__parameter-icon dw-mod"></i>@address.GetString("UserManagement:User.UserAddress.Email")
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(address.GetString("UserManagement:User.UserAddress.Phone")))
+        {
+            <div>
+                <i class="fas fa-mobile media-list-item__parameter-icon dw-mod"></i>@address.GetString("UserManagement:User.UserAddress.Phone")
+            </div>
+        }
+    </div>
+
+}
+
+@helper Actions(LoopItem address) 
+{
+    <a href="javascript:;" class="media-list-item__action dw-mod" onclick="updateAddress('@address.GetString("UserManagement:User.UserAddress.ID")');" title="@Translate("Edit")">@Translate("Edit")</a>
+    <a href="javascript:;" class="media-list-item__action dw-mod" onclick="removeAddress('@address.GetString("UserManagement:User.UserAddress.ID")');" title="@Translate("Delete")">@Translate("Delete")</a>
+    if (!address.GetBoolean("UserManagement:User.UserAddress.Default"))
+    {
+        <a href="javascript:;" class="media-list-item__action dw-mod" onclick="makeDefaultAddress('@address.GetString("UserManagement:User.UserAddress.ID")');" title="@Translate("Set default")">@Translate("Set default")</a>
+    }
+}
+
+@helper Header(LoopItem address)
+{
+    <button onclick="updateAddress('@address.GetString("UserManagement:User.UserAddress.ID")');" class="btn btn--link-clean u-inline-block u-color-inherit">
+        <i class="fas fa-map-marker"></i>
+        @if (!string.IsNullOrEmpty(@address.GetString("UserManagement:User.UserAddress.Description")))
+        {
+            <strong>@address.GetString("UserManagement:User.UserAddress.Description")</strong>
+        }
+        else
+        {
+            <strong>@address.GetString("UserManagement:User.UserAddress.Address")</strong>
+        }
+    </button>
+}
+
+@GetString("UserManagement:User.ManageAddresses.FormStart")
+<div class="grid grid--external-bleed">
+    @if (Pageview.AreaSettings.GetItem("Settings").GetString("AddressesListView") == "Columns")
+    {
+        <div class="grid__col-sm-4">
+            <a href="javascript:;" onclick="addAddress()" class="media-list-item__add-new media-list-item__add-new--column dw-mod">
+                <span>@Translate("Add new address")</span>
+            </a>
+        </div>
+    }
+    else
+    {
+        <div class="grid__col-12">
+            <a href="javascript:;" onclick="addAddress()" class="media-list-item__add-new dw-mod">
+                <span>@Translate("Add new address")</span>
+            </a>
+        </div>
+    }
+    
+    @foreach (LoopItem address in GetLoop("UserManagement:User.UserAddresses").OrderByDescending(address => address.GetString("UserManagement:User.UserAddress.Default")).ToList())
+    {
+        <!-- Trigger for the warning modal -->
+        <input type="checkbox" id="DeleteWarningModalTrigger_@address.GetString("UserManagement:User.UserAddress.ID")" class="modal-trigger" />
+
+        <!-- Warning modal -->
+        <div class="modal-container">
+            <label for="DeleteWarningModalTrigger_@address.GetString("UserManagement:User.UserAddress.ID")" class="modal-overlay"></label>
+            <div class="modal modal--xs">
+                <div class="modal__header">
+                    <h2>@Translate("Warning")</h2>
+                </div>
+                <div class="modal__body">
+                    <p>@Translate("Are you sure you wish to delete this address?")</p>
+                    <p></p>
+                    <button type="button" onclick="deleteAddress('@address.GetString("UserManagement:User.UserAddress.ID")');" class="btn btn--primary btn--full u-no-margin dw-mod">@Translate("Yes")</button>
+                </div>
+            </div>
+        </div>
+
+        if (Pageview.AreaSettings.GetItem("Settings").GetString("AddressesListView") == "Columns")
+        {
+            <div class="grid__col-sm-4 media-list-item media-list-item--no-border dw-mod">
+                <div class="grid__cell media-list-item__wrapper dw-mod">
+                    <div class="media-list-item__header dw-mod">
+                        @Header(address)
+                        @if (address.GetBoolean("UserManagement:User.UserAddress.Default"))
+                        {
+                            <div class="media-list-item__state u-pull--right dw-mod">@Translate("Default")</div>
+                        }
+                    </div>
+                    <div>
+                        @AddressInfo(address, countryList)
+                        @UserInfo(address)
+                    </div>
+                    <div class="media-list-item__actions media-list-item__actions--bottom-left media-list-item__actions--without-indent dw-mod">
+                        @Actions(address)
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="grid__col-12 media-list-item dw-mod">
+                <div class="grid__cell">
+                    <div class="media-list-item__header dw-mod">
+                        @Header(address)
+                        @if (address.GetBoolean("UserManagement:User.UserAddress.Default"))
+                        {
+                            <div class="media-list-item__state dw-mod">@Translate("Default")</div>
+                        }
+                    </div>
+                    <div class="media-list-item__column dw-mod">
+                        @AddressInfo(address, countryList)
+                    </div>
+                    <div class="media-list-item__column dw-mod">
+                        @UserInfo(address)
+                    </div>
+                    <div class="media-list-item__actions media-list-item__actions--without-indent dw-mod">
+                        @Actions(address)
+                    </div>
+                </div>
+            </div>
+        }
+    }
+</div>
+@GetString("UserManagement:User.ManageAddresses.FormEnd")

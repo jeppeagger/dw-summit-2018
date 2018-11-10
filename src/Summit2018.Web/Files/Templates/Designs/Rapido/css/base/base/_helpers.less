@@ -1,0 +1,661 @@
+// -----------------------------------------------------------------------------
+// CSS helper/utility classes used throughout the site/application
+// -----------------------------------------------------------------------------
+
+.u-full-width {
+  width: 100%;
+  max-width: 100%;
+}
+
+.u-full-max-width {
+  max-width: 100%;
+}
+
+.u-full-height {
+  height: 100% !important;
+}
+
+.u-flex {
+    .display-flex-only();
+}
+
+.u-pull--right {
+  float: right;
+}
+
+.u-pull--left {
+  float: left;
+}
+
+.u-overflow-hidden {
+    overflow: hidden;
+}
+
+.u-overflow-auto {
+    overflow: auto;
+}
+
+//The disabled class MUST be without the prefix, as it makes it useable when there is need to also adding the "disabled" attribute
+.disabled, input[disabled] {
+  cursor: not-allowed;
+  opacity: .5;
+  pointer-events: none;
+}
+
+.u-uppercase {
+    text-transform: uppercase;
+}
+
+/**
+ * Borders
+ */
+
+.u-border {
+    border: 1px solid @gray-light;
+}
+
+.u-border-top {
+    border-top: 1px solid @gray-light;
+}
+
+.u-border-left {
+    border-left: 1px solid @gray-light;
+}
+
+.u-border-right {
+    border-right: 1px solid @gray-light;
+}
+
+.u-border-bottom {
+    border-bottom: 1px solid @gray-light;
+}
+
+@media (max-width: @reflex-xs) {
+    .u-no-border--xs {
+        border: none;
+    }
+}
+
+@media (max-width: @reflex-sm) {
+    .u-no-border--sm {
+        border: none;
+    }
+}
+
+
+/**
+ * Box shadow
+ */
+
+.u-box-shadow {
+	box-shadow: 0px 2px 20px 1px rgba(0,0,0,0.25);
+	position: relative;
+	z-index: @z-index-1;
+}
+
+
+/**
+ * Clear inner floats
+ */
+.u-clearfix {
+  &::after {
+    clear: both;
+    content: "";
+    display: table;
+  }
+}
+
+
+/**
+ * Hide text while making it readable for screen readers
+ * 1. Needed in WebKit-based browsers because of an implementation bug;
+ *    See: https://code.google.com/p/chromium/issues/detail?id=457146
+ */
+.u-hide-text {
+  overflow: hidden;
+  padding: 0; /* 1 */
+  text-indent: 101%;
+  white-space: nowrap;
+}
+
+.u-hidden {
+    display: none !important;
+}
+
+.u-inline {
+    display: inline;
+}
+
+.u-inline-block {
+    display: inline-block;
+}
+
+.u-block {
+    display: block;
+}
+
+.u-visibility-hidden {
+    visibility: hidden;
+}
+
+/**
+ * Hide element while making it readable for screen readers
+ * Shamelessly borrowed from HTML5Boilerplate:
+ * https://github.com/h5bp/html5-boilerplate/blob/master/src/css/main.css#L119-L133
+ */
+.u-visually-hidden {
+  border: 0;
+  clip: rect(0 0 0 0);
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  padding: 0;
+  position: absolute;
+  width: 1px;
+}
+
+.u-reset-position {
+    position: initial;
+}
+
+.u-position-relative {
+    position: relative;
+}
+
+.u-position-absolute {
+    position: absolute;
+}
+
+.u-no-paragraph-margins p {
+    margin: 0;
+}
+
+// Alignment
+
+.u-ta-left {
+  text-align: left;
+}
+
+.u-ta-center {
+  text-align: center;
+}
+
+.u-ta-right {
+  text-align: right;
+}
+
+.u-middle {
+    margin: auto;
+}
+
+.u-va-middle {
+    vertical-align: middle;
+}
+
+.u-left-middle {
+    margin: auto 0;
+}
+
+.u-center-middle {
+    position: relative;
+    top: 50%;
+    left: 50%;
+    transform: perspective(1px) translate(-50%, -50%);
+    text-align: center;
+}
+
+
+// Color utility modifiers
+.u-color-light, .u-color-light h1, .u-color-light h2, .u-color-light h3, .u-color-light h4, .u-color-light h5, .u-color-light h6, .u-color-light i {
+    color: @white;
+}
+
+.u-color-dark, .u-color-dark h1, .u-color-dark h2, .u-color-dark h3, .u-color-dark h4, .u-color-dark h5, .u-color-dark h6, .u-color-dark i {
+    color: @gray-darkest;
+}
+
+.u-color-light-gray, .u-color-light-gray h1, .u-color-light-gray h2, .u-color-light-gray h3, .u-color-light-gray h4, .u-color-light-gray h5, .u-color-light-gray h6, .u-color-light-gray i {
+    color: @gray-light;
+}
+
+.u-brand-color-one, .u-brand-color-one h1, .u-brand-color-one h2, .u-brand-color-one h3, .u-brand-color-one h4, .u-brand-color-one h5, .u-brand-color-one h6, .u-brand-color-one i {
+    color: @brand-color-one;
+}
+
+.u-brand-color-two, .u-brand-color-two h1, .u-brand-color-two h2, .u-brand-color-two h3, .u-brand-color-two h4, .u-brand-color-two h5, .u-brand-color-two h6, .u-brand-color-two i {
+    color: @brand-color-two;
+}
+
+.u-color-danger {
+    color: @color-danger;
+}
+
+.u-color-inherit {
+    color: inherit;
+}
+
+.u-color-inherit:hover, .u-color-inherit:active, .u-color-inherit:focus {
+    color: inherit;
+}
+
+// Background-color utility modifiers
+
+.u-color-light--bg {
+    background-color: @white;
+}
+
+.u-color-light-gray--bg {
+    background-color: @gray-lightest;
+}
+
+.u-color-dark--bg {
+    background-color: @gray-darkest;
+}
+
+.u-brand-color-one--bg {
+    background-color: @brand-color-one;
+}
+
+.u-brand-color-one--bg-lighten-10 {
+    background-color: lighten(@brand-color-one, 10%);
+}
+
+.u-brand-color-one--bg-lighten-20 {
+    background-color: lighten(@brand-color-one, 20%);
+}
+
+.u-brand-color-one--bg-darken-10 {
+    background-color: darken(@brand-color-one, 10%);
+}
+
+.u-brand-color-one--bg-darken-20 {
+    background-color: darken(@brand-color-one, 20%);
+}
+
+.u-brand-color-two--bg {
+    background-color: @brand-color-two;
+}
+
+.u-brand-color-two--bg-lighten-10 {
+    background-color: lighten(@brand-color-two, 10%);
+}
+
+.u-brand-color-two--bg-lighten-20 {
+    background-color: lighten(@brand-color-two, 20%);
+}
+
+.u-brand-color-two--bg-darken-10 {
+    background-color: darken(@brand-color-two, 10%);
+}
+
+.u-brand-color-two--bg-darken-20 {
+    background-color: darken(@brand-color-two, 20%);
+}
+
+.u-color-warning--bg {
+    background-color: @yellow;
+}
+
+.u-color-font-black {
+     color: @font-color;
+}
+
+.u-color-gray {
+    color: @gray;
+}
+
+// Fonts
+
+.u-bold {
+    font-weight: bold;
+    color: inherit;
+}
+
+.u-italic {
+    font-style: italic;
+}
+
+.u-font-awesome {
+    font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+}
+
+.u-truncate-text {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.u-condensed-text {
+    margin-bottom: 0;
+    line-height: 1.4;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.u-break--break-word {
+    word-break: break-word;
+}
+
+.u-font-size--lg {
+    font-size: 2em;
+}
+
+@media (max-width: @reflex-xs) {
+    .u-condensed-text {
+        white-space: normal;
+    }
+}
+
+
+//Widths
+.u-w20px {
+    width: 20px;    
+}
+
+.u-w32px {
+    width: 32px;    
+}
+
+.u-w40px {
+    width: 40px;    
+}
+
+.u-w50px {
+    width: 50px;    
+}
+
+.u-w60px {
+    width: 60px;    
+}
+
+.u-w70px {
+    width: 70px;    
+}
+
+.u-w80px {
+    width: 80px;    
+}
+
+.u-w100px {
+    width: 100px;    
+}
+
+.u-w110px {
+    width: 110px;    
+}
+
+.u-w120px {
+    width: 120px;    
+}
+
+.u-w130px {
+    width: 130px;    
+}
+
+.u-w133px {
+    width: 133px;    
+}
+
+.u-w150px {
+    width: 150px;    
+}
+
+.u-w160px {
+    width: 160px;    
+}
+
+.u-w180px {
+    width: 180px;    
+}
+
+.u-w220px {
+    width: 220px;    
+}
+
+.u-w340px {
+    width: 340px;    
+}
+
+.u-w380px {
+    width: 380px;    
+}
+
+@media (max-width: @reflex-xs) {
+    .u-w50px--xs {
+        width: 50px;    
+    }
+
+    .u-w60px--xs {
+        width: 60px;    
+    }
+
+    .u-w70px--xs {
+        width: 70px;    
+    }
+
+    .u-w80px--xs {
+        width: 80px;    
+    }
+
+    .u-w100px--xs {
+        width: 100px;    
+    }
+
+    .u-w120px--xs {
+        width: 120px;    
+    }
+
+    .u-w125px--xs {
+        width: 125px;    
+    }
+
+    .u-w130px--xs {
+        width: 133px;    
+    }
+
+    .u-w133px--xs {
+        width: 133px;    
+    }
+
+    .u-w150px--xs {
+        width: 150px;    
+    }
+
+    .u-w160px--xs {
+        width: 160px;    
+    }
+
+    .u-w180px--xs {
+        width: 180px;    
+    }
+
+    .u-w220px--xs {
+        width: 220px;    
+    }
+}
+
+.u-min-w120px {
+    min-width: 120px;    
+}
+
+.u-min-w220px {
+    min-width: 220px;    
+}
+
+.u-max-w50px {
+    max-width: 50px;    
+}
+
+.u-max-w210px {
+    max-width: 210px;    
+}
+
+.u-max-w220px {
+    max-width: 220px;    
+}
+
+.u-max-w340px {
+    max-width: 340px;    
+}
+
+.u-max-w380px {
+    max-width: 380px;    
+}
+
+.u-center-max-w600px {
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+.u-max-h500px {
+    max-height: 500px;   
+}
+
+.u-min-h400px {
+    min-height: 400px;   
+}
+
+.u-min-h500px {
+    min-height: 500px;   
+}
+
+
+//Marging and padding
+
+.u-no-padding {
+    padding: 0;
+}
+
+.u-no-padding-x {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.u-no-padding-y {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
+.u-no-margin {
+    margin: 0;
+}
+
+.u-no-margin-on-p-elements p {
+    margin: 0;
+}
+
+.u-margin {
+    margin: @reflex-cell-spacing-md;
+}
+
+.u-margin-top {
+    margin-top: @reflex-cell-spacing-md;
+}
+
+.u-margin-top--lg {
+    margin-top: @reflex-cell-spacing-lg;
+}
+
+.u-margin-right {
+    margin-right: @reflex-cell-spacing-md;
+}
+
+.u-margin-right--lg {
+    margin-right: @reflex-cell-spacing-lg;
+}
+
+.u-margin-bottom {
+    margin-bottom: @reflex-cell-spacing-md;
+}
+
+.u-margin-bottom--lg {
+    margin-bottom: @reflex-cell-spacing-lg;
+}
+
+.u-margin-left {
+    margin-left: @reflex-cell-spacing-md;
+}
+
+.u-margin-left--lg {
+    margin-left: @reflex-cell-spacing-lg;
+}
+
+.u-margin-bottom-5px {
+    margin-bottom: 5px;
+}
+
+.u-padding {
+    padding: @reflex-cell-spacing-md;
+}
+
+.u-padding--lg {
+    padding: @reflex-cell-spacing-lg;
+}
+
+.u-padding-right {
+    padding-right: @reflex-cell-spacing-md;
+}
+
+.u-padding-bottom {
+    padding-bottom: @reflex-cell-spacing-md;
+}
+
+.u-padding-bottom--lg {
+    padding-bottom: @reflex-cell-spacing-lg;
+}
+
+.u-padding-top {
+    padding-top: @reflex-cell-spacing-md;
+}
+
+.u-no-underline {
+    text-decoration: none;
+
+    &:hover,
+    &:active,
+    &:focus {
+        text-decoration: none;
+    }
+}
+
+@media (max-width: @reflex-xs) {
+    .u-padding--xs {
+        padding: @reflex-cell-spacing-md;
+    }
+
+    .u-margin--xs {
+        margin: @reflex-cell-spacing-md;
+    }
+
+    .u-no-padding--xs {
+        padding: 0;
+    }
+
+    .u-no-margin--xs {
+        margin: 0;
+    }
+}
+
+@media (min-width: @reflex-xs+1) {
+    .left-circle-indent {
+        margin-left: @circle-diameter;
+        padding-left: @reflex-cell-spacing-lg;
+    }
+}
+
+@media print
+{
+    .u-no-print
+    {
+        display: none !important;
+        height: 0;
+    }
+
+
+    .u-no-print, .u-no-print *{
+        display: none !important;
+        height: 0;
+    }
+}

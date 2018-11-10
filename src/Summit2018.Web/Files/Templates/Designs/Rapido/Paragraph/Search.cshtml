@@ -1,0 +1,182 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System.Web
+@using Dynamicweb.Content.Data
+
+@{
+    string searchParameter = !String.IsNullOrEmpty(HttpContext.Current.Request["Search"]) ? HttpContext.Current.Request.QueryString.Get("Search") : "";
+    string areaId = !String.IsNullOrEmpty(HttpContext.Current.Request["Areaid"]) ? HttpContext.Current.Request.QueryString.Get("Areaid") : "";
+    string pageType = !String.IsNullOrEmpty(HttpContext.Current.Request["Pagetype"]) ? HttpContext.Current.Request.QueryString.Get("Pagetype") : "";
+    string searchFeedId = Converter.ToString(GetPageIdByNavigationTag("ContentSearchFeed"));
+    string requestQuery = GetGlobalValue("Global:Request.Query");
+}
+<div class="grid__col-12 paragraph-container">
+    <div class="js-handlebars-root" id="searchResults" data-template="ResultsTemplate" data-json-feed="/Default.aspx?ID=@searchFeedId&Search=@searchParameter&Areaid=@areaId&Pagetype=@pageType" data-preloader="overlay"></div>
+</div>
+
+<script id="ResultsTemplate" type="text/x-template">
+    {{#.}}
+        <div class="grid">
+            @if (Pageview.AreaSettings.GetItem("Layout").GetString("SearchResultsFacetsViewMode") == "top" || Pageview.Device.ToString() == "Mobile")
+	        {
+		        <div class="grid__col-12">
+                    <input type="checkbox" id="CheckFacetGroups" class="js-remember-state u-hidden" data-expand="CheckFacetGroups" />
+			        <div class="grid grid--external-bleed-x dw-mod expandable--collapsed facets-container facets-container--top" data-trigger="CheckFacetGroups">
+				        {{#FacetGroups}}
+				            <div class="grid__col-lg-3 grid__col-md-3 grid__col-sm-4 grid__col-xs-12">
+					            <input type="checkbox" id="OptionsGroup_{{counter}}" class="dropdown-trigger" />
+					            <div class="dropdown dw-mod">
+						            <label class="dropdown__header dropdown__btn dw-mod" for="OptionsGroup_{{counter}}">{{name}}</label>
+						            <div id="FacetOptions" class="dropdown__content dropdown__content--padding dw-mod">
+							            {{#FacetOptions}}
+							                {{#ifCond template "===" "Checkboxes"}}
+							                    {{>Checkboxes}}
+							                {{/ifCond}}
+							            {{/FacetOptions}}
+						            </div>
+						            <label class="dropdown-trigger-off" for="OptionsGroup_{{counter}}"></label>
+					            </div>
+				            </div>
+				        {{/FacetGroups}}
+			        </div>
+                    <label for="CheckFacetGroups" class="btn btn--primary btn--full dw-mod js-expand-hide facets-container-trigger" data-trigger="CheckFacetGroups">@Translate("Select filters")</label>
+			        <label for="CheckFacetGroups" class="btn btn--primary btn--full dw-mod expandable--collapsed facets-container-trigger" data-trigger="CheckFacetGroups">@Translate("Close filters")</label>
+		        </div>
+	        }
+            @if (Pageview.AreaSettings.GetItem("Layout").GetString("SearchResultsFacetsViewMode") != "top" && Pageview.Device.ToString() != "Mobile")
+	        {
+                <div class="grid__col-3">
+			        <h2>@Translate("Filters")</h2>
+                    <input type="checkbox" id="CheckFacetGroups" class="js-remember-state u-hidden" data-expand="CheckFacetGroups" />
+			        <div class="facets-container facets-container--left expandable--collapsed" data-trigger="CheckFacetGroups">
+				        {{#FacetGroups}}
+				            <input type="checkbox" id="OptionsGroup_{{counter}}" class="expand-trigger js-remember-state" {{defaultState}} />
+
+				            <div class="expand-box expand-container dw-mod">
+					            <label class="expand-box__header expand-container__btn dw-mod" for="OptionsGroup_{{counter}}">{{name}}</label>
+					            <div id="FacetOptions" class="expand-box__content expand-container__content expand-container__content--limit-height dw-mod">
+						            {{#FacetOptions}}
+						                {{#ifCond template "===" "Checkboxes"}}
+						                    {{>Checkboxes}}
+						                {{/ifCond}}
+						            {{/FacetOptions}}
+					            </div>
+				            </div>
+				        {{/FacetGroups}}
+			        </div>
+                    <label for="CheckFacetGroups" class="btn btn--primary btn--full dw-mod js-expand-hide facets-container-trigger" data-trigger="CheckFacetGroups">@Translate("Select filters")</label>
+			        <label for="CheckFacetGroups" class="btn btn--primary btn--full dw-mod expandable--collapsed facets-container-trigger" data-trigger="CheckFacetGroups">@Translate("Close filters")</label>
+		        </div>
+            }
+            <div class="grid__col-auto">
+                <h2>@Translate("Search result for") "@searchParameter": {{totalPages}}</h2>
+				<div class="collection u-no-margin" id="selectedFacets">
+					{{#FacetSelections}}
+						{{#ifCond template "===" "SelectedFilter"}}
+						    {{>SelectedFilter}}
+						{{/ifCond}}
+						{{#ifCond template "===" "ResetFilters"}}
+						    {{>ResetFilters}}
+						{{/ifCond}}
+					{{/FacetSelections}}
+				</div>
+                {{#Results}}
+                    <div class="search-result">
+                        <a href="/Default.aspx?ID={{id}}" class="search-result__header">
+                            <i class="fa {{icon}} search-result__icon"></i>
+                            <span class="search-result__name">{{name}}</span>
+                        </a>
+                        <div class="search-result__breadcrumbs">
+                            {{#Breadcrumbs}}{{>Breadcrumbs}}{{/Breadcrumbs}}
+                        </div>
+                        <div class="search-result__summary">
+                            {{summary}}
+                        </div>
+                    </div>
+                {{/Results}}
+                <div class="pager u-margin-top {{hidePagination}}">
+                    <div class="pager__info">
+                        @Translate("Page") {{current}} @Translate("of") {{total}} 
+                    </div>
+                    <ul class="pager__list" id="Buttons">                                
+                        {{#Buttons}}
+                            {{#ifCond template "===" "PaginationBtn"}}
+                                {{>PaginationBtn}}
+                            {{/ifCond}}
+                            {{#ifCond template "===" "PaginationEllipsis"}}
+                                {{>PaginationEllipsis}}
+                            {{/ifCond}}
+                            {{#ifCond template "===" "PaginationCurrentPage"}}
+                                {{>PaginationCurrentPage}}
+                            {{/ifCond}}
+                            {{#ifCond template "===" "PaginationLink"}}
+                                {{>PaginationLink}}
+                            {{/ifCond}}
+                        {{/Buttons}}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    {{/.}}    
+    {{^.}}
+		<h2 class="u-ta-center">@Translate("Your search gave 0 results")</h2>
+    {{/.}}
+</script>
+
+@*Without spaces*@
+<script id="Breadcrumbs" type="text/x-template"><a class="search-result__breadcrumb-item" href="/Default.aspx?ID={{id}}">{{name}}</a><span class="search-result__breadcrumb-delimiter">/</span></script>
+
+<script id="PaginationBtn" type="text/x-template">
+    <li class="pager__btn" onclick="HandlebarsBolt.UpdateContent('searchResults', '{{link}}' )">
+        <span class="pager__num dw-mod link"><i class="fas fa-angle-{{text}}"></i></span>
+    </li>
+</script>
+
+<script id="PaginationEllipsis" type="text/x-template">
+    <li class="pager__btn">
+        <span class="pager__num--ellipsis dw-mod">…</span>
+    </li>
+</script>
+
+<script id="PaginationCurrentPage" type="text/x-template">
+    <li class="pager__btn">
+        <span class="pager__num pager__num--current dw-mod">{{text}}</span>
+    </li>
+</script>
+
+<script id="PaginationLink" type="text/x-template">
+    <li class="pager__btn" onclick="HandlebarsBolt.UpdateContent('searchResults', '{{link}}' )">
+        <span class="pager__num dw-mod link">{{text}}</span>
+    </li>
+</script>
+
+<script id="Checkboxes" type="text/x-template">
+    <input type="checkbox" class="{{selected}} checkbox-facet__checkbox form__control dw-mod" onclick="Facets.UpdateFacets(this);" id="{{queryParameter}}{{value}}" name="{{queryParameter}}" value="{{value}}" {{selected}} {{disabled}}>
+    <label class="{{disabled}} checkbox-facet dw-mod" data-filter-value="{{label}}" for="{{queryParameter}}{{value}}">
+        <span class="checkbox-facet__label dw-mod">{{label}}</span>
+        <span class="checkbox-facet__count dw-mod">({{count}})</span>
+    </label>
+</script>
+
+@*Facet selections*@
+<script id="SelectedFilter" type="text/x-template">
+    <button type="button" class="btn btn--tag" data-check="checked" onclick="Facets.UpdateFacets(this);" name="{{queryParameter}}" value="{{value}}" title="@Translate("Remove filter")">
+        {{group}}: {{label}} <i class="fas fa-times"></i>
+    </button>
+</script>
+
+<script id="ResetFilters" type="text/x-template">
+    <button type="button" class="btn btn--tag" onclick="Facets.ResetFacets();">
+        @Translate("Reset all filters") <i class="fas fa-redo"></i>
+    </button>
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function (event) {
+        document.getElementById("searchResults").addEventListener('contentLoaded', function (e) {
+            if (getTarget(e).id === "searchResults") {
+                Facets.Init("selectedFacets", "searchResults");
+            }
+        });
+    });
+</script>

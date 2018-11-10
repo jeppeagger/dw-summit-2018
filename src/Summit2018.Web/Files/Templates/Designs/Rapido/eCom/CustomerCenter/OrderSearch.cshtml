@@ -1,0 +1,72 @@
+@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@{ 
+    string pid = GetString("Ecom:CustomerCenter.PID");
+    string freeTextName = "CCFilterFreetext" + pid;
+    string productId = "CCFilterProductID" + pid;
+    string monthFromName = "CCFilterFromMonth" + pid;
+    string monthToName = "CCFilterToMonth" + pid;
+    string yearFromName = "CCFilterFromYear" + pid;
+    string yearToName = "CCFilterToYear" + pid;
+    string amountFromName = "CCFilterFromAmount" + pid;
+    string amountToName = "CCFilterToAmount" + pid;
+}
+
+@GetString("Ecom:CustomerCenter.SearchForm.Begin")
+    <div class="form card dw-mod">
+        <div class="form__header dw-mod">@Translate("Search", "Search")</div>
+
+        <div class="form__fields-collection">
+            <input type="text" name="@freeTextName" value="@GetString("Ecom:CustomerCenter.Search.Freetext")" placeholder="@Translate("Free text")" />
+            <select name="@productId">
+                <option value="">@Translate("Any product", "Any product")</option>
+                @GetString("Ecom:CustomerCenter.Search.Products")
+            </select>
+        </div>
+
+        <div class="form__header dw-mod">@Translate("Date interval", "Date interval")</div>
+
+        <label for="from_month">@Translate("From", "From")</label>
+        <div class="form__fields-collection">
+            <select name="@monthFromName" id="from_month">
+                <option value="">@Translate("Any month", "Any month")</option>
+                @GetString("Ecom:CustomerCenter.Search.MonthNames.From")
+            </select>
+
+            <select name="@yearFromName">
+                <option value="">@Translate("Any year", "Any year")</option>
+                @GetString("Ecom:CustomerCenter.Search.Years.From")
+            </select>
+        </div>
+
+        <label for="to_month">@Translate("To", "To")</label>
+        <div class="form__fields-collection">
+            <select name="@monthToName" id="to_month">
+                <option value="">@Translate("Any month", "Any month")</option>
+                @GetString("Ecom:CustomerCenter.Search.MonthNames.To")
+            </select>
+
+            <select name="@yearToName">
+                <option value="">@Translate("Any year", "Any year")</option>
+                @GetString("Ecom:CustomerCenter.Search.Years.To")
+            </select>
+        </div>
+
+        <div class="form__header dw-mod">@Translate("Order amount", "Order amount")</div>
+
+        <div class="form__fields-collection">
+            <div class="form__field-group dw-mod">
+                <label for="order_amount_from">@Translate("From", "From")</label>
+                <input type="number" id="order_amount_from" name="@amountFromName" value="@GetString("Ecom:CustomerCenter.Search.FromAmount")" min="1" />
+            </div>
+            <div class="form__field-group dw-mod">
+                <label for="order_amount_to">@Translate("To", "To")</label>
+                <input type="number" id="order_amount_to" name="@amountToName" value="@GetString("Ecom:CustomerCenter.Search.ToAmount")" min="1" />
+            </div>
+        </div>
+
+        <div class="form__footer dw-mod">
+            <input class="btn btn--primary u-no-margin dw-mod" type="submit" value="@Translate("Search", "Search")" />
+        </div>
+    </div>
+@GetString("Ecom:CustomerCenter.SearchForm.End")

@@ -1,0 +1,239 @@
+// -----------------------------------------------------------------------------
+// Contains all styles related to the wireframe generator
+// -----------------------------------------------------------------------------
+
+//Wireframe
+
+.wire-image {
+    background-color: @gray-light;
+    width: 100%;
+    height: 200px;
+    text-align: left;
+}
+
+.wire-image::after {
+    font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
+    font-weight: 900;
+    content: '\f030';
+    position: relative;
+    top: ~"calc(50% - 8px)";
+    left: ~"calc(50% - 8px)";
+    color: @gray;
+}
+
+.wire-image-lines {
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0.3),
+      rgba(0, 0, 0, 0.3) 10px,
+      rgba(0, 0, 0, 0.4) 10px,
+      rgba(0, 0, 0, 0.4) 20px
+    );
+}
+
+.grid__col-12, .grid__col-lg-12, .grid__col-md-12, .grid__col-sm-12, .grid__col-xs-12 {
+     .wire-image {
+        height: 300px;
+
+        &::after {
+            font-size: 28px;
+            left: ~"calc(50% - 14px)";
+        }
+    }
+}
+
+.grid__col-4, .grid__col-lg-4, .grid__col-md-4, .grid__col-sm-4, .grid__col-xs-4 {
+     .wire-image {
+        height: 160px;
+
+        &::after {
+            font-size: 22px;
+            left: ~"calc(50% - 11px)";
+        }
+    }
+}
+
+.grid__col-3, .grid__col-lg-3, .grid__col-md-3, .grid__col-sm-3, .grid__col-xs-3 {
+     .wire-image {
+        height: 120px;
+    }
+}
+
+.grid__col-2, .grid__col-lg-2, .grid__col-md-2, .grid__col-sm-2, .grid__col-xs-2 {
+     .wire-image {
+        height: 60px;
+    }
+}
+
+.logo .wire-image {
+    height: 50px;
+    width: 120px;
+
+    &::after {
+        content: 'Logo';
+        top: 13px;
+        left: 29px;
+        font-family: inherit;
+    }
+}
+
+.receipt__logo .wire-image {
+    height: 50px;
+    width: 120px;
+
+    &::after {
+        content: 'Logo';
+        top: 13px;
+        left: 29px;
+        font-family: inherit;
+    }
+}
+
+.table .wire-image {
+    height: 38px;
+}
+
+.mini-cart-table .wire-image {
+    height: 38px;
+}
+
+.cart-table__image {
+    .wire-image {
+        height: 50px;
+    }
+}
+
+.dropdown__item .wire-image {
+    width: 60px;
+    height: 50px;
+}
+
+.footer__card-type .wire-image {
+    width: 60px;
+    height: 60px;
+}
+
+.lightbox .wire-image {
+    width: 60px;
+    height: 50px;
+}
+
+.gallery-slider__image .wire-image {
+    width: 550px;
+    height: 350px;
+}
+
+.layered-image .wire-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    width: 60px;
+    height: 60px;
+}
+
+.wire-grayscale {
+  filter: url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\'><filter id=\'grayscale\'><feColorMatrix type=\'matrix\' values=\'0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0 0 0 1 0\'/></filter></svg>#grayscale"); /* Firefox 10+ */
+  filter: gray; /* IE6-9 */
+  -webkit-filter: grayscale(99%); /* Chrome 19+ & Safari 6+ */
+  -webkit-backface-visibility: hidden;  /* Fix for transition flickering */
+}
+
+.background-image .wire-image {
+    height: 100%;
+    width: 100%;
+    background: repeating-linear-gradient(
+      45deg,
+      rgba(0, 0, 0, 0.3),
+      rgba(0, 0, 0, 0.3) 10px,
+      rgba(0, 0, 0, 0.4) 10px,
+      rgba(0, 0, 0, 0.4) 20px
+    );
+}
+
+
+
+
+//Tools
+
+.wireframe-tools {
+    
+}
+
+.wireframe-tools__info {
+    color: @gray;
+    margin-bottom: @reflex-cell-spacing-lg;
+}
+
+.wireframe-tools-toggle {
+    cursor: pointer;
+}
+
+.wireframe-tools--open {
+    right: 0;
+    transition: all 0.2s ease-in;
+}
+
+.wireframe-tools-overlay {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    z-index: @z-index-1;
+    background-color: rgba(000,000,000,0.1);
+}
+
+
+
+//Comment system
+
+.comment__number {
+    color: #fff;
+    padding: 0 6px;
+    text-align: center; 
+}
+
+.comment-mark {
+    border: 2px solid #333;
+    transition: all 0.3s ease-in;
+}
+
+.comment-mark__tag {
+    color: #fff;
+    position: absolute;
+    width: 24px;
+    height: 24px;
+    background-color: #333;
+    text-align: center;
+    z-index: @z-index-2;
+}
+
+.comment-mark--active {
+    border: 2px solid #0B85C8;
+
+    .comment-mark__tag {
+        background-color: #0B85C8;
+    }
+}
+
+.comment-mark--hover:not(.comment-mark--active) {
+    border: 2px solid #EC683B;
+
+    .comment-mark__tag {
+        background-color: #EC683B;
+    }
+}
+
+.comment-textarea {
+   border: 4px solid #0B85C8; 
+}
+
+.comment--active {
+    color: #EC683B;
+
+    .comment__number {
+        background-color: #EC683B;
+    }
+}
+

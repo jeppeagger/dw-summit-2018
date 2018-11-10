@@ -1,0 +1,404 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web
+@using System.Collections
+@using Dynamicweb.Core
+@using Dynamicweb.Content.Data
+
+@{
+    string searchParameter = !String.IsNullOrEmpty(HttpContext.Current.Request["Search"]) ? HttpContext.Current.Request.QueryString.Get("Search") : "";
+    string template = !String.IsNullOrEmpty(HttpContext.Current.Request["Template"]) ? HttpContext.Current.Request.QueryString.Get("Template") : "SearchContentTemplate";
+    bool pagesOnly = Converter.ToBoolean(HttpContext.Current.Request["pagesOnly"]);
+    bool isCombinedSearch = HttpContext.Current.Request.QueryString.Get("searchType") == "combined";
+}
+
+@functions {
+    public class Page
+    {
+        public Page()
+        {
+            Breadcrumbs = new List<Breadcrumb>();
+        }
+        public string id { get; set; }
+        public string template { get; set; }
+        public string name { get; set; }
+        public string icon { get; set; }
+        public string searchParameter { get; set; }
+        public string summary { get; set; }
+        public string stickToBottom { get; set; } //for combined search
+        public List<Breadcrumb> Breadcrumbs { get; set; }
+    }
+
+    public class FacetSelection
+    {
+        public string template { get; set; }
+        public string group { get; set; }
+        public string name { get; set; }
+        public string label { get; set; }
+        public string value { get; set; }
+        public string queryParameter { get; set; }
+    }
+
+    public class FacetOption
+    {
+        public string template { get; set; }
+        public string name { get; set; }
+        public string value { get; set; }
+        public string queryParameter { get; set; }
+        public string label { get; set; }
+        public string count { get; set; }
+        public string disabled { get; set; }
+        public string selected { get; set; }
+    }
+
+    public class FacetGroup
+    {
+        public string counter { get; set; }
+        public string name { get; set; }
+        public string defaultState { get; set; }
+        public List<FacetOption> FacetOptions { get; set; }
+    }
+
+    public class PaginationButton
+    {
+        public string link { get; set; }
+        public string text { get; set; }
+        public string template { get; set; }
+    }
+
+    public class Breadcrumb
+    {
+        public int id { get; set; }
+        public string name { get; set; }
+    }
+
+    public class Root
+    {
+        public Root()
+        {
+            Results = new List<Page>();
+            Buttons = new List<PaginationButton>();
+            FacetGroups = new List<FacetGroup>();
+            FacetSelections = new List<FacetSelection>();
+        }
+
+        public List<FacetGroup> FacetGroups { get; set; }
+        public List<FacetSelection> FacetSelections { get; set; }
+        public int totalPages { get; set; }
+        public List<Page> Results { get; set; }
+        //pagination
+        public int current { get; set; }
+        public int total { get; set; }
+        public string prevPage { get; set; }
+        public string nextPage { get; set; }
+        public string hidePagination { get; set; }
+        public List<PaginationButton> Buttons { get; set; }
+    }
+}
+
+@{
+    List<Root> feedObject = new List<Root>();
+
+    Root feedRoot = new Root();
+
+    Dictionary<string, string> icons = new Dictionary<string, string> {
+        { "Page", "far fa-file" },
+        { "NewsList", "far fa-list-ul" },
+        { "WhitePaperList", "far fa-list-ul" },
+        { "PartnersList", "far fa-list-ul" },
+        { "BlogList", "far fa-list-ul" },
+        { "EventList", "far fa-list-ul" },
+        { "CasesList", "far fa-list-ul" },
+        { "NewsArticle", "far fa-newspaper" },
+        { "WhitePaper", "far fa-paper-plane" },
+        { "PartnerArticle", "fas fa-users" },
+        { "BlogArticle", "far fa-user-circle" },
+        { "EventArticle", "fas fa-calendar-alt" },
+        { "CaseArticle", "fas fa-briefcase" }
+    };
+
+    foreach (var result in GetLoop("QueryResultItem"))
+    {
+        var resultProperties = result.GetLoop("Properties").ToDictionary(x => x.GetString("Name"), y => y.GetString("Value"));
+
+        Page pageObject = new Page();
+
+        pageObject.template = template;
+        pageObject.id = resultProperties.ContainsKey("PageId") ? resultProperties["PageId"] : "";
+        pageObject.name = resultProperties.ContainsKey("PageMenuText") ? resultProperties["PageMenuText"] : "";
+        string itemType = resultProperties.ContainsKey("PageItemType") ? resultProperties["PageItemType"] : "Page";
+        pageObject.icon = icons.ContainsKey(itemType) ? icons[itemType] : "far fa-file";
+
+        if (!pagesOnly)
+        {
+            switch (itemType)
+            {
+                case "PartnerArticle":
+                case "NewsArticle":
+                case "WhitePaper":
+                case "BlogArticle":
+                case "EventArticle":
+                case "CaseArticle":
+                    if (resultProperties.ContainsKey(itemType + "_Summary"))
+                    {
+                        int length = resultProperties[itemType + "_Summary"].Length;
+                        if (length > 200)
+                        {
+                            pageObject.summary = resultProperties[itemType + "_Summary"].Substring(0, 200) + "...";
+                        }
+                        else
+                        {
+                            pageObject.summary = resultProperties[itemType + "_Summary"];
+                        }
+                    }
+                    break;
+            }
+
+            //breadcrumbs
+            var contentPage = Dynamicweb.Services.Pages.GetPage(Converter.ToInt32(pageObject.id));
+
+            if (contentPage != null)
+            {
+                PageTree areaNavigationTree = Dynamicweb.Services.Pages.GetAreaNavigationTree(contentPage.AreaId);
+                PageTreeItem pageNode = areaNavigationTree.GetById(contentPage.ID);
+                PageTreeItem currentLocation = pageNode.Parent;
+                while (currentLocation != null)
+                {
+                    var breadcrumb = new Breadcrumb();
+                    breadcrumb.id = currentLocation.ID;
+                    breadcrumb.name = currentLocation.Title;
+                    pageObject.Breadcrumbs.Add(breadcrumb);
+                    currentLocation = currentLocation.Parent;
+                }
+                var breadcrumbObj = new Breadcrumb();
+                breadcrumbObj.id = pageNode.ID;
+                breadcrumbObj.name = pageNode.Title;
+                pageObject.Breadcrumbs.Add(breadcrumbObj);
+            }
+            //
+        }
+
+        feedRoot.Results.Add(pageObject);
+    }
+
+    feedRoot.totalPages = GetInteger("DwPaging.TotalItems");
+
+    string jsonFeed;
+
+    if (pagesOnly)
+    {
+        if (feedRoot.totalPages > 0)
+        {
+            Page searchMoreObject = new Page();
+            searchMoreObject.template = "SearchMore";
+            searchMoreObject.searchParameter = searchParameter;
+            searchMoreObject.stickToBottom = isCombinedSearch ? "grid__cell-footer" : "";
+            feedRoot.Results.Add(searchMoreObject);
+        }
+
+        jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(feedRoot.Results);
+    }
+    else
+    {
+        //facets
+        foreach (LoopItem facetGroup in GetLoop("FacetGroups"))
+        {
+            foreach (LoopItem facetItem in facetGroup.GetLoop("Facets"))
+            {
+                if (facetItem.GetInteger("Facet.OptionWithResultCount") > 0 && facetItem.GetInteger("Facet.OptionResultTotalCount") > 0)
+                {
+                    FacetGroup facetGroupObject = new FacetGroup();
+                    facetGroupObject.counter = facetItem.GetString("Facets.LoopCounter");
+                    facetGroupObject.name = Translate(facetItem.GetString("Facet.Name"));
+                    facetGroupObject.FacetOptions = new List<FacetOption>();
+                    facetGroupObject.defaultState = "checked";
+                    var renderType = facetItem.GetString("Facet.RenderType");
+
+                    foreach (LoopItem facetOption in facetItem.GetLoop("FacetOptions"))
+                    {
+                        FacetOption facetOptionObject = new FacetOption();
+                        facetOptionObject.template = renderType;
+                        facetOptionObject.name = facetOption.GetString("FacetOption.Name");
+                        facetOptionObject.count = facetOption.GetString("FacetOption.Count");
+                        facetOptionObject.label = facetOption.GetString("FacetOption.Label");
+                        facetOptionObject.value = facetOption.GetString("FacetOption.Value");
+                        facetOptionObject.queryParameter = facetItem.GetString("Facet.QueryParameter");
+                        facetOptionObject.selected = facetOption.GetBoolean("FacetOption.Selected") ? "checked" : "";
+                        facetGroupObject.FacetOptions.Add(facetOptionObject);
+                    }
+
+                    feedRoot.FacetGroups.Add(facetGroupObject);
+                }
+            }
+        }
+
+        feedRoot.FacetSelections = new List<FacetSelection>();
+
+        int facetSelectionCount = 0;
+
+        foreach (LoopItem facetGroup in GetLoop("FacetGroups"))
+        {
+            foreach (LoopItem facetItem in facetGroup.GetLoop("Facets"))
+            {
+                if (facetItem.GetInteger("Facet.OptionWithResultCount") > 0 && facetItem.GetInteger("Facet.OptionResultTotalCount") > 0)
+                {
+                    foreach (LoopItem facetOption in facetItem.GetLoop("FacetOptions"))
+                    {
+                        if (facetOption.GetBoolean("FacetOption.Selected"))
+                        {
+                            FacetSelection facetSelectionObject = new FacetSelection();
+                            facetSelectionObject.template = facetOption.GetString("FacetOption.Value").Contains("#") ? "SelectedColorFilter" : "SelectedFilter";
+                            facetSelectionObject.group = Translate(facetItem.GetString("Facet.Name"));
+                            facetSelectionObject.name = facetOption.GetString("FacetOption.Name");
+                            facetSelectionObject.label = facetOption.GetString("FacetOption.Label");
+                            facetSelectionObject.value = facetOption.GetString("FacetOption.Value");
+                            facetSelectionObject.queryParameter = facetItem.GetString("Facet.QueryParameter");
+                            feedRoot.FacetSelections.Add(facetSelectionObject);
+
+                            facetSelectionCount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (facetSelectionCount > 2)
+        {
+            FacetSelection facetAllObject = new FacetSelection();
+            facetAllObject.template = "ResetFilters";
+            feedRoot.FacetSelections.Insert(0, facetAllObject);
+        }
+
+        /** pagination */
+
+        int total = GetInteger("DwPaging.PageCount");
+        int current = GetInteger("DwPaging.CurrentPage");
+        feedRoot.total = total;
+        feedRoot.current = current;
+
+        ArrayList links = new ArrayList();
+
+        /** Add current page to the array */
+        if (current >= 1)
+        {
+            links.Add(current);
+        }
+
+        /** Add the pages around the current page to the array */
+        if (current >= 3)
+        {
+            links.Add(current - 1);
+            links.Add(current - 2);
+        }
+
+        if ((current + 2) <= total)
+        {
+            links.Add(current + 1);
+            links.Add(current + 2);
+        }
+
+        if (total <= 0)
+        {
+            feedRoot.hidePagination = "u-hidden";
+        }
+
+        if (total > 1)
+        {
+            PaginationButton prevBtn = new PaginationButton();
+
+            if (!string.IsNullOrWhiteSpace(GetString("DwPaging.PreviousPageLink")))
+            {
+                prevBtn.text = "left";
+                prevBtn.link = GetString("DwPaging.PreviousPageLink");
+                prevBtn.template = "PaginationBtn";
+            }
+
+            feedRoot.Buttons.Add(prevBtn);
+
+            foreach (LoopItem page in GetLoop("DwPaging.LoopAllPages"))
+            {
+                bool isCurrent = page.GetBoolean("AllPages.ActivePage");
+                string link = page.GetString("AllPages.PageLink");
+                int num = page.GetInteger("AllPages.PageNumber");
+
+                PaginationButton pagButton = new PaginationButton();
+                pagButton.text = num.ToString();
+                pagButton.link = link;
+
+                if (num == 1 && links.IndexOf(1) == -1)
+                {
+                    if (isCurrent)
+                    {
+                        pagButton.template = "PaginationCurrentPage";
+                    }
+                    else
+                    {
+                        pagButton.template = "PaginationLink";
+                    }
+                    feedRoot.Buttons.Add(pagButton);
+
+                    if (links.IndexOf(2) == -1)
+                    {
+                        PaginationButton ellipsisButton = new PaginationButton();
+                        ellipsisButton.template = "PaginationEllipsis";
+                        feedRoot.Buttons.Add(ellipsisButton);
+                    }
+                }
+
+                if (links.IndexOf(num) != -1)
+                {
+                    if (isCurrent)
+                    {
+                        pagButton.template = "PaginationCurrentPage";
+                    }
+                    else
+                    {
+                        pagButton.template = "PaginationLink";
+                    }
+                    feedRoot.Buttons.Add(pagButton);
+                }
+
+                if (num == total && links.IndexOf(total) == -1)
+                {
+                    if (links.IndexOf(total - 1) == -1)
+                    {
+                        PaginationButton ellipsisButton = new PaginationButton();
+                        ellipsisButton.template = "PaginationEllipsis";
+                        feedRoot.Buttons.Add(ellipsisButton);
+                    }
+
+                    if (isCurrent)
+                    {
+                        pagButton.template = "PaginationCurrentPage";
+                    }
+                    else
+                    {
+                        pagButton.template = "PaginationLink";
+                    }
+                    feedRoot.Buttons.Add(pagButton);
+                }
+            }
+
+            PaginationButton nextBtn = new PaginationButton();
+
+            if (!string.IsNullOrWhiteSpace(GetString("DwPaging.NextPageLink")))
+            {
+                nextBtn.text = "right";
+                nextBtn.link = GetString("DwPaging.NextPageLink");
+                nextBtn.template = "PaginationBtn";
+            }
+
+            feedRoot.Buttons.Add(nextBtn);
+        }
+
+        feedObject.Add(feedRoot);
+
+        if (feedRoot.Results.Count == 0)
+        {
+            jsonFeed = "[]";
+        } else {
+            jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(feedObject);
+        }
+    }
+}
+
+@jsonFeed

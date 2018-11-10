@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-16" standalone="yes"?>
+<items>
+  <item category="Article" name="Partner article" systemName="PartnerArticle" description="" icon="AccountChild" iconColor="" includeInUrlIndex="False" pageDefaultView="item" fieldForTitle="PartnerName" title="" inherits="BaseArticle" useCache="False">
+    <fields>
+      <field name="Partner name" systemName="PartnerName" description="IMPORTANT! This name must be exactly the same as you use in customer cases" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Banner heading" systemName="BannerHeading" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Banner subheading" systemName="BannerSubheading" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.LongTextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.LongTextEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Rows" value="" /><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Cols" value="" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Text color" systemName="TextColor" description="" type="Dynamicweb.Imaging.Colors.Color, Dynamicweb.Imaging" excludeFromSearch="False" defaultValueCulture="" defaultValue="#FFFFFF">
+        <editor type="Dynamicweb.Content.Items.Editors.ColorEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.ColorEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.ColorEditor" name="Presets" value="" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="About us" systemName="AboutUs" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.LongTextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.LongTextEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Rows" value="12" /><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Cols" value="" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="External link" systemName="ExternalLink" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="External link text" systemName="ExternalLinkText" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Logo" systemName="PartnerLogo" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.FileEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.FileEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Base directory" value="/Images" /><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Extensions" value="" /><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Allow file upload from frontend" value="False" /><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Max files to add" value="" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Status" systemName="PartnerStatus" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.DropDownListEditor`1, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]"><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="LabelPosition" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="LabelWidth" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconMaxWidth" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconMaxHeight" value="0" /></Parameters></editorConfuguration>
+        </editor>
+        <options sourceType="Static">
+          <Static>
+            <option name="Premium solution partner" value="0" icon="" />
+            <option name="Solution partners" value="1" icon="" />
+            <option name="Business partners" value="2" icon="" />
+            <option name="Associated partners" value="3" icon="" />
+            <option name="Technology partners" value="4" icon="" />
+          </Static>
+        </options>
+      </field>
+      <field name="Location" systemName="PartnerLocation" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.RichTextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.RichTextEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.RichTextEditor" name="SelectConfgurationId" value="0" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Certified developers" systemName="PartnerCertifiedDevelopers" description="" type="System.Int32, mscorlib" excludeFromSearch="False" defaultValueCulture="" defaultValue="1">
+        <editor type="Dynamicweb.Content.Items.Editors.IntegerEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.IntegerEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Website url" systemName="PartnerWebsiteUrl" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Phone number" systemName="PartnerPhoneNumber" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Email address" systemName="PartnerEmailAddress" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Partner country" systemName="PartnerCountry" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.DropDownListEditor`1, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]"><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="LabelPosition" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="LabelWidth" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconMaxWidth" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconMaxHeight" value="0" /></Parameters></editorConfuguration>
+        </editor>
+        <options sourceType="Static">
+          <Static>
+            <option name="Denmark" value="denmark" icon="" />
+            <option name="Germany" value="germany" icon="" />
+            <option name="Italy" value="Italy" icon="" />
+            <option name="Norway" value="norway" icon="" />
+            <option name="Sweden" value="sweden" icon="" />
+            <option name="Neatherland" value="neatherland" icon="" />
+          </Static>
+        </options>
+      </field>
+    </fields>
+    <rules>
+      <rule name="Allow in websites" type="Dynamicweb.Content.Items.Activation.AreaRestrictionRule, Dynamicweb" value="*" />
+      <rule name="" type="Dynamicweb.Content.Items.Activation.ModuleAttachmentRestrictionRule, Dynamicweb" value="Nothing" />
+      <rule name="Enable item type for" type="Dynamicweb.Content.Items.Activation.StructureRestrictionRule, Dynamicweb" value="Pages,ItemList" />
+    </rules>
+    <layout>
+      <groups>
+        <group name="General" systemName="General" collapsibleState="None" visibilityField="" visibilityCondition="" visibilityConditionValueType="" visibilityConditionValue="">
+          <fields>
+            <field systemName="PartnerName" />
+            <field systemName="Summary" />
+          </fields>
+        </group>
+        <group name="Top banner" systemName="TopBanner" collapsibleState="None" visibilityField="" visibilityCondition="0" visibilityConditionValueType="" visibilityConditionValue="">
+          <fields>
+            <field systemName="Image" />
+            <field systemName="BannerHeading" />
+            <field systemName="BannerSubheading" />
+            <field systemName="TextColor" />
+          </fields>
+        </group>
+        <group name="Partner" systemName="Partner" collapsibleState="None" visibilityField="" visibilityCondition="0" visibilityConditionValueType="" visibilityConditionValue="">
+          <fields>
+            <field systemName="AboutUs" />
+            <field systemName="ExternalLink" />
+            <field systemName="ExternalLinkText" />
+          </fields>
+        </group>
+        <group name="Partner informations" systemName="PartnerInformations" collapsibleState="None" visibilityField="" visibilityCondition="0" visibilityConditionValueType="" visibilityConditionValue="">
+          <fields>
+            <field systemName="PartnerLogo" />
+            <field systemName="PartnerStatus" />
+            <field systemName="PartnerLocation" />
+            <field systemName="PartnerCertifiedDevelopers" />
+            <field systemName="PartnerWebsiteUrl" />
+            <field systemName="PartnerPhoneNumber" />
+            <field systemName="PartnerEmailAddress" />
+            <field systemName="PartnerCountry" />
+          </fields>
+        </group>
+        <group name="Extra" systemName="Extra" collapsibleState="Collapsed" visibilityField="PartnerName" visibilityCondition="0" visibilityConditionValueType="0" visibilityConditionValue="SHOWEXTRA">
+          <fields>
+            <field systemName="Title" />
+            <field systemName="Text" />
+          </fields>
+        </group>
+      </groups>
+    </layout>
+  </item>
+</items>

@@ -1,0 +1,60 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@if (!GetBoolean("Ecom:CustomerCenter.SavedCards.EmptyList"))
+{
+    <div class="grid__col-12 grid__col--bleed">
+        <div class="grid__cell u-border-bottom">
+            <h2><i class="fas fa-credit-card"></i> @GetGlobalValue("Global:Page.Name")</h2>
+        </div>
+    </div>
+
+    <div class="grid__col-12 grid__col--bleed">
+        @{ int i = 0; }
+        @foreach (LoopItem card in GetLoop("SavedCards"))
+        {
+            i++;
+            <!-- Trigger for the warning modal -->
+            <input type="checkbox" id="DeleteWarningModalTrigger_@i" class="modal-trigger" />
+
+            <!-- Warning modal -->
+            <div class="modal-container">
+                <label for="DeleteWarningModalTrigger_@i" class="modal-overlay"></label>
+                <div class="modal modal--xs">
+                    <div class="modal__header">
+                        <h2>@Translate("Warning")</h2>
+                    </div>
+                    <div class="modal__body">
+                        <p>@Translate("Are you sure you wish to delete this saved card?")</p>
+                        <p></p>
+                        <a href="@card.GetString("Ecom:CustomerCenter.SavedCards.DeleteUrl")" class="btn btn--primary btn--full u-no-margin dw-mod">@Translate("Yes")</a>
+                    </div>
+                </div>
+            </div>
+            <div class="grid__col-md-12 media-list-item dw-mod">
+                <div class="grid__cell">
+                    <div class="media-list-item__column dw-mod">
+                        <div class="media-list-item__sticker media-list-item__sticker--no-link dw-mod"><span>@card.GetString("Ecom:SavedCard.CardType")</span></div>
+                        <div class="media-list-item__info dw-mod">
+                            <div class="media-list-item__header dw-mod">
+                                <div class="media-list-item__name media-list-item__name--no-link dw-mod">@card.GetString("Ecom:SavedCard.Name")</div>
+                            </div>
+                            <div><span class="media-list-item__parameter-label dw-mod">@Translate("Payment method"):</span> @card.GetString("Ecom:SavedCard.Payment")</div>
+                            <div><span class="media-list-item__parameter-label dw-mod">@Translate("Card no").:</span> @card.GetString("Ecom:SavedCard.Identifier")</div>
+                        </div>
+                    </div>
+                    <div class="media-list-item__actions dw-mod">
+                        <label for="DeleteWarningModalTrigger_@i" class="media-list-item__action link dw-mod" title="@Translate("Delete")">@Translate("Delete")</label>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
+else
+{
+    <div class="grid__col-12 grid__col--bleed">
+        <div class="grid__cell">
+            <h2><i class="fas fa-credit-card"></i> @GetGlobalValue("Global:Page.Name")</h2>
+            @Translate("No saved cards found")
+        </div>
+    </div>    
+}

@@ -1,0 +1,127 @@
+@using System.Globalization
+@using System.Linq
+@using Dynamicweb
+@using Dynamicweb.Content.Items
+@using Dynamicweb.Core
+@using Dynamicweb.Rendering
+@using Dynamicweb.Ecommerce.ProductCatalog
+@inherits ViewModelTemplate<ProductViewModel>
+
+@functions {
+    Item productDetails;
+    Item icons;
+    string imageSectionPosition;
+    string cartIcon;
+    bool renderVariantsAsProducts;
+}
+
+@{
+    string groupIdQueryParameter = string.IsNullOrEmpty(Context.Current.Request["GroupID"])
+        ? string.Empty
+        : "&amp;GroupID=" + Dynamicweb.Context.Current.Request["GroupID"];
+    string productLink = "/Default.aspx?ID=" + Pageview.Page.ID + "&amp;ProductID=" + Model.Id + groupIdQueryParameter;
+    bool onlyPreview = Converter.ToBoolean(Pageview.Area.Item["OnlyPreviewForAnonymous"]) && Pageview.User == null;
+    string onSale = string.Equals(Model.PriceBeforeDiscount.PriceFormatted, Model.Price.PriceFormatted) ? "u-hidden" : "";
+
+    productDetails = Item.GetItemById("ProductDetails", Pageview.Area.Item["ProductDetails"].ToString());
+    imageSectionPosition = productDetails["ProductDetailsImageSectionPosition"] != null ? productDetails["ProductDetailsImageSectionPosition"].ToString() : "right-right";
+    icons = Dynamicweb.Content.Items.Item.GetItemById("Icons", Pageview.Area.Item["Icons"].ToString());
+    cartIcon = icons["CartIcon"] != null ? icons["CartIcon"].ToString() : "fas fa-shopping-cart";
+    renderVariantsAsProducts = productDetails["ProductDetailsRenderVariantsAsProductList"] != null && Model.Variants != null && Model.Variants.Any() ? Converter.ToBoolean(productDetails["ProductDetailsRenderVariantsAsProductList"]) : false;
+}
+
+@helper ImageSection()
+{
+    string imageSectionWidth = productDetails["ProductDetailsTopLayout"] != null ? productDetails["ProductDetailsTopLayout"].ToString() : "6";
+    imageSectionWidth = imageSectionPosition == "left-left" || imageSectionPosition == "left-right" ? Converter.ToString(12 - Converter.ToInt32(productDetails["ProductDetailsTopLayout"])) : imageSectionWidth;
+    <div class="grid__col-md-@imageSectionWidth grid__col-sm-@imageSectionWidth grid__col-xs-12 u-padding-bottom--lg">
+        <div class="grid grid--bleed">
+            @if (imageSectionPosition == "left-left" || imageSectionPosition == "right-left")
+            {
+                <p>ToDo: Images</p>
+            }
+            else
+            {
+                <p>ToDo: Images</p>
+            }
+        </div>
+    </div>
+}
+
+@helper MainProductInformation()
+{
+    string pageId = Pageview.ID.ToString();
+    string currentPrice = Model.Price.PriceFormatted;
+    string favoriteIcon = icons["FavoriteIcon"] != null ? "fas fa-" + icons["FavoriteIcon"].ToString() : "fas fa-star";
+    string favoriteOutlineIcon = icons["FavoriteIcon"] != null ? "far fa-" + icons["FavoriteIcon"].ToString() : "far fa-star";
+    bool hideProductNumber = productDetails["ProductDetailsHideProductNumber"] != null ? Converter.ToBoolean(productDetails["ProductDetailsHideProductNumber"]) : false;
+
+    <div class="grid__col-auto product__info dw-mod u-padding-bottom--lg">
+        <div class="grid__cell">
+            <div class="u-pull--left product__title dw-mod">
+                <h1 class="u-no-margin">@Model.Name TODO: "Ecom:Product.SelectedVariantComboName"</h1>
+
+                @if (!hideProductNumber)
+                {
+                    <div class="item-number dw-mod">@Model.Number</div>
+                }
+            </div>
+            <div class="u-pull--right">
+                @if (Pageview.User != null && !renderVariantsAsProducts)
+                {
+                    string favoriteId = "Favorite" + Model.Id;
+                    <div id="@favoriteId" class="favorites favorites--md u-pull--right js-favorite-btn dw-mod">
+                        TODO: My Favorites
+                    </div>
+                }
+            </div>
+            <div class="u-clearfix"></div>
+            @if (!string.IsNullOrEmpty(Model.ShortDescription))
+            {
+                <div class="introduction-text">
+                    @Model.ShortDescription
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<div class="grid product grid--external-bleed-x u-padding-bottom--lg js-product" id="productGrid">
+    @if (imageSectionPosition == "left-left" || imageSectionPosition == "left-right")
+    {
+        @ImageSection()
+        @MainProductInformation()
+    }
+    else
+    {
+        @MainProductInformation()
+        @ImageSection()
+    }
+
+    @{ 
+        string id = Model.Id;
+        int quantity = !string.IsNullOrEmpty(Context.Current.Request.QueryString.Get("quantity")) ? Converter.ToInt32(Context.Current.Request.QueryString.Get("quantity")) : 1;
+    }
+    <div class="product__price-actions js-handlebars-root dw-mod" id="PriceAndActions">
+        @if (!onlyPreview)
+        {
+            <div class="product__price-actions__price dw-mod u-margin-bottom--lg">
+                <div class="before-price @onSale dw-mod">@Model.PriceBeforeDiscount.PriceFormatted</div>
+                <div class="price price--product-page dw-mod">@Model.Price.PriceFormatted</div>                
+            </div>
+            <div class="buttons-collection product__price-actions__actions dw-mod">
+                <input type="checkbox" id="UnitOptions_@id" class="dropdown-trigger" />
+                <input type="hidden" value="@id" name="Unit" id="Unit_@id" />
+                <input type="number" class="u-w70px" id="Quantity_@id" name="Quantity" value="@quantity" min="1">
+
+                <button type="button" id="CartButton_@id" class="btn btn--primary btn--condensed u-no-margin u-margin-bottom dw-mod js-cart-btn" name="submit" onclick="Cart.AddToCart(event, '@id', document.getElementById('Quantity_@id').value, 'Unit_@id', 'Variant_@id');">
+                    <i class="@cartIcon"></i><span class="u-hidden-xs u-hidden-xxs"> @Translate("Add to cart")</span>
+                </button>
+            </div>
+        }
+        else
+        {
+            <button type="button" id="CartButton_@id" class="u-hidden"></button>
+        }
+    </div>
+</div>

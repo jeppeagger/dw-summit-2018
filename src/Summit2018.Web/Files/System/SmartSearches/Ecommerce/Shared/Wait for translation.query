@@ -1,0 +1,64 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="646bc777-e3ca-4063-b14c-65392391dbf8" Name="Wait for translation">
+  <Settings />
+  <Source Repository="Products" Item="Products.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="Contains">
+        <Left>
+          <FieldExpression Field="IsVariant" />
+        </Left>
+        <Right>
+          <ConstantExpression Value="False" Type="System.Boolean[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="ShopIDs" />
+        </Left>
+        <Right>
+          <TermExpression Value="SHOP4" DisplayValue="SHOP4" Type="System.String[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="WorkflowState" />
+        </Left>
+        <Right>
+          <TermExpression Value="2,8" DisplayValue="Ready for Enrich technical details,Ready for Product manager" Type="System.Int32[]" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields>
+    <Field Name="Bikes" SystemName="" Source="ProductRelationGroup_RELGRP8" Sort="0" />
+    <Field Name="Equipment - Back derailleur" SystemName="" Source="ProductCategory|equipment|Back_derailleur" Sort="1" />
+    <Field Name="Equipment - Breaks" SystemName="" Source="ProductCategory|equipment|Breaks" Sort="2" />
+    <Field Name="Equipment - Cassette" SystemName="" Source="ProductCategory|equipment|Cassette" Sort="3" />
+    <Field Name="Equipment - Crankset" SystemName="" Source="ProductCategory|equipment|Crankset" Sort="4" />
+    <Field Name="Equipment - Deck" SystemName="" Source="ProductCategory|equipment|Deck" Sort="5" />
+    <Field Name="Equipment - External reviews" SystemName="" Source="ProductCategory|equipment|External_reviews" Sort="6" />
+    <Field Name="Equipment - Fork" SystemName="" Source="ProductCategory|equipment|Fork" Sort="7" />
+    <Field Name="Equipment - Frame" SystemName="" Source="ProductCategory|equipment|Frame" Sort="8" />
+    <Field Name="Equipment - Front derailleur" SystemName="" Source="ProductCategory|equipment|Front_derailleur" Sort="9" />
+    <Field Name="Equipment - Gear" SystemName="" Source="ProductCategory|equipment|Gear" Sort="10" />
+    <Field Name="Equipment - Light" SystemName="" Source="ProductCategory|equipment|Light" Sort="11" />
+    <Field Name="Equipment - Lock" SystemName="" Source="ProductCategory|equipment|Lock" Sort="12" />
+    <Field Name="Equipment - Monitor" SystemName="" Source="ProductCategory|equipment|Monitor" Sort="13" />
+    <Field Name="Equipment - Shifter" SystemName="" Source="ProductCategory|equipment|Shifter" Sort="14" />
+    <Field Name="Equipment - Wheel" SystemName="" Source="ProductCategory|equipment|Wheel" Sort="15" />
+    <Field Name="Product number" SystemName="" Source="ProductNumber" Sort="16" />
+    <Field Name="Product name" SystemName="" Source="ProductName" Sort="17" />
+    <Field Name="Related Products" SystemName="" Source="ProductRelationGroup_RELGRP1" Sort="18" />
+    <Field Name="Short description" SystemName="" Source="ProductShortDescription" Sort="19" />
+    <Field Name="EAN" SystemName="" Source="CustomField_EAN" Sort="20" />
+  </ViewFields>
+  <ViewLanguages>
+    <Language ID="LANG2" Name="Danish" SortOrder="0" />
+    <Language ID="LANG1" Name="English" SortOrder="1" />
+  </ViewLanguages>
+  <SortOrder>
+    <Sort Field="Number" Direction="Ascending" />
+  </SortOrder>
+  <Meta />
+</Query>

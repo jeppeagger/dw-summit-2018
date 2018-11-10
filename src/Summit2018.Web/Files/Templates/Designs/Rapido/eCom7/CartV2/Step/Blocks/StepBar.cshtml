@@ -1,0 +1,46 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@{
+    BlocksPage stepBarCheckoutPage = BlocksPage.GetBlockPage("CheckoutPage");
+
+    Block checkoutSteps = new Block()
+    {
+        Id = "StepBar",
+        SortId = 10,
+        Template = RenderStepBar(),
+        Design = new Design {
+            RenderType = RenderType.Column,
+            Size = "12"
+        }
+    };
+    stepBarCheckoutPage.Add(checkoutSteps);
+}
+
+@helper RenderStepBar()
+{
+    string stepNumber = "";
+
+    <div class="step-bar dw-mod">
+        @foreach (LoopItem step in GetLoop("StepButtons"))
+        {
+            if (step.GetString("Step.Name").ToLower() != "checkout")
+            {
+                string activeStep = step.GetBoolean("Step.Current") ? "step-bar__step--active" : "";
+
+                if (GetLoop("StepButtons").Count > 2)
+                {
+                    stepNumber = step.GetString("Step.Number") + ".";
+                }
+
+                <div class="step-bar__step @activeStep dw-mod">
+                    @stepNumber @Translate(step.GetString("Step.Name"))
+                </div>
+            }
+        }
+    </div>
+}

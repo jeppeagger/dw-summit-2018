@@ -1,0 +1,231 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@functions{ 
+    BlocksPage productRelatedPage = BlocksPage.GetBlockPage("Product");
+}
+
+@{ 
+    string relatedProductsLayout = Pageview.AreaSettings.GetItem("ProductPage").GetList("RelatedProductsLayout") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetList("RelatedProductsLayout").SelectedValue : "Section";
+    relatedProductsLayout = relatedProductsLayout == "Ribbon" || string.IsNullOrEmpty(relatedProductsLayout) ? "Section" : relatedProductsLayout;
+    bool relatedOnlyPreview = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("OnlyPreviewForAnonymous") && Pageview.User == null;
+
+    int relatedProductsPageSize = 4;
+    int relatedProductsColumnWidth = 3;
+
+    if (Pageview.Device.ToString() == "Mobile")
+    {
+        relatedProductsPageSize = 1;
+        relatedProductsColumnWidth = 12;
+    }
+
+    if (Pageview.Device.ToString() == "Tablet")
+    {
+        relatedProductsPageSize = 3;
+        relatedProductsColumnWidth = 4;
+    }
+
+    if (relatedProductsLayout != "hide")
+    {
+        foreach (LoopItem relatedGroup in GetLoop("ProductRelatedGroups"))
+        {
+            string relatedGroupId = ToPascalCase(relatedGroup.GetString("Ecom:Product:RelatedGroup.Name"));
+            string baseFeedPageUrl = "/Default.aspx?ID=" + GetPageIdByNavigationTag("ProductsPage") + "&PageSize=" + relatedProductsPageSize + "&ProdID=" + GetString("Ecom:Product.ID") + "&feed=true";
+            string relatedFeed = baseFeedPageUrl + "&" + relatedGroupId + "=" + GetString("Ecom:Product.ID") + "&GroupName=" + relatedGroupId;
+            string relatedGroupName = relatedProductsLayout != "maininformation" ? relatedGroup.GetString("Ecom:Product:RelatedGroup.Name") : "";
+
+            Block detailsRelated = new Block()
+            {
+                Name = relatedGroupName,
+                Id = relatedGroupId,
+                SortId = 70,
+                Template = RenderRelatedProducts(relatedGroupName, relatedGroupId, relatedFeed, relatedProductsLayout),
+                Design = new Design
+                {
+                    Size = "12",
+                    RenderType = RenderType.Column,
+                    HidePadding = true
+                }
+            };
+
+            productRelatedPage.Add(relatedProductsLayout, detailsRelated);
+        }
+    }
+}
+
+@helper RenderRelatedProducts(string name, string groupId, string relatedFeedUrl, string layout)
+{
+    string ribbonClasses = Pageview.AreaSettings.GetItem("ProductPage").GetList("RelatedProductsLayout").SelectedValue == "Ribbon" ? "product__section--ribbon paragraph-container paragraph-container--full-width" : "";
+    string ribbonSubClasses = Pageview.AreaSettings.GetItem("ProductPage").GetList("RelatedProductsLayout").SelectedValue == "Ribbon" ? "u-padding--lg" : "";
+
+    <div class="product__section @ribbonClasses dw-mod">
+        <div class="center-container @ribbonSubClasses dw-mod">
+            @if (layout == "Section") {
+               <h2>@name</h2>
+            }
+
+            <div class="js-handlebars-root" id="ProductList_@groupId" data-template="ProductContainer" data-pre-render-template="ProductPreRenderContainer" data-json-feed="@relatedFeedUrl" data-preloader="minimal"></div>
+        </div>
+    </div>
+}
+
+@helper RenderRelatedProductsMini(string name, string groupId, string relatedFeedUrl)
+{
+    <div class="js-handlebars-root" id="ProductList_@groupId" data-template="ProductContainerMini" data-pre-render-template="ProductPreRenderContainer" data-json-feed="@relatedFeedUrl" data-preloader="minimal"></div>
+}
+
+@* Script templates for related products *@
+ <script id="ProductPreRenderContainer" type="text/x-template">
+    <div class="u-h600px u-full-width">
+        <div class="grid">
+            <div class="grid__col-12">
+                <div class="pre-render-element pre-render-element--md"></div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script id="ProductContainer" type="text/x-template">
+    {{#.}}
+        <div class="u-min-h400px u-full-width">
+            <div class="grid">
+                <div class="grid__col-45px grid__col--bleed-x">
+                    <div class="grid__cell grid__cell--align-middle-left">
+                        <button class="btn btn--condensed btn--clean {{prevdisabled}} dw-mod" onclick="HandlebarsBolt.UpdateContent('ProductList_{{groupName}}', '{{prevPage}}')" {{prevdisabled}}><i class="fas fa-chevron-left fa-2x"></i></button>
+                    </div>
+                </div>
+                <div class="grid__col-auto grid__col--bleed-x">
+                    <div id="ProductsContainer" data-template="ProductGridItemContainer" class="grid product-list dw-mod" data-save-cookie="true">
+                        {{#ProductsContainer}}
+                            <div id="Product{{productId}}" class="grid__col-@relatedProductsColumnWidth product-list__grid-item dw-mod">
+                                {{#Product}}
+                                    @if (useGoogleTagManager)
+                                    {
+                                        <text>{{{googleEnchantImpression 'Related products' currency googleImpression}}}</text>
+                                    }
+                                    <div class="grid__cell product-list__grid-item__image dw-mod {{noImage}}">
+                                        <div class="stickers-container dw-mod">
+                                            {{#Stickers}}
+                                                {{>Sticker}}
+                                            {{/Stickers}}
+                                        </div>
+                                        <a href="{{link}}" onclick="Scroll.SavePosition(event)"><img class="grid__cell-img grid__cell-img--centered b-lazy" src="/Files/Images/placeholder.gif" data-src="/Admin/Public/GetImage.ashx?width=300&amp;height=300&amp;crop=5&amp;Compression=75&amp;image={{image}}" alt="{{name}}" /></a>
+                                    </div>
+
+                                    <div class="grid__cell product-list__grid-item__price-info {{shortGridInfo}} dw-mod">
+                                        <a href="{{link}}" onclick="Scroll.SavePosition(event)" title="{{name}}"><h6 class="u-condensed-text">{{name}}</h6></a>
+                                        {{#if showProductNumber}}
+                                            <div class="item-number dw-mod">{{number}}</div>
+                                        {{/if}}
+                                        @if (!relatedOnlyPreview)
+                                        {
+                                            <div class="price price--product-list dw-mod">{{price}}</div>
+                                            <div class="before-price {{onSale}} dw-mod">{{discount}}</div>
+                                        }
+                                    </div>
+
+                                    <div class="product-list__grid-item__footer dw-mod">
+                                        <div class="u-ta-center">
+                                            <a href="{{link}}" id="CartButton_{{id}}" class="btn btn--secondary btn--full u-no-margin dw-mod">@Translate("View")</a>
+                                        </div>
+                                    </div>
+                                {{/Product}}
+                            </div>
+                        {{/ProductsContainer}}
+                    </div>
+                </div>
+                <div class="grid__col-45px grid__col--bleed-x">
+                    <div class="grid__cell grid__cell--align-middle-right">
+                        <button class="btn btn--condensed btn--clean {{nextdisabled}} dw-mod" onclick="HandlebarsBolt.UpdateContent('ProductList_{{groupName}}', '{{nextPage}}')" {{nextdisabled}}><i class="fas fa-chevron-right fa-2x"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{/.}}
+</script>
+
+<script id="ProductContainerMini" type="text/x-template">
+    {{#.}}
+        <div class="u-full-width">
+            <div class="grid">
+                <div class="grid__col-45px grid__col--bleed-x">
+                    <div class="grid__cell grid__cell--align-middle-left">
+                        <button class="btn btn--condensed btn--clean {{prevdisabled}} dw-mod" onclick="HandlebarsBolt.UpdateContent('ProductList_{{groupName}}', '{{prevPage}}')" {{prevdisabled}}><i class="fas fa-chevron-left fa-2x"></i></button>
+                    </div>
+                </div>
+                <div class="grid__col-auto grid__col--bleed-x">
+                    <div id="ProductsContainer" class="grid product-list dw-mod">
+                        {{#ProductsContainer}}
+                            <div id="Product{{productId}}" class="grid__col-@relatedProductsColumnWidth product-list__grid-item dw-mod">
+                                {{#Product}}
+                                    @if (useGoogleTagManager)
+                                    {
+                                        <text>{{{googleEnchantImpression 'Related products' currency googleImpression}}}</text>
+                                    }
+                                    <div class="grid__cell product-list__grid-item__image dw-mod {{noImage}}">
+                                        <div class="stickers-container dw-mod">
+                                            {{#Stickers}}
+                                                {{>Sticker}}
+                                            {{/Stickers}}
+                                        </div>
+                                        <a href="{{link}}" onclick="Scroll.SavePosition(event)"><img class="grid__cell-img grid__cell-img--centered b-lazy" src="/Files/Images/placeholder.gif" data-src="/Admin/Public/GetImage.ashx?width=300&amp;height=300&amp;crop=5&amp;Compression=75&amp;image={{image}}" alt="{{name}}" /></a>
+                                    </div>
+
+                                    <div class="grid__cell product-list__grid-item__price-info {{shortGridInfo}} dw-mod">
+                                        <a href="{{link}}" onclick="Scroll.SavePosition(event)" title="{{name}}"><h6 class="u-condensed-text">{{name}}</h6></a>
+                                        {{#if showProductNumber}}
+                                            <div class="item-number dw-mod">{{number}}</div>
+                                        {{/if}}
+                                        @if (!relatedOnlyPreview)
+                                        {
+                                            <div>{{price}}</div>
+                                            <div class="before-price {{onSale}} dw-mod">{{discount}}</div>
+                                        }
+                                    </div>
+                                {{/Product}}
+                            </div>
+                        {{/ProductsContainer}}
+                    </div>
+                </div>
+                <div class="grid__col-45px grid__col--bleed-x">
+                    <div class="grid__cell grid__cell--align-middle-right">
+                        <button class="btn btn--condensed btn--clean {{nextdisabled}} dw-mod" onclick="HandlebarsBolt.UpdateContent('ProductList_{{groupName}}', '{{nextPage}}')" {{nextdisabled}}><i class="fas fa-chevron-right fa-2x"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{/.}}
+</script>
+
+<script id="Sticker" type="text/x-template">
+    <div class="stickers-container__tag {{className}} dw-mod">{{text}}</div>
+</script>
+
+@* Favorites templates *@
+
+<script id="FavoriteTemplate" type="text/x-template">
+	<div class="favorites-list u-ta-left">
+		<label for="FavoriteTrigger_{{id}}" class="u-no-margin"><i class="{{favoriteIcon}} fa-1_5x"></i></label>
+		<input type="checkbox" id="FavoriteTrigger_{{id}}" class="dropdown-trigger" />
+		<div class="dropdown dropdown--absolute-position">
+			<div class="dropdown__content dropdown__content--show-left dropdown__content--padding u-w220px dw-mod">
+				<ul class="list list--clean dw-mod">
+					{{#FavoriteLists}}
+					    {{>FavoriteListItem}}
+					{{/FavoriteLists}}
+				</ul>
+			</div>
+			<label class="dropdown-trigger-off" for="FavoriteTrigger_{{id}}"></label>
+		</div>
+	</div>
+</script>
+
+<script id="FavoriteListItem" type="text/x-template">
+	<li>
+		<a href="{{link}}" class="list__link u-no-underline dw-mod" onclick="{{facebookPixelAction}}"><i class="{{favoriteIcon}}"></i> {{name}}</a>
+	</li>
+</script>

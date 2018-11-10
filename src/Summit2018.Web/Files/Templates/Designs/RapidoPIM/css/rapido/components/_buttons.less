@@ -1,0 +1,124 @@
+// Buttons
+//––––––––––––––––––––––––––––––––––––––––––––––––––
+
+.button-mixin(@font-size, @font-weight, @font-color, @button-design, @background-color) {  
+    .mixin() when not (@font-color = none) { 
+        color: @font-color;
+    }
+
+    .mixin() when not (@font-size = none) {
+        font-size: @font-size * 1px;
+    }
+
+    .mixin() when not (@font-weight = none) {
+        font-weight: ~'@{font-weight}';
+    }
+
+    .mixin() when (@button-design = "square") {   
+	    border-radius: 0;
+        background-color: @background-color;
+
+        &:focus, &:hover, &:active, &.btn--active {
+            background-color: shade(@background-color, 10%);
+        }
+    }
+
+    .mixin() when (@button-design = "rounded") {   
+	    border-radius: @global-radius;
+        background-color: @background-color;
+
+        &:focus, &:hover, &:active, &.btn--active {
+            background-color: shade(@background-color, 10%);
+        }
+    }
+
+    .mixin() when (@button-design = "round") {   
+	    border-radius: 200px;
+        background-color: @background-color;
+
+        &:focus, &:hover, &:active, &.btn--active {
+            background-color: shade(@background-color, 10%);
+        }
+    }
+
+    .mixin() when (@button-design = "outline-square") {   
+	    border-radius: 0;
+        background-color: transparent;
+
+        &:focus, &:hover, &:active, &.btn--active {
+            background-color: @background-color;
+            color: @white;
+        }
+    }
+
+    .mixin() when (@button-design = "outline-rounded") {   
+	    border-radius: @global-radius;
+        background-color: transparent;
+
+        &:focus, &:hover, &:active, &.btn--active {
+            background-color: @background-color;
+            color: @white;
+        }
+    }
+
+    .mixin() when (@button-design = "outline-round") {   
+	    border-radius: 200px;
+        background-color: transparent;
+
+        &:focus, &:hover, &:active, &.btn--active {
+            background-color: @background-color;
+            color: @white;
+        }
+    }
+    
+    border-width: 1px;
+    border-color: @background-color;
+    .mixin;
+}
+
+
+//Primary
+.btn--primary.dw-mod {
+    .button-mixin(
+        @content-layout-primary-font-size,
+        @content-layout-primary-font-weight,
+        @content-layout-primary-font-color,
+        @content-layout-primary-button-design,
+        @content-layout-primary-background-color
+    ); 
+}
+
+//Secondary
+.btn--secondary.dw-mod {
+    .button-mixin(
+        @content-layout-secondary-font-size,
+        @content-layout-secondary-font-weight,
+        @content-layout-secondary-font-color,
+        @content-layout-secondary-button-design,
+        @content-layout-secondary-background-color
+    ); 
+}
+
+//Tertiary
+.btn--tertiary.dw-mod {
+    .button-mixin(
+        @content-layout-tertiary-font-size,
+        @content-layout-tertiary-font-weight,
+        @content-layout-tertiary-font-color,
+        @content-layout-tertiary-button-design,
+        @content-layout-tertiary-background-color
+    ); 
+}
+
+//Links
+.btn--link.dw-mod {
+    .btn--link-mixin(); 
+}
+
+.btn--link-mixin() when not (@content-layout-links-color = none) {   
+    color: @content-layout-links-color;
+
+    &:focus, &:hover, &:active{
+        color: @content-layout-links-hover-color;
+    }
+}

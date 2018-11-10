@@ -1,0 +1,300 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.PageViewModel>
+
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks.Extensibility
+@using Dynamicweb.Rapido.Blocks
+
+
+@functions {
+    BlocksPage mobileHeaderBlocksPage = BlocksPage.GetBlockPage("Master");
+}
+
+@{ 
+    var mobileTopLayout = !String.IsNullOrEmpty(Model.Area.Item.GetItem("Layout").GetItem("MobileTop").GetString("Design")) ? Model.Area.Item.GetItem("Layout").GetItem("MobileTop").GetList("Design").SelectedValue : "nav-left";
+
+    Block mobileHeader = new Block()
+    {
+        Id = "MobileTop",
+        SortId = 10,
+        Template = RenderMobileTop(),
+        SkipRenderBlocksList = true
+    };
+    mobileHeaderBlocksPage.Add(MasterBlockId.MasterHeader, mobileHeader);
+
+    Block mobileHeaderNavigation = new Block()
+    {
+        Id = "MobileHeaderNavigation",
+        SortId = 10,
+        Template = RenderMobileHeaderNavigation(),
+        SkipRenderBlocksList = true,
+        BlocksList = new List<Block> {
+            new Block {
+                Id = "MobileHeaderNavigationTrigger",
+                SortId = 10,
+                Template = RenderMobileHeaderNavigationTrigger()
+            }
+        }
+    };
+    mobileHeaderBlocksPage.Add("MobileTop", mobileHeaderNavigation);
+
+
+    Block mobileHeaderLogo = new Block()
+    {
+        Id = "MobileHeaderLogo",
+        SortId = 20,
+        Template = RenderMobileHeaderLogo(),
+        SkipRenderBlocksList = true
+    };
+    mobileHeaderBlocksPage.Add("MobileTop", mobileHeaderLogo);
+
+    Block mobileHeaderActions = new Block()
+    {
+        Id = "MobileHeaderActions",
+        SortId = 30,
+        Template = RenderMobileTopActions(),
+        SkipRenderBlocksList = true
+    };
+    mobileHeaderBlocksPage.Add("MobileTop", mobileHeaderActions);
+
+    Block mobileHeaderSearch = new Block
+    {
+        Id = "MobileHeaderSearch",
+        SortId = 10,
+        Template = RenderMobileTopSearch()
+    };
+    mobileHeaderBlocksPage.Add("MobileHeaderActions", mobileHeaderSearch);
+
+    Block mobileHeaderMiniCart = new Block
+    {
+        Id = "MobileHeaderMiniCart",
+        SortId = 20,
+        Template = RenderMobileTopMiniCart()
+    };
+
+    Block mobileHeaderSearchBar = new Block()
+    {
+        Id = "MobileHeaderSearchBar",
+        SortId = 30,
+        Template = RenderMobileTopSearchBar()
+    };
+    mobileHeaderBlocksPage.Add(MasterBlockId.MasterHeader, mobileHeaderSearchBar);
+
+    switch (mobileTopLayout)
+    {
+        case "nav-left":
+            mobileHeaderNavigation.SortId = 10;
+            mobileHeaderLogo.SortId = 20;
+            mobileHeaderActions.SortId = 30;
+            mobileHeaderBlocksPage.Add("MobileHeaderActions", mobileHeaderMiniCart);
+            break;
+        case "nav-right":
+            mobileHeaderLogo.SortId = 10;
+            mobileHeaderActions.SortId = 20;
+            mobileHeaderNavigation.SortId = 30;
+            mobileHeaderBlocksPage.Add("MobileHeaderActions", mobileHeaderMiniCart);
+            break;
+        case "nav-search-left":
+            mobileHeaderNavigation.SortId = 10;
+            mobileHeaderLogo.SortId = 20;
+            mobileHeaderActions.SortId = 30;
+            mobileHeaderBlocksPage.Add("MobileHeaderNavigation", mobileHeaderMiniCart);
+            break;
+        case "search-left":
+            mobileHeaderActions.SortId = 10;
+            mobileHeaderLogo.SortId = 20;
+            mobileHeaderNavigation.SortId = 30;
+            mobileHeaderMiniCart.SortId = 0;
+            mobileHeaderBlocksPage.Add("MobileHeaderNavigation", mobileHeaderMiniCart);
+            break;
+    }
+}
+
+
+@helper RenderMobileTop() { 
+    List<Block> subBlocks = this.mobileHeaderBlocksPage.GetBlockListById("MobileTop").OrderBy(item => item.SortId).ToList();
+
+    <nav class="main-navigation-mobile dw-mod">
+        <div class="center-container top-container__center-container dw-mod">
+            <div class="grid grid--align-center">
+                @RenderBlockList(subBlocks)
+            </div>
+        </div>
+    </nav>
+}
+
+@helper RenderMobileHeaderNavigation() {  
+    List<Block> subBlocks = this.mobileHeaderBlocksPage.GetBlockListById("MobileHeaderNavigation").OrderBy(item => item.SortId).ToList();
+
+    <div class="grid__col-auto-width">
+        <ul class="menu dw-mod">
+            @RenderBlockList(subBlocks)
+        </ul>
+    </div>
+}
+
+@helper RenderMobileHeaderNavigationTrigger() {
+    <li class="menu__item menu__item--horizontal menu__item--top-level dw-mod">
+        <label for="MobileNavTrigger" class="mobile-nav-trigger-button menu__link menu__link--icon menu__link--mobile dw-mod"></label>
+    </li>
+}
+
+@helper RenderMobileHeaderLogo() {
+    List<Block> subBlocks = this.mobileHeaderBlocksPage.GetBlockListById("MobileHeaderLogo").OrderBy(item => item.SortId).ToList();
+
+    string firstPageId = Model.Area.FirstActivePage.ID.ToString();
+    string businessName = Model.Area.Item.GetItem("Settings").GetString("BusinessName");
+
+    string mobileLogo = "/Files/Images/logo-dynamicweb.png";
+    if (Model.Area.Item.GetItem("Layout").GetItem("MobileTop") != null && Model.Area.Item.GetItem("Layout").GetItem("MobileTop").GetFile("Logo") != null)
+    {
+        mobileLogo = Model.Area.Item.GetItem("Layout").GetItem("MobileTop").GetFile("Logo").PathUrlEncoded;
+    }
+
+    if (Path.GetExtension(mobileLogo).ToLower() != ".svg")
+    {
+        mobileLogo = "/Admin/Public/GetImage.ashx?height=40&amp;crop=5&amp;Compression=75&amp;image=" + mobileLogo;
+    }
+    else
+    {
+        mobileLogo = HttpUtility.UrlDecode(mobileLogo);
+    }
+
+    <div class="grid__col-auto">
+        <div class="logo dw-mod">
+            <a href="/Default.aspx?ID=@firstPageId">
+                <img class="grid__cell-img logo__img logo__img--mobile dw-mod" src="@mobileLogo" alt="@businessName" />
+            </a>
+        </div>
+
+        @RenderBlockList(subBlocks)
+    </div>
+}
+
+@helper RenderMobileTopActions() {  
+    List<Block> subBlocks = this.mobileHeaderBlocksPage.GetBlockListById("MobileHeaderActions").OrderBy(item => item.SortId).ToList();
+
+    <div class="grid__col-auto-width">
+        <ul class="menu dw-mod">
+            @RenderBlockList(subBlocks)
+        </ul>
+    </div>
+}
+
+@helper RenderMobileTopSearch() {
+    <li class="menu__item menu__item--horizontal menu__item--top-level dw-mod">
+        <label for="MobileSearchTrigger" class="menu__link menu__link--icon menu__link--mobile dw-mod">
+            <i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("SearchIcon").SelectedValue fa-1_5x"></i>
+        </label>
+    </li>
+}
+
+@helper RenderMobileTopMiniCart() {
+    int miniCartFeedPageId = GetPageIdByNavigationTag("MiniCartFeed");
+    int cartPageId = GetPageIdByNavigationTag("CartPage");
+    double cartProductsCount = Model.Cart.TotalProductsCount;
+
+    <li class="menu__item menu__item--horizontal menu__item--top-level dw-mod" id="miniCartWrapper" onmouseenter="Cart.UpdateMiniCart('miniCartWrapper', 'miniCart', 'cartCounter', '/Default.aspx?ID=@miniCartFeedPageId&feedType=MiniCart')">
+        <div class="mini-cart dw-mod">
+            <a href="/Default.aspx?ID=@cartPageId&Purge=True" id="miniCartCounterWrap" class="menu__link menu__link--icon menu__link--mobile dw-mod js-mini-cart-button u-w50px">
+                <i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("CartIcon").SelectedValue  fa-1_5x"></i>
+                <div class="mini-cart__counter mini-cart__counter--inline dw-mod">
+                    <div class="js-handlebars-root js-mini-cart-counter" id="cartCounter" data-template="MiniCartCounterContent" data-json-feed="/Default.aspx?ID=@miniCartFeedPageId&feedType=Counter" data-init-onload="false" data-preloader="false">
+                        <div class="js-mini-cart-counter-content">
+                            @cartProductsCount
+                        </div>
+                    </div>
+                </div>
+            </a>
+            @if (Pageview.Device.ToString() != "Mobile" && Pageview.Device.ToString() != "Tablet")
+            {
+                <div class="mini-cart-dropdown js-handlebars-root js-mini-cart dw-mod" id="miniCart" data-template="MiniCartContent" data-cart-id="@miniCartFeedPageId" data-json-feed="/Default.aspx?ID=@miniCartFeedPageId&feedType=MiniCart" data-init-onload="false"></div>
+            }
+        </div>
+    </li>
+}  
+
+@helper RenderMobileTopSearchBar() {
+    string searchFeedId = "";
+    string searchSecondFeedId = "";
+    int groupsFeedId;
+    int productsPageId = GetPageIdByNavigationTag("ProductsPage");
+    string contentSearchPageLink = GetPageIdByNavigationTag("ContentSearchResults") + "&Areaid=" + Model.Area.ID;
+    string resultPageLink;
+    string searchPlaceholder;
+    string searchType = "product-search";
+    string searchTemplate;
+    string searchContentTemplate = "";
+    string searchValue = HttpContext.Current.Request.QueryString.Get("Search") != null ? HttpContext.Current.Request.QueryString.Get("Search") : "";
+    bool showGroups = true;
+
+    if (Model.Area.Item.GetItem("Layout").GetList("TopSearch").SelectedValue == "contentSearch")
+    {
+        searchFeedId = GetPageIdByNavigationTag("ContentSearchFeed") + "&Areaid=" + Model.Area.ID + "&pagesOnly=true";
+        resultPageLink = contentSearchPageLink;
+        searchPlaceholder = Translate("Search page");
+        groupsFeedId = 0;
+        searchType = "content-search";
+        searchTemplate = "SearchPagesTemplate";
+        showGroups = false;
+    }
+    else if (Model.Area.Item.GetItem("Layout").GetList("TopSearch").SelectedValue == "combinedSearch")
+    {
+        searchFeedId = productsPageId + "&feed=true";
+        searchSecondFeedId = GetPageIdByNavigationTag("ContentSearchFeed") + "&Areaid=" + Model.Area.ID + "&pagesOnly=true";
+        resultPageLink = Converter.ToString(productsPageId);
+        searchPlaceholder = Translate("Search products or pages");
+        groupsFeedId = GetPageIdByNavigationTag("ProductGroupsFeed");
+        searchType = "combined-search";
+        searchTemplate = "SearchProductsTemplateWrap";
+        searchContentTemplate = "SearchPagesTemplateWrap";
+        showGroups = Model.Area.Item.GetItem("Layout").GetBoolean("ShowGroupsSelector");
+    }
+    else
+    {
+        resultPageLink = Converter.ToString(productsPageId);
+        searchFeedId = productsPageId + "&feed=true";
+        groupsFeedId = GetPageIdByNavigationTag("ProductGroupsFeed");
+        searchPlaceholder = Translate("Search products");
+        searchTemplate = "SearchProductsTemplate";
+        searchType = "product-search";
+        showGroups = Model.Area.Item.GetItem("Layout").GetBoolean("ShowGroupsSelector");
+    }
+
+
+    <input type="checkbox" id="MobileSearchTrigger" class="mobile-search-trigger" />
+
+    <div class="main-navigation-mobile typeahead-mobile dw-mod">
+        <div class="center-container top-container__center-container dw-mod">
+            <div class="grid">
+                <div class="grid__col-auto">
+                   <div class="typeahead-mobile__search-field dw-mod js-typeahead" data-page-size="@(searchType == "combined-search" ? 4 : 8)" id="MobileProductSearch" data-search-feed-id="@searchFeedId" data-search-second-feed-id="@searchSecondFeedId" data-result-page-id="@resultPageLink" data-search-type="@searchType">
+                        <input type="text" class="js-typeahead-search-field u-w160px u-no-margin" placeholder="@searchPlaceholder" value="@searchValue">
+                        @if (string.IsNullOrEmpty(searchSecondFeedId))
+                        {
+                            <ul class="dropdown dropdown--absolute-position u-min-w220px u-full-width js-handlebars-root js-typeahead-search-content dw-mod" id="MobileProductSearchBarContent" data-template="@searchTemplate" data-json-feed="/Default.aspx?ID=@searchFeedId&feedType=productsOnly" data-init-onload="false"></ul>
+                        }
+                        else
+                        {
+                            <div class="dropdown dropdown--absolute-position dropdown--combined grid dropdown--combined-mobile grid">
+                                <div class="js-handlebars-root js-typeahead-search-content grid__col-sm-7 grid__col--bleed-y" id="MobileProductSearchBarContent" data-template="@searchTemplate" data-json-feed="/Default.aspx?ID=@searchFeedId&feedType=productsOnly" data-init-onload="false"></div>
+                                <div class="js-handlebars-root js-typeahead-additional-search-content grid__col-sm-5 grid__col--bleed-y" id="MobileContentSearchBarContent" data-template="@searchContentTemplate" data-json-feed="/Default.aspx?ID=@searchSecondFeedId" data-init-onload="false"></div>
+                            </div>
+                        }
+                        <button type="button" class="btn btn--condensed btn--primary u-no-margin dw-mod js-typeahead-enter-btn"><i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("SearchIcon").SelectedValue"></i></button>
+                    </div>
+                </div>
+                <div class="grid__col-auto-width">
+                    <ul class="menu dw-mod">
+                        <li class="menu__item menu__item--horizontal menu__item--top-level dw-mod">
+                            <label for="MobileSearchTrigger" class="menu__link menu__link--icon menu__link--mobile dw-mod">
+                                <i class="fas fa-times fa-1_5x"></i>
+                            </label>
+                        </li>
+                    </ul>
+                 </div>
+            </div>
+        </div>
+    </div>
+} 

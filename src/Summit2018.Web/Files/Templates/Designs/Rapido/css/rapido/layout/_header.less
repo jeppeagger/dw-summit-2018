@@ -1,0 +1,42 @@
+﻿// -----------------------------------------------------------------------------
+// Contains all styles related to the Website settings LayoutTopBackgroundColor
+// -----------------------------------------------------------------------------
+.mobile-top-mixin(@font-color, @active-font-color, @bg-color, @active-bg-color) {  
+    .background-color(@bg-color);
+    .menu__link.dw-mod {
+        .color(@font-color);
+
+        &:active,
+        &:focus,
+        &:hover {
+            .color(@active-font-color);
+            .background-color(@active-bg-color);
+        }
+    }
+}
+
+.header-top.dw-mod {
+    .background-color(@layout-header-extra-top-background-color);
+
+    .header-menu__link:hover {
+       .background-color(@layout-header-extra-top-background-color);
+    }
+}
+
+.main-navigation.main-navigation--nav-style.dw-mod {
+    .mobile-top-mixin (
+        @layout-header-navigation-font-font-color,
+        @layout-header-navigation-active-font-color,
+        @layout-header-navigation-background-color,
+        @layout-header-navigation-active-background-color
+    ); 
+}
+
+.main-navigation.main-navigation--top-style.dw-mod {
+    .mobile-top-mixin (
+        @layout-header-extra-top-links-color,
+        @layout-header-extra-top-links-active-color,
+        @layout-header-extra-top-background-color,
+        @layout-header-extra-top-background-color
+    ); 
+}

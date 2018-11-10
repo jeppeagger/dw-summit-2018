@@ -1,0 +1,39 @@
+﻿@keyframes fadeIn {
+    from {opacity: 0;}
+}
+
+@keyframes slideLeft {
+    from {left: -100vw;}
+}
+
+@keyframes slideRight {
+    from {left: 200vw;}
+}
+
+@keyframes slideTop {
+    from {top: -100vh; bottom: 50vh;}
+}
+
+@keyframes slideBottom {
+    from {top: 200vh; bottom: -50vh;}
+}
+
+.animation--fadeIn {
+    animation: fadeIn .3s 1 ease-in-out;
+}
+
+.animation--slideLeft {
+    animation: slideLeft .3s 1 ease-in-out;
+}
+
+.animation--slideRight {
+    animation: slideRight .3s 1 ease-in-out;
+}
+
+.animation--slideTop {
+    animation: slideTop .3s 1 ease-in-out;
+}
+
+.animation--slideBottom {
+    animation: slideBottom .3s 1 ease-in-out;
+}

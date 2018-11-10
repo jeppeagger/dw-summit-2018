@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<translations>
+  <key name="Sign in" DefaultValue="Sign in">
+    <translation culture="en-GB"><![CDATA[Sign in]]></translation>
+    <translation culture="da-DK"><![CDATA[Sign in]]></translation>
+  </key>
+  <key name="Email" DefaultValue="Email">
+    <translation culture="en-GB"><![CDATA[Email]]></translation>
+    <translation culture="da-DK"><![CDATA[Email]]></translation>
+  </key>
+  <key name="Password" DefaultValue="Password">
+    <translation culture="en-GB"><![CDATA[Password]]></translation>
+    <translation culture="da-DK"><![CDATA[Password]]></translation>
+  </key>
+  <key name="Remember me" DefaultValue="Remember me">
+    <translation culture="en-GB"><![CDATA[Remember me]]></translation>
+    <translation culture="da-DK"><![CDATA[Remember me]]></translation>
+  </key>
+  <key name="Search" DefaultValue="Search">
+    <translation culture="en-GB"><![CDATA[Search]]></translation>
+    <translation culture="da-DK"><![CDATA[Search]]></translation>
+  </key>
+  <key name="An unknown error occured" DefaultValue="An unknown error occured">
+    <translation culture="en-GB"><![CDATA[An unknown error occured]]></translation>
+    <translation culture="da-DK"><![CDATA[An unknown error occured]]></translation>
+  </key>
+  <key name="Logo" DefaultValue="Logo">
+    <translation culture="en-GB"><![CDATA[Logo]]></translation>
+    <translation culture="da-DK"><![CDATA[Logo]]></translation>
+  </key>
+  <key name="Sign out" DefaultValue="Sign out">
+    <translation culture="en-GB"><![CDATA[Sign out]]></translation>
+    <translation culture="da-DK"><![CDATA[Sign out]]></translation>
+  </key>
+</translations>

@@ -1,0 +1,73 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+
+@{
+    string selectedCountry = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString.Get("PartnerCountry")) ? HttpContext.Current.Request.QueryString.Get("PartnerCountry") : Translate("All");
+    var query = HttpUtility.ParseQueryString(HttpContext.Current.Request.QueryString.ToString());
+
+    var countryFields = GetLoop("ItemPublisher:ItemType.Fields").FirstOrDefault((item) => item.GetString("ItemPublisher:ItemType.Field.SystemName") == "PartnerCountry");
+
+    foreach (var options in countryFields.GetLoop("ItemPublisher:ItemType.Field.Options"))
+    {
+        selectedCountry = selectedCountry == options.GetString("ItemPublisher:ItemType.Field.Option.Value") ? options.GetString("ItemPublisher:ItemType.Field.Option.Label") : selectedCountry;
+    }
+
+    var partnerGroups = GetLoop("ItemPublisher:ItemType.Fields").FirstOrDefault((item) => item.GetString("ItemPublisher:ItemType.Field.SystemName") == "PartnerStatus");
+}
+
+<section class="multiple-paragraphs-container u-color-light-gray--bg paragraph-container--full-width">          
+    <div class="center-container dw-mod">
+        <div class="grid">
+            <div class="grid__col-12">
+                <div class="collection u-no-margin">
+                    <h5>@Translate("Country")</h5>
+                    <input type="checkbox" id="CountrySelector" class="dropdown-trigger" />
+                    <div class="dropdown u-w180px dw-mod">
+                        <label class="dropdown__header dropdown__btn dw-mod" for="CountrySelector">@Translate(selectedCountry)</label>
+                        <div class="dropdown__content dw-mod">
+                           @{
+                                query.Set("PartnerCountry", "");
+                                <div class="dropdown__item dw-mod" onclick="window.location = '/Default.aspx?@query.ToString()'">@Translate("All")</div>
+
+                                foreach (var options in countryFields.GetLoop("ItemPublisher:ItemType.Field.Options"))
+                                {
+                                    query.Set("PartnerCountry", options.GetString("ItemPublisher:ItemType.Field.Option.Value"));
+                                    <div class="dropdown__item dw-mod" onclick="window.location = '/Default.aspx?@query.ToString()'">@Translate(options.GetString("ItemPublisher:ItemType.Field.Option.Label"))</div>
+                                }
+                            }
+                        </div>
+                        <label class="dropdown-trigger-off" for="CountrySelector"></label>
+                    </div>
+                </div>
+            </div>
+
+            @foreach (var partnerGroup in partnerGroups.GetLoop("ItemPublisher:ItemType.Field.Options"))
+            {
+                if (GetLoop("ItemPublisher:Items.List").Where(item => item.GetString("ItemPublisher:Item.PartnerStatus") == partnerGroup.GetString("ItemPublisher:ItemType.Field.Option.Value")).Any())
+                {
+                    <div class="grid__col-12">
+                        <h4 class="u-no-margin u-margin-top">@partnerGroup.GetString("ItemPublisher:ItemType.Field.Option.Label")</h4>
+                    </div>
+                    <div class="grid__col-12 grid__col--bleed">
+                        <div class="grid">
+                            @foreach (LoopItem partnerItem in GetLoop("ItemPublisher:Items.List").Where(item => item.GetString("ItemPublisher:Item.PartnerStatus") == partnerGroup.GetString("ItemPublisher:ItemType.Field.Option.Value")))
+                            {
+                                <div class="grid__col-md-3 grid__col-sm-3 grid__col-xs-12">
+                                    <div class="u-ta-center">
+                                        <div class="u-margin-bottom">
+                                            <a href="/Default.aspx?ID=@partnerItem.GetString("ItemPublisher:Item.Field.PageId")">
+                                                <div class="u-color-light--bg">
+                                                    <img class="grid__cell-img grid__cell-img--centered u-padding" src="/Admin/Public/GetImage.ashx?width=240&amp;height=120&amp;crop=5&amp;Compression=75&amp;FillCanvas=True&amp;DoNotUpscale=true&amp;image=@partnerItem.GetString("ItemPublisher:Item.PartnerLogo")" alt="@partnerItem.GetString("ItemPublisher:Item.Title")">
+                                                </div>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</section>

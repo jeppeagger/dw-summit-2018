@@ -1,0 +1,197 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@using System.Web
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using System
+@using System.IO
+@using Dynamicweb.Core
+@using System.Web
+@using System.Globalization
+@using System.Web.UI.HtmlControls
+@using Dynamicweb.Rapido.Blocks
+
+@functions {
+    BlocksPage productsPage = BlocksPage.GetBlockPage("Product");
+
+    public static string ToPascalCase(string str)
+    {
+        return CultureInfo.InvariantCulture.TextInfo
+        .ToTitleCase(str.ToLowerInvariant())
+        .Replace("-", "")
+        .Replace("_", "")
+        .Replace(" ", "");
+    }
+}
+
+@{
+    Block productTop = new Block()
+    {
+        Id = "Top",
+        SortId = 10,
+        Design = new Design
+        {
+            RenderType = RenderType.Row
+        }
+    };
+    productsPage.Add(productTop);
+
+    Block productMainInfo = new Block()
+    {
+        Id = "MainInformation",
+        SortId = 10,
+        Design = new Design
+        {
+            Size = "auto",
+            RenderType = RenderType.Column
+        }
+    };
+    productsPage.Add("Top", productMainInfo);
+
+    if (!String.IsNullOrWhiteSpace(Pageview.AreaSettings.GetItem("ProductPage").GetString("ImageSectionPosition")))
+    {
+        productMainInfo.SortId = Pageview.AreaSettings.GetItem("ProductPage").GetList("ImageSectionPosition").SelectedValue == "left-left" || Pageview.AreaSettings.GetItem("ProductPage").GetList("ImageSectionPosition").SelectedValue == "left-right" ? 2 : 1;
+    }
+
+    //Optional mini tabs block
+    Block miniTabsBlock = new Block()
+    {
+        Id = "MiniTabs",
+        SortId = 40,
+        Template = RenderProductMiniTabs(),
+        SkipRenderBlocksList = true
+    };
+    productsPage.Add("MainInformation", miniTabsBlock);
+    //-----
+
+    Block productTabsBlock = new Block()
+    {
+        Id = "Tabs",
+        SortId = 30,
+        Template = RenderProductTabs(),
+        SkipRenderBlocksList = true
+    };
+    productsPage.Add(productTabsBlock);
+
+    Block productDetailsBlock = new Block()
+    {
+        Id = "Section",
+        SortId = 30
+    };
+    productsPage.Add(productDetailsBlock);
+
+    Block productSnippetsBlock = new Block()
+    {
+        Id = "Snippets",
+        SortId = 40
+    };
+    productsPage.Add(productSnippetsBlock);
+}
+
+@* Include the required Grid builder (Contains the methods @RenderBlockList and @RenderBlock) *@
+@Include("../../Components/GridBuilder.cshtml")
+
+@* Include the Blocks for the page *@
+@Include("Blocks/MainImage.cshtml")
+@Include("Blocks/MainInformation.cshtml")
+@Include("Blocks/Description.cshtml")
+@Include("Blocks/Fields.cshtml")
+@Include("Blocks/Video.cshtml")
+@Include("Blocks/Related.cshtml")
+@Include("Blocks/Variants.cshtml")
+@Include("Blocks/Custom__Blocks.cshtml")
+
+
+<div class="product__info dw-mod u-margin-bottom--lg js-product">
+    <div class="grid grid--align-content-start">
+        @* The @RenderBlockList base helper is included in Components/GridBuilder.cshtml *@
+        @RenderBlockList(productsPage.BlocksRoot.BlocksList)
+    </div>
+</div>
+
+@helper RenderProductMiniTabs() {
+    List<Block> subBlocks = productsPage.GetBlockListById("MiniTabs").OrderBy(item => item.SortId).ToList();
+
+    if (subBlocks.Count > 0) {
+        <div class="grid__col-12 product__info tabs u-no-padding u-margin-bottom--lg dw-mod">
+            @{
+                bool firstTab = true;
+                foreach (Block item in subBlocks)
+                {
+                    string isChecked = firstTab ? "checked" : "";
+                    firstTab = false;
+
+                    <input type="radio" class="tabs__trigger" name="productMiniTabs" id="@item.Id" onchange="bLazy.revalidate()" @isChecked />
+                }
+            }
+
+            <div class="tabs__list dw-mod">
+                @foreach (Block item in subBlocks)
+                {
+                    <label for="@item.Id" class="tabs__label dw-mod">@item.Name</label>
+                }
+            </div>
+
+            <div class="tabs__blocks dw-mod">
+                @foreach (Block item in subBlocks)
+                {
+                    string hidePadding = item.Design.HidePadding ? "u-no-padding" : "";
+
+                    if (item.Design.RenderType != RenderType.Hide)
+                    {
+                    <div class="tabs__block u-border dw-mod" id="Block__@item.Id">
+                        <block class="product__block paragraph-container product__block--bordered dw-mod">
+                            <div class="center-container u-padding--lg dw-mod">
+                                @RenderBlock(item)
+                            </div>
+                        </block>
+                    </div>
+                    }
+                }
+            </div>
+        </div>
+    }
+}
+
+@helper RenderProductTabs()
+{
+    List<Block> subBlocks = productsPage.GetBlockListById("Tabs").OrderBy(item => item.SortId).ToList();
+
+    <div class="grid__col-12 product__info tabs u-no-padding dw-mod">
+        @{
+            bool firstTab = true;
+            foreach (Block item in subBlocks)
+            {
+                string isChecked = firstTab ? "checked" : "";
+                firstTab = false;
+
+                <input type="radio" class="tabs__trigger" name="productTabs" id="@item.Id" onchange="bLazy.revalidate()" @isChecked />
+            }
+        }
+
+        <div class="tabs__list dw-mod">
+            @foreach (Block item in subBlocks)
+            {
+            <label for="@item.Id" class="tabs__label dw-mod">@item.Name</label>
+            }
+        </div>
+
+        <div class="tabs__blocks dw-mod">
+            @foreach (Block item in subBlocks)
+            {
+                string hidePadding = item.Design.HidePadding ? "u-no-padding" : "";
+
+                if (item.Design.RenderType != RenderType.Hide)
+                {
+                <div class="tabs__block dw-mod" id="Block__@item.Id">
+                    <section class="product__section paragraph-container paragraph-container--full-width product__section--bordered dw-mod">
+                        <div class="center-container u-padding--lg dw-mod">
+                            @RenderBlock(item)
+                        </div>
+                    </section>
+                </div>
+                }
+            }
+        </div>
+    </div>
+}

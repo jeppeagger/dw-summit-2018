@@ -1,0 +1,567 @@
+@using System.IO.Compression;
+@using System.Text.RegularExpressions;
+@using System.Web;
+@using System.Net;
+
+@functions
+{
+    public enum FieldType
+    {
+        System,
+        Standard,
+        Custom,
+        CategoryField
+    };
+
+    public class Field
+    {
+        public string ID { get; set; }
+        public FieldType FieldType { get; set; }
+        public string Tag { get; set; }
+        public string Label { get; set; }
+
+        public Field(string id, string label, string tag, FieldType type)
+        {
+            ID = id;
+            Label = label;
+            Tag = tag;
+            FieldType = type;
+        }
+    }
+
+    public class ExportImagePurpose
+    {
+        public string Name { get; set; }
+        public int Resolution { get; set; }
+        public int Height { get; set; }
+        public int Width { get; set; }
+        public string Format { get; set; }
+        public bool EmbedICCProfile { get; set; }
+
+        public ExportImagePurpose(string name, int resolution, int height, int width, string format, bool embedIccProfile)
+        {
+            Name = name;
+            Resolution = resolution;
+            Height = height;
+            Width = width;
+            Format = format;
+            EmbedICCProfile = embedIccProfile;
+        }
+    }
+}
+
+@*Image export purposes*@
+@functions
+{
+
+    private List<ExportImagePurpose> _exportPurposes = new List<ExportImagePurpose>()
+    {
+        new ExportImagePurpose("Original", 0, 0, 0, string.Empty, false),
+        new ExportImagePurpose("Print", 140, 800, 800, "jpeg", true),
+        new ExportImagePurpose("Office", 72, 300, 300, "png", false),
+        new ExportImagePurpose("Web", 72, 300, 300, "jpeg", false),
+    };
+
+    public ExportImagePurpose GetExportPurposeByName(string name)
+    {
+        foreach (var purpose in _exportPurposes)
+        {
+            if (purpose.Name == name)
+            {
+                return purpose;
+            }
+        }
+
+        return null;
+    }
+}
+
+@*CSV Product Export*@
+@functions
+{
+    //CSV
+    public string GenerateCsv(IEnumerable<Field> fields, string productId)
+    {
+        string headerFormat = "\"{0}\";";
+
+        System.Text.StringBuilder contentBuilder = new System.Text.StringBuilder();
+        contentBuilder.Append(System.Text.Encoding.UTF8.GetString(System.Text.Encoding.UTF8.GetPreamble()));
+
+        System.Text.StringBuilder headerBuilder = new System.Text.StringBuilder();
+        //Header
+        foreach (var field in fields)
+        {
+            headerBuilder.Append(String.Format(headerFormat, field.Label));
+        }
+
+        contentBuilder.AppendLine(headerBuilder.ToString());
+
+        if (string.IsNullOrEmpty(productId))
+        {
+            foreach (LoopItem product in GetLoop("Products"))
+            {
+                ProcessProductCsv(contentBuilder, fields, product);
+            }
+        }
+        else
+        {
+            ProcessProductCsv(contentBuilder, fields, this);
+        }
+
+        return contentBuilder.ToString();
+    }
+
+    private void ProcessProductCsv(System.Text.StringBuilder contentBuilder, IEnumerable<Field> fields, LoopItem product)
+    {
+        System.Text.StringBuilder productBuilder = new System.Text.StringBuilder();
+        foreach (var field in fields)
+        {
+            var fieldContent = product.GetString(field.Tag);
+
+            fieldContent = fieldContent.Replace("\"", "'");
+
+            var value = String.Format("\"{0}\";", fieldContent);
+            productBuilder.Append(value);
+        }
+
+        contentBuilder.AppendLine(productBuilder.ToString());
+    }
+
+    private void ProcessProductCsv(System.Text.StringBuilder contentBuilder, IEnumerable<Field> fields, Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>> product)
+    {
+        System.Text.StringBuilder productBuilder = new System.Text.StringBuilder();
+        foreach (var field in fields)
+        {
+            var fieldContent = product.GetString(field.Tag);
+
+            fieldContent = fieldContent.Replace("\"", "'");
+
+            var value = String.Format("\"{0}\";", fieldContent);
+            productBuilder.Append(value);
+        }
+
+        contentBuilder.AppendLine(productBuilder.ToString());
+    }
+}
+
+
+@*JSON Product Export*@
+@functions
+{
+    public string GenerateJson(IEnumerable<Field> fields, string productId)
+    {
+        var productFeed = new List<System.Dynamic.ExpandoObject>();
+
+        if (string.IsNullOrEmpty(productId))
+        {
+            foreach (LoopItem product in GetLoop("Products"))
+            {
+                ProcessProductJson(productFeed, fields, product);
+            }
+        }
+        else
+        {
+            ProcessProductJson(productFeed, fields, this);
+        }
+
+        return Newtonsoft.Json.JsonConvert.SerializeObject(productFeed);
+    }
+
+    private void ProcessProductJson(List<System.Dynamic.ExpandoObject> productFeed, IEnumerable<Field> fields, LoopItem product)
+    {
+        dynamic expandoProduct = new System.Dynamic.ExpandoObject();
+
+        foreach (var field in fields)
+        {
+            ((IDictionary<String, Object>)expandoProduct).Add(field.Label, product.GetString(field.Tag));
+        }
+
+        productFeed.Add(expandoProduct);
+    }
+
+    private void ProcessProductJson(List<System.Dynamic.ExpandoObject> productFeed, IEnumerable<Field> fields, Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>> product)
+    {
+        dynamic expandoProduct = new System.Dynamic.ExpandoObject();
+
+
+        foreach (var field in fields)
+        {
+            ((IDictionary<String, Object>)expandoProduct).Add(field.Label, product.GetString(field.Tag));
+        }
+
+        productFeed.Add(expandoProduct);
+    }
+}
+
+
+@*XML Product Export*@
+@functions
+{
+    public string GenerateXml(IEnumerable<Field> fields, string productId)
+    {
+        System.Xml.Linq.XDocument xdoc = new System.Xml.Linq.XDocument();
+
+        var rootElement = new XElement("Root");
+
+        if (string.IsNullOrEmpty(productId))
+        {
+            foreach (LoopItem product in GetLoop("Products"))
+            {
+                ProcessProductXml(rootElement, fields, product);
+            }
+        }
+        else
+        {
+            ProcessProductXml(rootElement, fields, this);
+        }
+
+        xdoc.Add(rootElement);
+        return xdoc.ToString();
+    }
+
+    private void ProcessProductXml(XElement rootElement, IEnumerable<Field> fields, LoopItem product)
+    {
+        var productElement = new XElement("Product");
+        var systemFieldsElement = new XElement("SystemFields");
+        var productFieldsElement = new XElement("ProductFields");
+        var customFieldsElement = new XElement("CustomFields");
+        var productCategoryFieldsElement = new XElement("ProductCategoryFields");
+        var imagesElement = new XElement("Images");
+
+        foreach (var field in fields)
+        {
+            if (field.FieldType == FieldType.System)
+            {
+                CreateLabelValueSection(systemFieldsElement, field, product);
+            }
+            else if (field.FieldType == FieldType.Standard)
+            {
+                CreateLabelValueSection(productFieldsElement, field, product);
+            }
+            else if (field.FieldType == FieldType.Custom)
+            {
+                CreateLabelValueSection(customFieldsElement, field, product);
+
+            }
+            else if (field.FieldType == FieldType.CategoryField)
+            {
+                CreateLabelValueSection(productCategoryFieldsElement, field, product);
+            }
+        }
+
+        //Images
+        var productImage = product.GetString("Ecom:Product.ImageDefault.Default.Clean");
+
+        if (!string.IsNullOrEmpty(productImage))
+        {
+            imagesElement.Add(createImageElement("ProductImage", productImage));
+        }
+
+        foreach (LoopItem image in product.GetLoop("Ecom:Product.AlternativeImages"))
+        {
+            var alternativeImage = image.GetString("Ecom:Product.AlternativeImages.Image");
+            if (!string.IsNullOrEmpty(alternativeImage))
+            {
+                imagesElement.Add(createImageElement(GetImageNameFromUrl(alternativeImage), alternativeImage));
+            }
+        }
+
+        productElement.Add(systemFieldsElement);
+        productElement.Add(productFieldsElement);
+        productElement.Add(customFieldsElement);
+        productElement.Add(productCategoryFieldsElement);
+        productElement.Add(imagesElement);
+
+        rootElement.Add(productElement);
+    }
+
+    private void CreateLabelValueSection(XElement section, Field field, LoopItem product)
+    {
+        if (section.Element("Labels") == null)
+        {
+            var labelsElement = new XElement("Labels");
+            section.Add(labelsElement);
+        }
+
+        if (section.Element("Values") == null)
+        {
+            var valuesElement = new XElement("Values");
+            section.Add(valuesElement);
+        }
+
+        //Labels
+        section.Element("Labels").Add(createLabelElement(field.ID, field.Label));
+
+        //Values
+        section.Element("Values").Add(createValueElement(field.ID, product.GetString(field.Tag)));
+    }
+
+    private void CreateLabelValueSection(XElement section, Field field, Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>> product)
+    {
+        if (section.Element("Labels") == null)
+        {
+            var labelsElement = new XElement("Labels");
+            section.Add(labelsElement);
+        }
+
+        if (section.Element("Values") == null)
+        {
+            var valuesElement = new XElement("Values");
+            section.Add(valuesElement);
+        }
+
+        //Labels
+        section.Element("Labels").Add(createLabelElement(field.ID, field.Label));
+
+        //Values
+        section.Element("Values").Add(createValueElement(field.ID, product.GetString(field.Tag)));
+    }
+
+    private void ProcessProductXml(XElement rootElement, IEnumerable<Field> fields, Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>> product)
+    {
+        var productElement = new XElement("Product");
+        var systemFieldsElement = new XElement("SystemFields");
+        var productFieldsElement = new XElement("ProductFields");
+        var customFieldsElement = new XElement("CustomFields");
+        var productCategoryFieldsElement = new XElement("ProductCategoryFields");
+        var imagesElement = new XElement("Images");
+
+        foreach (var field in fields)
+        {
+            if (field.FieldType == FieldType.System)
+            {
+                CreateLabelValueSection(systemFieldsElement, field, product);
+            }
+            else if (field.FieldType == FieldType.Standard)
+            {
+                CreateLabelValueSection(productFieldsElement, field, product);
+            }
+            else if (field.FieldType == FieldType.Custom)
+            {
+                CreateLabelValueSection(customFieldsElement, field, product);
+            }
+            else if (field.FieldType == FieldType.CategoryField)
+            {
+                CreateLabelValueSection(productCategoryFieldsElement, field, product);
+            }
+        }
+
+        //Images
+        var productImage = product.GetString("Ecom:Product.ImageDefault.Default.Clean");
+
+        if (!string.IsNullOrEmpty(productImage))
+        {
+            imagesElement.Add(createImageElement("ProductImage", productImage));
+        }
+
+        foreach (LoopItem image in product.GetLoop("Ecom:Product.AlternativeImages"))
+        {
+            var alternativeImage = image.GetString("Ecom:Product.AlternativeImages.Image");
+            if (!string.IsNullOrEmpty(alternativeImage))
+            {
+                imagesElement.Add(createImageElement(GetImageNameFromUrl(alternativeImage), alternativeImage));
+            }
+        }
+
+        productElement.Add(systemFieldsElement);
+        productElement.Add(productFieldsElement);
+        productElement.Add(customFieldsElement);
+        productElement.Add(productCategoryFieldsElement);
+        productElement.Add(imagesElement);
+
+        rootElement.Add(productElement);
+    }
+
+    public string GetImageNameFromUrl(string url)
+    {
+        int filenameStartIndex = url.LastIndexOf("/") + 1;
+        int filenameEndIndex = url.Length - filenameStartIndex;
+
+        return url.Substring(filenameStartIndex, filenameEndIndex);
+    }
+
+    public XElement createImageElement(string name, string href)
+    {
+        var imageElement = new XElement("Image");
+        var nameAttribute = new XAttribute("name", name);
+        var hrefAttribute = new XAttribute("href", string.Format("file:///[ServerURI]{0}", href));
+
+        imageElement.Add(nameAttribute);
+        imageElement.Add(hrefAttribute);
+
+        return imageElement;
+    }
+
+    public XElement createLabelElement(string fieldId, string fieldLabel)
+    {
+        if (string.IsNullOrEmpty(fieldId))
+        {
+            fieldId = "empty";
+        }
+
+        var labelElement = new XElement(string.Format("{0}_Label", fieldId));
+        var nameAttribute = new XAttribute("name", fieldId);
+
+        labelElement.Add(nameAttribute);
+        labelElement.Value = fieldLabel;
+
+        return labelElement;
+    }
+
+    public XElement createValueElement(string fieldId, string fieldLabel)
+    {
+        var valueElement = new XElement(string.Format("{0}_Value", fieldId));
+        var nameAttribute = new XAttribute("name", fieldId);
+
+        valueElement.Add(nameAttribute);
+        valueElement.Value = fieldLabel;
+
+        return valueElement;
+    }
+}
+
+@*Zip functionality*@
+@functions
+{
+        /// <summary>
+        /// Creates a new Zip archive and fills it with the given content and returns it to the Response.OutputStream
+        /// </summary>
+        /// <param name="zipEntries">A dictionary containing the name of the file, and the content of the file</param>
+        public void ZipContent(Dictionary<string, byte[]> zipEntries)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                using (var archive = new ZipArchive(memoryStream, ZipArchiveMode.Create, true))
+                {
+                    foreach (var zipEntry in zipEntries)
+                    {
+                        var entry = archive.CreateEntry(zipEntry.Key);
+
+                        using (var entryStream = entry.Open())
+                        {
+                            entryStream.Write(zipEntry.Value, 0, zipEntry.Value.Length);
+                        }
+                    }
+                }
+
+                var zipPath = Dynamicweb.Core.SystemInformation.MapPath("Files") + "/temp.zip";
+                using (var fileStream = new FileStream(zipPath, FileMode.Create))
+                {
+                    memoryStream.Seek(0, SeekOrigin.Begin);
+                    memoryStream.CopyTo(fileStream);
+
+                    fileStream.Seek(0, SeekOrigin.Begin);
+                    fileStream.CopyTo(HttpContext.Current.Response.OutputStream);
+                }
+
+                FileInfo archiveFile = new FileInfo(zipPath);
+                archiveFile.Delete();
+            }
+        }
+
+        public void AddImagesToZip(List<string> images, ExportImagePurpose exportPurpose, string siteUrl, Dictionary<string, byte[]> zipEntries)
+        {
+            using (var webClient = new System.Net.WebClient())
+            {
+
+                //images
+                foreach (var image in images)
+                {
+                    var imageFormat = exportPurpose.Format;
+                    var oldFilename = GetImageNameFromUrl(image);
+                    var imageName = Path.GetFileNameWithoutExtension(oldFilename);
+
+                    var imageBytes = GetBytesFromImage(webClient, image, siteUrl, exportPurpose);
+
+                    if (exportPurpose.Width == 0 && exportPurpose.Width == 0)
+                    {
+                        imageFormat = Path.GetExtension(image).TrimStart('.');
+                    }
+
+                    var newFileName = string.Format("{0}.{1}", imageName, imageFormat);
+                    if (!zipEntries.ContainsKey(newFileName))
+                    {
+                        zipEntries.Add(newFileName, imageBytes);
+                    }
+                }
+            }
+        }
+
+        public void AddDocumentsToZip(List<string> documents, string siteUrl, Dictionary<string, byte[]> zipEntries)
+        {
+            using (var webClient = new System.Net.WebClient())
+            {
+
+                //Documents
+                foreach (var document in documents)
+                {
+                    var oldFilename = GetImageNameFromUrl(document);
+                    var documentBytes = GetBytesFromDocument(webClient, document, siteUrl);
+
+                    if (!zipEntries.ContainsKey(oldFilename))
+                    {
+                        zipEntries.Add(oldFilename, documentBytes);
+                    }
+                }
+            }
+        }
+    }
+
+@*Misc*@
+@functions
+{
+    public byte[] GetBytesFromImage(WebClient webClient, string path, string siteUrl, ExportImagePurpose exportPurpose)
+    {
+        var imagePath = path;
+        var imageUrl = string.Empty;
+
+        if (!imagePath.StartsWith("/"))
+        {
+            imagePath = "/" + imagePath;
+        }
+
+        if (exportPurpose.Width > 0 && exportPurpose.Width > 0)
+        {
+            imageUrl = string.Format("{0}/Admin/Public/GetImage.ashx?width={1}&height={2}&crop=5&Resolution={3}&Format={4}&image={5}&icc={6}", siteUrl, exportPurpose.Width, exportPurpose.Height, exportPurpose.Resolution, exportPurpose.Format, imagePath, exportPurpose.EmbedICCProfile);
+        }
+        else
+        {
+            imageUrl = siteUrl + imagePath;
+        }
+
+        return webClient.DownloadData(imageUrl);
+
+    }
+
+    public byte[] GetBytesFromDocument(WebClient webClient, string path, string siteUrl)
+    {
+        var documentPath = path;
+
+        if (!documentPath.StartsWith("/"))
+        {
+            documentPath = "/" + documentPath;
+        }
+
+        var documentUrl = string.Format("{0}{1}", siteUrl, documentPath);
+
+        return webClient.DownloadData(documentUrl);
+
+    }
+
+
+
+    public int GetNumberOfPdfPages(string fileName, string siteUrl)
+    {
+        using (var webClient = new System.Net.WebClient())
+        {
+            using (StreamReader sr = new StreamReader(new MemoryStream(GetBytesFromDocument(webClient, fileName, siteUrl))))
+            {
+                Regex regex = new Regex(@"/Type\s*/Page[^s]");
+                MatchCollection matches = regex.Matches(sr.ReadToEnd());
+
+                return matches.Count;
+            }
+        }
+    }
+
+}

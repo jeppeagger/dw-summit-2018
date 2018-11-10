@@ -1,0 +1,46 @@
+﻿// -----------------------------------------------------------------------------
+// Contains all styles related to the Wbsite settings Tools menu section
+// -----------------------------------------------------------------------------
+
+.tools-navigation.dw-mod {
+	.tools-navigation-mixin();
+	.tools-navigation-link-mixin();
+	.tools-navigation-link-color-mixin()
+}
+
+.tools-navigation-mixin() when not (@tools-menu-background-color = none) {   
+	background-color: @tools-menu-background-color;
+}
+
+.menu-tools__link.dw-mod {
+   .tools-navigation-link-mixin();
+   .tools-navigation-link-color-mixin();
+}
+
+.menu-tools__link.dw-mod:hover {
+   .tools-navigation-link-color-mixin();
+}
+
+.tools-navigation-link-color-mixin() when not (@tools-menu-font-color = none) {   
+	color: @tools-menu-font-color;
+}
+
+.tools-navigation-link-mixin() when not (@tools-menu-font-family-family = none) {   
+	font-family: @tools-menu-font-family-family;
+}
+
+.tools-navigation-link-mixin() when not (@tools-menu-font-size = none) {   
+	font-size: unit(@tools-menu-font-size, px);
+}
+
+.tools-navigation-link-mixin() when not (@tools-menu-font-family-weight = none) {   
+	font-weight: ~'@{tools-menu-font-family-weight}';
+}
+
+.tools-navigation-link-mixin() when not (@tools-menu-line-height = none) {   
+	line-height: unit(@tools-menu-line-height, em);
+}
+
+.tools-navigation-link-mixin() when not (@tools-menu-casing = "none") {   
+	text-transform: ~'@{tools-menu-casing}';
+}

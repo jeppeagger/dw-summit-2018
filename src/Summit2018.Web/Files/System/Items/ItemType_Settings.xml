@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="utf-16" standalone="yes"?>
+<items>
+  <item category="Settings/Tabs" name="Settings" systemName="Settings" description="" icon="Gears" iconColor="None" includeInUrlIndex="False" pageDefaultView="item" fieldForTitle="" title="" inherits="" useCache="False">
+    <fields>
+      <field name="Address" systemName="Address" description="Company address for Google" type="System.String, mscorlib" excludeFromSearch="False" defaultValueCulture="" defaultValue="0">
+        <editor type="Dynamicweb.Content.Items.Editors.ItemTypeEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.ItemTypeEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.ItemTypeEditor" name="Item type" value="Address" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Business name" systemName="BusinessName" description="Business name for Google" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Contact e-mail" systemName="ContactEmail" description="Needed for the emails that the system sends out and for Google" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Contact number" systemName="ContactNumber" description="Needed for the emails that the system sends out and for Google" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Business photo" systemName="BusinessPhoto" description="Picture for Google" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.FileEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.FileEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Base directory" value="/Images" /><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Extensions" value=".png, .jpg, .gif" /><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Allow file upload from frontend" value="True" /><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Max files to add" value="1" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Business logo" systemName="BusinessLogo" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.FileEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.FileEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Base directory" value="/Images" /><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Extensions" value=".png, .jpg, .gif" /><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Allow file upload from frontend" value="True" /><Parameter addin="Dynamicweb.Content.Items.Editors.FileEditor" name="Max files to add" value="1" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Opening hours" systemName="OpeningHours" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.LongTextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.LongTextEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Rows" value="3" /><Parameter addin="Dynamicweb.Content.Items.Editors.LongTextEditor" name="Cols" value="" /></Parameters></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Addresses list view" systemName="AddressesListView" description="" type="System.String, mscorlib" excludeFromSearch="False" defaultValueCulture="" defaultValue="Rows">
+        <editor type="Dynamicweb.Content.Items.Editors.DropDownListEditor`1, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]"><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="LabelPosition" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="LabelWidth" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconMaxWidth" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconMaxHeight" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="EncodeValues" value="True" /><Parameter addin="Dynamicweb.Content.Items.Editors.DropDownListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="RemoveNothingSelected" value="False" /></Parameters></editorConfuguration>
+        </editor>
+        <options sourceType="Static">
+          <Static>
+            <option name="Columns" value="Columns" icon="" />
+            <option name="Rows" value="Rows" icon="" />
+          </Static>
+        </options>
+      </field>
+      <field name="Wireframe mode" systemName="WireframeMode" description="Choose this if you want to ignore all the above design configurations. This may be handy to use before starting the design process and when planning the project." type="System.Boolean, mscorlib" excludeFromSearch="False" defaultValueCulture="" defaultValue="False">
+        <editor type="Dynamicweb.Content.Items.Editors.CheckboxEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.CheckboxEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="Google maps API key" systemName="GoogleMapsAPIKey" description="Get it from here: https://developers.google.com/maps/documentation/javascript/get-api-key" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="GoogleTagManagerID" systemName="GoogleTagManagerID" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+      <field name="FacebookPixelID" systemName="FacebookPixelID" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.TextEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.TextEditor" /></editorConfuguration>
+        </editor>
+      </field>
+    </fields>
+    <rules>
+      <rule name="" type="Dynamicweb.Content.Items.Activation.ModuleAttachmentRestrictionRule, Dynamicweb" value="Nothing" />
+      <rule name="Enable item type for" type="Dynamicweb.Content.Items.Activation.StructureRestrictionRule, Dynamicweb" value="ItemList" />
+    </rules>
+    <layout>
+      <groups>
+        <group name="Business" systemName="Business" collapsibleState="Expanded" visibilityField="" visibilityCondition="0" visibilityConditionValueType="" visibilityConditionValue="">
+          <fields>
+            <field systemName="Address" />
+            <field systemName="BusinessName" />
+            <field systemName="ContactEmail" />
+            <field systemName="ContactNumber" />
+            <field systemName="BusinessPhoto" />
+            <field systemName="BusinessLogo" />
+            <field systemName="OpeningHours" />
+            <field systemName="AddressesListView" />
+          </fields>
+        </group>
+        <group name="Other" systemName="Other" collapsibleState="Expanded" visibilityField="" visibilityCondition="0" visibilityConditionValueType="" visibilityConditionValue="">
+          <fields>
+            <field systemName="WireframeMode" />
+            <field systemName="GoogleMapsAPIKey" />
+            <field systemName="GoogleTagManagerID" />
+            <field systemName="FacebookPixelID" />
+          </fields>
+        </group>
+      </groups>
+    </layout>
+  </item>
+</items>

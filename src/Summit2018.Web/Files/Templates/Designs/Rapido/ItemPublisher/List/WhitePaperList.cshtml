@@ -1,0 +1,103 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+
+@functions {
+    public string Truncate(string value, int maxChars)
+    {
+        return value.Length <= maxChars ? value : value.Substring(0, maxChars) + "...";
+    }
+}
+
+@{
+    string selectedCategory = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString.Get("Category")) ? HttpContext.Current.Request.QueryString.Get("Category") : Translate("All");
+    var query = HttpUtility.ParseQueryString(HttpContext.Current.Request.QueryString.ToString());
+    string cardClass = Pageview.Device.ToString() != "Tablet" ? "paragraph-card" : "";
+    string cardFooterClass = Pageview.Device.ToString() != "Tablet" ? "paragraph-card-footer" : "";
+
+    var categoryFields = GetLoop("ItemPublisher:ItemType.Fields").FirstOrDefault((item) => item.GetString("ItemPublisher:ItemType.Field.SystemName") == "Category");
+    foreach (var options in categoryFields.GetLoop("ItemPublisher:ItemType.Field.Options"))
+    {
+        selectedCategory = selectedCategory == options.GetString("ItemPublisher:ItemType.Field.Option.Value") ? options.GetString("ItemPublisher:ItemType.Field.Option.Label") : selectedCategory;
+    }
+}
+
+<div class="grid__col-12">
+    <div class="grid">
+        <div class="grid__col-12">
+            <div class="collection">
+                <div>
+                    <h5 class="u-inline-block u-margin-right">@Translate("Category")</h5>
+                    <input type="checkbox" id="CategorySelector" class="dropdown-trigger" />
+                    <div class="dropdown u-w180px dw-mod">
+                        <label class="dropdown__header dropdown__btn dw-mod" for="CategorySelector">@Translate(selectedCategory)</label>
+                        <div class="dropdown__content dw-mod">
+                            @{
+                                query.Set("Category", "");
+                                <div class="dropdown__item" onclick="window.location = '/Default.aspx?@query.ToString()'">@Translate("All")</div>
+
+                                foreach (var options in categoryFields.GetLoop("ItemPublisher:ItemType.Field.Options"))
+                                {
+                                    query.Set("Category", options.GetString("ItemPublisher:ItemType.Field.Option.Value"));
+                                    <div class="dropdown__item" onclick="window.location = '/Default.aspx?@query.ToString()'">@Translate(options.GetString("ItemPublisher:ItemType.Field.Option.Label"))</div>
+                                }
+                            }
+                        </div>
+                        <label class="dropdown-trigger-off" for="CategorySelector"></label>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @foreach (LoopItem item in GetLoop("ItemPublisher:Items.List"))
+        {
+            <div class="grid__col-md-3 grid__col-sm-4 grid__col-xs-6">
+                <div class="@cardClass">
+                    <div class="u-margin-bottom">
+                        <a href="/Default.aspx?ID=@item.GetString("ItemPublisher:Item.Field.PageId")">
+                            <img src="/Admin/Public/GetImage.ashx?width=450&amp;height=280&amp;crop=0&amp;Compression=75&amp;image=@item.GetString("ItemPublisher:Item.Image")" alt="@item.GetString("ItemPublisher:Item.Title")" />
+                        </a>
+                    </div>
+                    <a href="/Default.aspx?ID=@item.GetString("ItemPublisher:Item.Field.PageId")" class="u-color-inherit u-bold u-margin-left u-margin-right u-block">
+                        @if (!string.IsNullOrEmpty(item.GetString("ItemPublisher:Item.AlternativeTitle")))
+                        {
+                            @item.GetString("ItemPublisher:Item.AlternativeTitle")
+                        }
+                        else
+                        {
+                            @item.GetString("ItemPublisher:Item.Title")
+                        }
+                    </a>
+                    <p>
+                        @if (!string.IsNullOrEmpty(item.GetString("ItemPublisher:Item.AlternativeSummary")))
+                        {
+                            @item.GetString("ItemPublisher:Item.AlternativeSummary")
+                        }
+                        else
+                        {
+                            @item.GetString("ItemPublisher:Item.Summary")
+                        }
+                    </p>
+                </div>
+                <div class="grid__cell-footer @cardFooterClass">
+                    <div class="grid__cell">
+                        <div class="u-margin-top">
+                            <a href="/Default.aspx?ID=@item.GetString("ItemPublisher:Item.Field.PageId")">
+                                @if (!string.IsNullOrEmpty(item.GetString("ItemPublisher:Item.LinkText"))) {
+                                    @item.GetString("ItemPublisher:Item.LinkText")
+                                }
+                                else if (!string.IsNullOrEmpty(item.GetString("ItemPublisher:Item.AlternativeTitle")))
+                                {
+                                    @item.GetString("ItemPublisher:Item.AlternativeTitle")
+                                }
+                                else
+                                {
+                                    @item.GetString("ItemPublisher:Item.Title")
+                                }
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

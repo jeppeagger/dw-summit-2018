@@ -1,0 +1,70 @@
+//Lists
+
+.list {
+   margin: 0;
+}
+
+.list i {
+   width: 16px;
+}
+
+.list__item {
+    padding: @reflex-cell-spacing-md;
+    margin-bottom: 0;
+}
+
+.list__item--hover {
+    cursor: pointer;
+    transition: all ease-in 0.2s;
+}
+
+.list__item--hover:hover {
+    background-color: @gray-lightest;
+}
+
+.list__link {
+    width: 100%;
+    display: block;
+    color: @text-color;
+    text-align: left;
+}
+
+.list li:last-child {
+    margin-bottom: 0;
+}
+
+.list__link:hover, .list__link:active {
+  text-decoration: underline;
+}
+
+.list__number {
+    width: 24px;
+    height: 100%;
+    display: inline-block;
+    vertical-align: top;
+    text-align: left;
+}
+
+.list__numbered-item {
+    width: ~"calc(100% - 28px)";
+    display: inline-block;
+}
+
+.list__seperator {
+    width: 100%;
+    border-bottom: 1px solid @gray-light;
+    height: 2px;
+}
+
+.list__seperator--clean {
+    margin: 0;
+}
+
+.list--clean {
+   list-style: none; 
+}
+
+.list--scroll {
+    max-height: 400px;
+    overflow: auto;
+}

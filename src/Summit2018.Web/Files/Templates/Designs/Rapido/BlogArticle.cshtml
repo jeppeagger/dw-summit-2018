@@ -1,0 +1,56 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.PageViewModel>
+@MasterPageFile("Master.cshtml")
+
+<article class="grid__col-md-8">
+    <h1 class="article__header">@Model.Item.GetString("Title")</h1>
+    <div class="article__summary">@Model.Item.GetString("Summary")</div>
+    <small class="article__subscription">
+        @if (!(string.IsNullOrWhiteSpace(Model.Item.GetString("Author")) && string.IsNullOrWhiteSpace(Model.Item.GetString("Date"))))
+        {
+            <text>@Translate("Written")</text>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.Item.GetString("Author")))
+        {
+            <text>@Translate("by") @Model.Item.GetString("Author")</text>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.Item.GetString("Date")))
+        {
+            <text>@Translate("on") @Model.Item.GetDateTime("Date").ToString("dd.MM.yyyy, HH:mm")</text>
+        }
+    </small>
+
+    @if (Model.Item.GetFile("Image") != null)
+    {
+        <div class="u-margin-bottom--lg">
+            <img src="/Admin/Public/GetImage.ashx?width=1600&amp;crop=5&amp;Compression=75&amp;DoNotUpscale=1&amp;image=@Model.Item.GetFile("Image").PathUrlEncoded" alt="@Model.Item.GetString("Title")" />
+        </div>
+    }
+    <div class="article__paragraph">
+        @Model.Item.GetString("Text")
+    </div>
+
+    @{ 
+        string buttonClass = "";
+        if (!String.IsNullOrEmpty(Model.Item.GetString("ButtonDesign"))) {
+            switch (Model.Item.GetList("ButtonDesign").SelectedName)
+            {
+                case "Link":
+                    buttonClass = "btn--link";
+                    break;
+                case "Secondary":
+                    buttonClass = "btn--secondary";
+                    break;
+                default:
+                    buttonClass = "btn--primary";
+                    break;
+            }
+        }
+    }
+
+    @if (!string.IsNullOrWhiteSpace(Model.Item.GetString("Link")))
+    {
+        <div class="grid__cell--footer">
+            <a href="@Model.Item.GetString("Link")" class="btn @buttonClass dw-mod u-pull--left">@Model.Item.GetString("LinkText")</a>
+        </div>
+    }
+</article>

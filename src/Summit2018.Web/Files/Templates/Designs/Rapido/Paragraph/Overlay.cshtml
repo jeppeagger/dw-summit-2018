@@ -1,0 +1,156 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.ParagraphViewModel>
+@using System.Collections.Generic
+@using System
+@using Dynamicweb.Core
+
+@{
+    int paragraphId = Model.ID;
+    string imagePath = Model.Item.GetFile("Image") != null ? Model.Item.GetFile("Image").PathUrlEncoded : "";
+    string fontColor = !string.IsNullOrEmpty(Model.Item.GetList("FontColor").SelectedValue) ? "u-" + Model.Item.GetList("FontColor").SelectedValue : "";
+    string backgroundColor = !string.IsNullOrEmpty(Model.Item.GetList("BackgroundColor").SelectedValue) ? "u-" + Model.Item.GetList("BackgroundColor").SelectedValue + "--bg" : "";
+    string textAlignment = Model.Item.GetList("TextAlignment") != null ? Model.Item.GetList("TextAlignment").SelectedValue.ToLower() : "";
+    string buttonAlignment = Model.Item.GetList("ButtonAlignment") != null ? Model.Item.GetList("ButtonAlignment").SelectedValue.ToLower() : "";
+    string modalWidth = Model.Item.GetList("ModalWidth") != null ? Model.Item.GetList("ModalWidth").SelectedValue.ToLower() : "";
+    string modalHeight = Model.Item.GetList("ModalHeight") != null ? Model.Item.GetList("ModalHeight").SelectedValue.ToLower() : "";
+    string contentColumnClass = "grid__col-12";
+    string imagePosition = "";
+    string overlayPosition = Model.Item.GetList("OverlayPosition") != null ? Model.Item.GetList("OverlayPosition").SelectedValue.ToLower() : "";
+    bool showBlackOverlay = overlayPosition == "" ? true : false;
+    modalWidth = overlayPosition == "modal--top-bar" || overlayPosition == "modal--bottom-bar" ? "" : modalWidth;
+    string showOnEvent = Model.Item.GetList("ShowOnEvent") != null ? Model.Item.GetList("ShowOnEvent").SelectedValue : "start";
+    int delay = Model.Item.GetInt32("Delay") > 0 ? Model.Item.GetInt32("Delay") : 5000;
+    string animationModalClass = Model.Item.GetList("Animation") != null ? Model.Item.GetList("Animation").SelectedValue : "";
+    string animationClass = animationModalClass != "" ? "animation--fadeIn" : "";
+
+    if (!String.IsNullOrEmpty(imagePath))
+    {
+        imagePosition = Model.Item.GetList("ImagePosition") != null ? Model.Item.GetList("ImagePosition").SelectedValue.ToLower() : "left";
+        imagePosition = !string.IsNullOrEmpty(imagePosition) ? imagePosition : "left";
+
+        switch (imagePosition)
+        {
+            case "left":
+                contentColumnClass = "grid__col-6";
+                break;
+            case "right":
+                contentColumnClass = "grid__col-6";
+                break;
+        }
+    }
+}
+
+<input type="checkbox" id="overlay_@paragraphId" class="modal-trigger normal">
+    
+<div class="modal-container" id="overlayModalContainer_@paragraphId">
+    @if (showBlackOverlay) {
+        <label for="overlay_@paragraphId" class="modal-overlay"></label>
+    }
+
+    <div class="modal @overlayPosition @backgroundColor @fontColor @modalWidth @modalHeight dw-mod" id="overlayModal_@paragraphId">
+        <div class="modal__body modal__body--full u-full-height dw-mod">
+            <div class="grid u-full-height">
+                @if (imagePosition == "bottom" || imagePosition == "right") {
+                    @RenderContent(contentColumnClass, textAlignment, buttonAlignment)
+                    @RenderImage(contentColumnClass, imagePosition)
+                }
+                else if (imagePosition == "top" || imagePosition == "left")
+                {
+                    @RenderImage(contentColumnClass, imagePosition)
+                    @RenderContent(contentColumnClass, textAlignment, buttonAlignment)
+                }
+                else
+                {
+                    @RenderContent(contentColumnClass, textAlignment, buttonAlignment, imagePath)
+                }
+            </div>
+        </div>
+        <label class="modal__close-btn dw-mod" for="overlay_@paragraphId"></label>
+    </div>
+</div>
+
+<div id="overlayAnchor_@paragraphId"></div>
+
+@helper RenderImage(string contentColumnClass, string imagePosition) { 
+    string imagePath = Model.Item.GetFile("Image") != null ? Model.Item.GetFile("Image").PathUrlEncoded : "";
+
+    if (!String.IsNullOrEmpty(imagePath))
+    {
+        string forcedImageHeight = imagePosition == "top" || imagePosition == "bottom" ? forcedImageHeight = "height: 250px;" : "";
+        imagePath = "/Admin/Public/GetImage.ashx?width=1000&height=1000&crop=1&DoNotUpscale=true&Compression=75&image=" + imagePath;
+        <div class="@contentColumnClass u-no-padding" style="background-image: url('@imagePath'); background-position: center center; background-size: cover; @forcedImageHeight"></div>
+    }
+} 
+
+@helper RenderContent(string contentColumnClass, string textAlignment, string buttonAlignment, string backgroundImage = null) {
+    string background = "background-image: url('" + @backgroundImage + "'); background-position: center center; background-size: cover;";
+    string header = Model.Item.GetString("Header");
+    string text = Model.Item.GetString("Text");
+    string linkText = Model.Item.GetString("LinkText");
+    string link = Model.Item.GetString("Link");
+    string linkButtonType = Model.Item.GetList("LinkButtonType") != null ? "btn--" + Model.Item.GetList("LinkButtonType").SelectedValue.ToLower() : "";
+    string verticalAlignment = Model.Item.GetList("VerticalAlignment") != null ? Model.Item.GetList("VerticalAlignment").SelectedValue.ToLower() : "Full";
+    string buttonPosition = verticalAlignment == "full" ? "grid__cell-footer" : "u-margin-top";
+
+    <div class="@contentColumnClass u-full-height" style="@background">
+        <div class="@verticalAlignment">
+            <h2 class="@textAlignment">@header</h2>
+            <div class="@textAlignment">@text</div>
+
+            @Model.GetModuleOutput()
+
+            @if (!string.IsNullOrEmpty(linkText) && !string.IsNullOrEmpty(link))
+            {
+                <div class="@buttonPosition @buttonAlignment">
+                    <a href="@link" class="btn @linkButtonType u-no-margin dw-mod">@linkText</a>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+<script>
+    var showOnEvent = "@showOnEvent";
+
+    function showOverlay_@(paragraphId)() {
+        document.getElementById('overlay_@paragraphId').checked = true;
+        if ('@animationClass' != '' && document.getElementById('overlayModalContainer_@paragraphId')) {
+            document.getElementById('overlayModalContainer_@paragraphId').classList.add('@animationClass');
+        }
+        if ('@animationModalClass' != '' && document.getElementById('overlayModal_@paragraphId')) {
+            document.getElementById('overlayModal_@paragraphId').classList.add('@animationModalClass');
+        }
+    }
+
+    switch (showOnEvent)
+    {
+        case "afterDelay":
+            document.addEventListener('DOMContentLoaded', function () {
+                setTimeout(showOverlay_@paragraphId, @delay);
+            });
+            break;
+        case "onScroll":
+            var modalPosition = document.getElementById('overlayAnchor_@paragraphId').getBoundingClientRect().bottom + window.pageYOffset;
+            window.addEventListener('scroll', function showOnScroll() {
+                if (window.pageYOffset > modalPosition) {
+                    showOverlay_@(paragraphId)();
+                    window.removeEventListener('scroll', showOnScroll, false)
+                }
+            }, false);
+            break;
+        case "onMouseLeave":
+            window.addEventListener("mouseout", function onMouseLeave(e) {
+                e = e ? e : window.event;
+                var from = e.relatedTarget || e.toElement;
+                if (!from || from.nodeName == "HTML") {
+                    showOverlay_@(paragraphId)();
+                    window.removeEventListener('mouseout', onMouseLeave, false)
+                }
+            }, false);
+            break;
+        default:
+            document.addEventListener('DOMContentLoaded', function () {
+                showOverlay_@(paragraphId)();
+            });
+        break;
+    }
+</script>

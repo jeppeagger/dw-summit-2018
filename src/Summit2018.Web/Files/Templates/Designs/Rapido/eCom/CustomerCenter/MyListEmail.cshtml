@@ -1,0 +1,51 @@
+﻿@inherits RazorTemplateBase<RazorTemplateModel<Template>>
+@using Dynamicweb.Rendering;
+@MasterPageFile("../../EmailMaster.cshtml")
+@Include("../../EmailHelpers.cshtml")
+
+<table bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="500" id="emailBody">
+    @RenderHeaderSection()
+    @RenderOrderList()
+    @RenderFooterSection()
+</table>
+
+@* CONTENT HELPERS *@
+
+@helper RenderHeaderSection()
+{
+    @RenderHeaderImage();
+
+    //Info
+    Column info = new Column();
+    info.header = Translate("Hello") + ",";
+    info.subheader = Translate("Look on my favorites list") + " <strong>" + GetString("Ecom:Product.List.Name") + "</strong>";
+    info.align = "center";
+
+    @CreateRow(info);
+}
+
+@helper RenderOrderList()
+{
+    foreach (var listitem in GetLoop("CustomerCenter.List"))
+    {
+        @CreateRowDivider();
+
+        Column orderLineHeader = new Column();
+        var productcatalog = (new System.Text.RegularExpressions.Regex(@"\d+")).Match(Pageview.Area.Item["ProductsPageId"].ToString()).Value;
+        orderLineHeader.subheader = "<a href='" + Dynamicweb.Context.Current.Request.Url.Scheme + "://" + GetGlobalValue("Global:Request.Host") + "/Default.aspx?ID=" + productcatalog + "&ProductID=" + listitem.GetString("Ecom:Product.ID") + "'>" + listitem.GetString("Ecom:Product.Name") + "</a>";
+            
+        @CreateRow(orderLineHeader);
+        
+        Column orderLineLeft = new Column();
+        orderLineLeft.image = listitem.GetString("Ecom:Product.ImageDefault.Default.Clean");
+        
+        Column orderLineCenter = new Column();
+        orderLineCenter.text.Add(Translate("Qty") + " " + listitem.GetString("Ecom:CustomerCenter.List.Product.Quantity"));
+
+        Column orderLineRight = new Column();
+        orderLineRight.header = listitem.GetString("Ecom:Product.Price.PriceFormatted").Replace(" ", "&nbsp;");
+        orderLineRight.align = "right";
+
+        @CreateRow(orderLineLeft, orderLineCenter, orderLineRight);
+    }
+}

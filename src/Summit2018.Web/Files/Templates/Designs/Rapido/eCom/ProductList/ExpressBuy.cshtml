@@ -1,0 +1,69 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using Dynamicweb.Core
+@using System
+
+@{ 
+    int productsPageId = GetPageIdByNavigationTag("ProductsPage");
+    string cartIcon = Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetString("CartIcon") != null ? Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("CartIcon").SelectedValue : "fas fa-shopping-cart";
+    string facebookPixelAction = "";
+    if (!string.IsNullOrWhiteSpace(Pageview.AreaSettings.GetItem("Settings").GetString("FacebookPixelID")))
+    {
+        facebookPixelAction = "document.getElementById('ExpressBuyProductSearchField').value != '' ? fbq('track', 'AddToCart', {content_ids: [document.getElementById('ExpressBuyProductSearchField').value], content_type: 'product'}) : '';";
+    }
+}
+
+@if (!Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("OnlyPreviewForAnonymous") || Pageview.User != null)
+{
+    <h2 class="u-no-margin u-margin-bottom">@Translate("Quick ordering")</h2>
+    <div class="grid grid--external-bleed-x">
+        <div class="grid__col-sm-7">
+            <label for="ExpressBuyProductSearchField">@Translate("Product")</label>
+            <div class="typeahead js-typeahead u-full-width" data-page-size="5" id="ExpressBuyProductSearch" data-search-feed-id="@productsPageId&feed=true">
+                <input type="text" class="typeahead-search-field u-full-width js-typeahead-search-field u-no-margin" id="ExpressBuyProductSearchField" name="ProductNumber" placeholder="@Translate("Search products")">
+                <ul class="dropdown dropdown--absolute-position js-handlebars-root js-typeahead-search-content u-min-w220px u-full-width" data-save-selected-result="true" id="ExpressBuyProductSearchContent" data-template="ExpressBuySearchContentTemplate" data-json-feed="/Default.aspx?ID=@productsPageId&feed=true&feedType=productsOnly" data-init-onload="false" data-preloader="minimal"></ul>
+            </div>
+        </div>
+
+        <div class="grid__col-sm-2 grid__col-6">
+            <label for="ExpressBuyProductCount">@Translate("Quantity")</label>
+            <input type="number" class="u-full-width u-no-margin" name="Quantity" id="ExpressBuyProductCount" min="1" value="1">
+        </div>
+        <div class="grid__col-sm-3 grid__col-6 grid--align-self-end">
+            <button type="button" class="btn btn--primary dw-mod u-pull--right u-no-margin" name="submit" id="express-buy-button"
+                    onclick="Cart.AddToCart(event, {
+                        id: document.getElementById('ExpressBuyProductSearchField').getAttribute('data-result'), 
+                        quantity: document.getElementById('ExpressBuyProductCount').value
+                    }); Search.ResetExpressSearch(); @facebookPixelAction">
+                    <i class="@cartIcon"></i> @Translate("Add to cart")
+            </button>
+        </div>
+    </div>
+
+    <script id="ExpressBuySearchContentTemplate" type="text/x-template">
+        {{#.}}
+            {{#Product}}
+                <li class="dropdown__item dropdown__item--seperator dw-mod" onclick="Search.UpdateFieldValue(this)">
+                    <div class="u-margin-right u-pull--left u-hidden-xs u-hidden-xxs {{noimage}}">
+                        <img src="/Admin/Public/GetImage.ashx?width=45&height=38&crop=1&Compression=75&image={{image}}" alt="{{name}}">
+                    </div>
+                    <div class="u-pull--left">
+                        <div class="u-bold u-max-w340px u-truncate-text">{{name}}</div>
+                        <div class="js-typeahead-name">{{number}}</div>
+                        <div class="js-typeahead-result u-hidden">{{productId}}</div>
+                        <div>{{price}}</div>
+                    </div>
+                </li>
+            {{/Product}}
+        {{/.}}
+
+        {{^.}}
+            <li class="dropdown__item dropdown__item--seperator dw-mod">
+                @Translate("No products found")
+            </li>
+        {{/.}}
+    </script>
+}
+

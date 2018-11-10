@@ -1,0 +1,63 @@
+﻿@using System.Text.RegularExpressions
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+
+@*--- START: Base block renderers ---*@
+
+@helper RenderBlockList(List<Block> blocks)
+{
+    blocks = blocks.OrderBy(item => item.SortId).ToList();
+
+    foreach (Block item in blocks)
+    {
+        <!-- START: @item.Id -->
+
+        if (item.Design == null)
+        {
+            @RenderBlock(item)
+        }
+        else if (item.Design.RenderType != RenderType.Hide)
+        {
+            if (item.Design.RenderType == RenderType.Row)
+            {
+                <div class="grid grid--align-content-start">
+                    @RenderBlock(item)
+                </div>
+            }
+
+            if (item.Design.RenderType == RenderType.Column)
+            {
+                string hidePadding = item.Design.HidePadding ? "u-no-padding" : "";
+                 string size = item.Design.Size != null ? item.Design.Size : "12";
+                size = Regex.IsMatch(size, @"\d") ? "md-" + item.Design.Size : item.Design.Size;
+
+                <div class="grid__col-lg-@item.Design.Size grid__col-md-@item.Design.Size grid__col-sm-12 grid__col-xs-12 @hidePadding" id="Block__@item.Id">
+                    @RenderBlock(item)
+                </div>
+            }
+
+            if (item.SkipRenderBlocksList == true)
+            {
+                @RenderBlock(item)
+            }
+        }
+
+        <!-- END: @item.Id -->
+    }
+}
+
+@helper RenderBlock(Block item)
+{
+    if (item.Template != null)
+    {
+        @BlocksPage.RenderTemplate(item.Template)
+    }
+
+    if (item.BlocksList.Count > 0 && item.SkipRenderBlocksList == false)
+    {
+        @RenderBlockList(item.BlocksList)
+    }
+}
+
+@*--- END: Base block renderers ---*@

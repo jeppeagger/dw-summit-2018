@@ -1,0 +1,27 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+<div class="grid grid--external-bleed-x">
+    @foreach (LoopItem item in GetLoop("Groups"))
+    {
+        <div class="grid__col-lg-3 grid__col-md-3 grid__col-sm-6 grid__col-xs-12">
+            @if (!String.IsNullOrEmpty(item.GetString("Ecom:Group.Link.Clean")))
+            {
+                <a href="@item.GetString("Ecom:Group.Link.Clean")">
+                    <h3 class="u-no-margin">@item.GetString("Ecom:Group.Name")</h3>
+                    @if (!String.IsNullOrEmpty(item.GetString("Ecom:Group.SmallImage")))
+                    {
+                        <img class="grid__cell-img grid__cell-img--centered b-lazy" src="/Files/Images/placeholder.gif" data-src="/Admin/Public/GetImage.ashx?width=300&amp;height=180&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;DoNotUpscale=true&amp;FillCanvas=true&amp;image=@item.GetString("Ecom:Group.SmallImage")" alt="@item.GetString("Ecom:Group.Name")" />
+                    }
+                </a>
+            }
+            else
+            {
+                <h3 class="u-no-margin">@item.GetString("Ecom:Group.Name")</h3>
+                if (!String.IsNullOrEmpty(item.GetString("Ecom:Group.SmallImage")))
+                {
+                    <img class="grid__cell-img grid__cell-img--centered b-lazy" src="/Files/Images/placeholder.gif" data-src="/Admin/Public/GetImage.ashx?width=300&amp;height=180&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;DoNotUpscale=true&amp;FillCanvas=true&amp;image=@item.GetString("Ecom:Group.SmallImage")" alt="@item.GetString("Ecom:Group.Name")" />
+                }
+            }
+        </div>
+    }
+</div>

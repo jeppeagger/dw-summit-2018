@@ -1,0 +1,350 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+@using System.Collections;
+@using System.Linq;
+@using Dynamicweb.Core;
+
+@{
+    string feedType = HttpContext.Current.Request.QueryString.Get("feedType");
+    int defaultFacetsState = Converter.ToInt32(Pageview.Area.Item["OpenFacetGroups"]);
+    bool isLoadMore = !String.IsNullOrEmpty(HttpContext.Current.Request["pagenum"]);
+    string searchParameter = HttpContext.Current.Request.QueryString.Get("Search");
+    int pageNum = Converter.ToInt32(HttpContext.Current.Request.QueryString.Get("pagenum"));
+    int pageSize = !String.IsNullOrEmpty(HttpContext.Current.Request["pagesize"]) ? Converter.ToInt32(HttpContext.Current.Request.QueryString.Get("pagesize")) : Converter.ToInt32(GetString("Ecom:ProductList.PageSize"));
+
+    string listCookie = "";
+    if (HttpContext.Current.Request.Cookies["FilesContainerTemplate"] != null)
+    {
+        listCookie = HttpContext.Current.Request.Cookies["FilesContainerTemplate"].Value;
+    }
+
+    string listMode = !String.IsNullOrEmpty(listCookie) ? listCookie : "FileItemContainer";
+
+}
+
+@functions {
+        public class File
+        {
+            public string id { get; set; }
+            public string path { get; set; }
+            public string name { get; set; }
+            public string extension { get; set; }
+            public int size { get; set; }
+            public string dimension { get; set; }
+            public string colors { get; set; }
+            public string lastWriteTime { get; set; }
+            public bool selected { get; set; }
+            public string listIcon { get; set; }
+            public string buttonAction { get; set; }
+            public string template { get; set; }
+            public string searchParameter { get; set; }
+            public List<KeyValuePair> ImageData { get; set; }
+            public List<KeyValuePair> IPTC { get; set; }
+            public List<KeyValuePair> XMP { get; set; }
+            public List<KeyValuePair> EXIF { get; set; }
+            public List<KeyValuePair> DynamicwebMetadata { get; set; }
+        }
+
+        public class FileContainer
+        {
+            public FileContainer()
+            {
+                File = new List<File>();
+            }
+
+            public string template { get; set; }
+            public string id { get; set; }
+            public List<File> File { get; set; }
+        }
+
+        public class Root
+        {
+            public Root()
+            {
+                FilesContainer = new List<FileContainer>();
+            }
+
+            public string listTemplate { get; set; }
+            public int currentPage { get; set; }
+            public int totalPages { get; set; }
+            public int filesCount { get; set; }
+            public int pageSize { get; set; }
+            public string containerUrl { get; set; }
+            public string nextdisabled { get; set; }
+            public List<FileContainer> FilesContainer { get; set; }
+            //public int totalFiles { get; set; }
+            public List<FacetGroup> FacetGroups { get; set; }
+            public List<FacetSelection> FacetSelections { get; set; }
+        }
+    
+    public class FacetSelection
+    {
+        public string template { get; set; }
+        public string group { get; set; }
+        public string name { get; set; }
+        public string value { get; set; }
+        public string queryParameter { get; set; }
+    }
+
+    public class FacetOption
+    {
+        public string template { get; set; }
+        public string name { get; set; }
+        public string value { get; set; }
+        public string queryParameter { get; set; }
+        public string currency { get; set; }
+        public string weight { get; set; }
+        public string label { get; set; }
+        public string count { get; set; }
+        public string disabled { get; set; }
+        public string selected { get; set; }
+    }
+
+    public class FacetGroup
+    {
+        public string counter { get; set; }
+        public string name { get; set; }
+        public string defaultState { get; set; }
+        public List<FacetOption> FacetOptions { get; set; }
+    }
+
+    public class KeyValuePair
+    {
+        public KeyValuePair(string key, string value)
+        {
+            Key = key;
+            Value = value;
+        }
+
+        public string Key { get; set; }
+        public string Value { get; set; }
+    }
+}
+
+@{
+    List<Root> feedObject = new List<Root>();
+
+    Root feedRoot = new Root();
+
+    feedRoot.listTemplate = listMode;
+    feedRoot.currentPage = GetInteger("DwPaging.CurrentPage");
+    feedRoot.totalPages = GetInteger("DwPaging.PageCount");
+    feedRoot.filesCount = GetInteger("DwPaging.TotalItems");
+    feedRoot.pageSize = GetInteger("DwPaging.PageSize");
+    feedRoot.containerUrl = HttpContext.Current.Request.RawUrl;
+    feedRoot.nextdisabled = string.IsNullOrWhiteSpace(GetString("DwPaging.NextPageLink")) ? "u-hidden" : ""; //hidden because 43471
+
+    //Reads the selected files from Session
+    string filesFeed = Newtonsoft.Json.JsonConvert.SerializeObject(HttpContext.Current.Session["PIM_Files"]);
+    var selectedFiles = Newtonsoft.Json.JsonConvert.DeserializeObject<List<File>>(filesFeed);
+    var imageExtensions = new List<string>() { ".gif", ".jpg", ".jpeg", ".psd", ".bmp", ".png", ".tiff", ".tif", ".eps", ".ai" };
+
+    int count = 0;
+
+    if (pageNum > 1)
+    {
+        count = (pageSize - 1) * pageNum;
+    }
+
+    foreach (var result in GetLoop("QueryResultItem"))
+    {
+        var resultProperties = result.GetLoop("Properties").ToDictionary(x => x.GetString("Name"), y => y.GetString("Value"));
+
+        File fileObject = new File();
+        fileObject.template = listMode;
+        fileObject.path = "Files" + resultProperties["DirectoryRelativePath"] + "/" + resultProperties["FileName"];
+        fileObject.id = fileObject.path;
+        fileObject.name = resultProperties["FileName"];
+        fileObject.extension = resultProperties["Extension"];
+
+        var isImage = imageExtensions.Contains(fileObject.extension);
+
+        if (isImage)
+        {
+            var attributes = Dynamicweb.Imaging.Image.GetImageAttributes(HttpContext.Current.Server.MapPath("/" + fileObject.path));
+            fileObject.dimension = string.Format("{0} x {1}", attributes.Size.Width, attributes.Size.Height);
+            fileObject.colors = string.Format("{0} ({1} {2})", attributes.ColorType, attributes.ColorDepth, Translate("bits"));
+        }
+
+        fileObject.lastWriteTime = Convert.ToDateTime(resultProperties["LastWriteTime"]).ToString("ddd, dd MMM yyyy HH:mm");
+        fileObject.size = Dynamicweb.Core.Converter.ToInt32(resultProperties["FileSize"]) / 1024;
+        fileObject.selected = selectedFiles != null ? selectedFiles.Any(file => file.path == fileObject.path) : false;
+        fileObject.listIcon = fileObject.selected ? "fa-minus" : "fa-plus";
+        fileObject.buttonAction = fileObject.selected ? "RemoveFilePath" : "AddFilePath";
+
+        //Added ImageData to list
+        fileObject.ImageData = new List<KeyValuePair>();
+        fileObject.ImageData.Add(new KeyValuePair(Translate("File name"), fileObject.name));
+        fileObject.ImageData.Add(new KeyValuePair(Translate("Updated"), fileObject.lastWriteTime));
+        fileObject.ImageData.Add(new KeyValuePair(Translate("File size"), fileObject.size.ToString()));
+        fileObject.ImageData.Add(new KeyValuePair(Translate("Dimensions"), fileObject.dimension));
+        fileObject.ImageData.Add(new KeyValuePair(Translate("Colors"), fileObject.colors));
+
+        //Extract image metadata
+        fileObject.IPTC = new List<KeyValuePair>();
+        fileObject.XMP = new List<KeyValuePair>();
+        fileObject.EXIF = new List<KeyValuePair>();
+
+        var filePath = HttpContext.Current.Server.MapPath("/" + fileObject.path);
+
+        var iptc = new Dictionary<string, string>();
+        var xmp = new Dictionary<string, string>();
+        var exif = new Dictionary<string, string>();
+        if (isImage && Dynamicweb.Imaging.Image.LoadImageMetadata(filePath, ref iptc, ref exif, ref xmp))
+        {
+            foreach (var metadata in exif)
+            {
+                fileObject.EXIF.Add(new KeyValuePair(metadata.Key, metadata.Value));
+            }
+
+            foreach (var metadata in iptc)
+            {
+                fileObject.IPTC.Add(new KeyValuePair(metadata.Key, metadata.Value));
+            }
+
+            foreach (var metadata in xmp)
+            {
+                fileObject.XMP.Add(new KeyValuePair(metadata.Key, metadata.Value));
+            }
+        }
+
+        //Extract Dynamicweb Metadata
+        var dwMetadata = new List<KeyValuePair>();
+        var metadataFields = Dynamicweb.Content.Files.Metadata.EditorFactory.LoadConfig("Files" + resultProperties["DirectoryRelativePath"]);
+
+        if (metadataFields != null)
+        {
+            var metadata = Dynamicweb.Content.Files.Metadata.EditorFactory.GetMetadataForFile(fileObject.path);
+
+            if (metadata != null)
+            {
+                foreach (var field in metadataFields)
+                {
+                    dwMetadata.Add(new KeyValuePair(field.Id, metadata.GetValue(field.Id)));
+                }
+            }
+        }
+        fileObject.DynamicwebMetadata = dwMetadata;
+
+        count++;
+        FileContainer fileContainerObject = new FileContainer();
+        fileContainerObject.File.Add(fileObject);
+        fileContainerObject.template = listMode;
+        fileContainerObject.id = count.ToString();
+        feedRoot.FilesContainer.Add(fileContainerObject);
+    }
+
+    if (feedType != "productsOnly")
+    {
+        feedRoot.FacetGroups = new List<FacetGroup>();
+
+        foreach (LoopItem facetGroup in GetLoop("FacetGroups"))
+        {
+            foreach (LoopItem facetItem in facetGroup.GetLoop("Facets"))
+            {
+                if (facetItem.GetInteger("Facet.OptionWithResultCount") > 0 && facetItem.GetInteger("Facet.OptionResultTotalCount") > 0)
+                {
+                    FacetGroup facetGroupObject = new FacetGroup();
+                    facetGroupObject.counter = facetItem.GetString("Facets.LoopCounter");
+                    facetGroupObject.name = facetItem.GetString("Facet.Name");
+                    facetGroupObject.defaultState = facetItem.GetInteger("Facets.LoopCounter") <= defaultFacetsState ? "checked" : "";
+                    //facetGroupObject.defaultState = Pageview.Device.ToString() == "Mobile" ? "" : facetGroupObject.defaultState;
+                    facetGroupObject.FacetOptions = new List<FacetOption>();
+
+                    foreach (LoopItem facetOption in facetItem.GetLoop("FacetOptions"))
+                    {
+                        string facetName = facetOption.GetString("FacetOption.Name");
+
+                        if (facetName == "True")
+                        {
+                            facetName = Translate("Yes");
+                        }
+
+                        if (facetName == "False")
+                        {
+                            facetName = Translate("No");
+                        }
+
+                        FacetOption facetOptionObject = new FacetOption();
+                        facetOptionObject.template = facetItem.GetString("Facet.RenderType");
+                        facetOptionObject.name = facetName;
+                        facetOptionObject.count = facetOption.GetString("FacetOption.Count");
+                        facetOptionObject.label = facetOption.GetString("FacetOption.Label");
+                        facetOptionObject.value = facetOption.GetString("FacetOption.Value");
+                        facetOptionObject.queryParameter = facetItem.GetString("Facet.QueryParameter");
+                        facetOptionObject.disabled = facetOption.GetInteger("FacetOption.Count") == 0 ? "disabled" : "";
+                        facetOptionObject.selected = facetOption.GetBoolean("FacetOption.Selected") ? "checked" : "";
+                        facetGroupObject.FacetOptions.Add(facetOptionObject);
+                    }
+
+                    feedRoot.FacetGroups.Add(facetGroupObject);
+                }
+            }
+        }
+
+        feedRoot.FacetSelections = new List<FacetSelection>();
+
+        int facetSelectionCount = 0;
+
+        foreach (LoopItem facetGroup in GetLoop("FacetGroups"))
+        {
+            foreach (LoopItem facetItem in facetGroup.GetLoop("Facets"))
+            {
+                if (facetItem.GetInteger("Facet.OptionWithResultCount") > 0 && facetItem.GetInteger("Facet.OptionResultTotalCount") > 0)
+                {
+                    foreach (LoopItem facetOption in facetItem.GetLoop("FacetOptions"))
+                    {
+                        if (facetOption.GetBoolean("FacetOption.Selected"))
+                        {
+                            FacetSelection facetSelectionObject = new FacetSelection();
+                            facetSelectionObject.template = "SelectedFilter";
+                            facetSelectionObject.group = facetItem.GetString("Facet.Name");
+                            facetSelectionObject.name = facetOption.GetString("FacetOption.Name");
+                            facetSelectionObject.value = facetOption.GetString("FacetOption.Value");
+                            facetSelectionObject.queryParameter = facetItem.GetString("Facet.QueryParameter");
+                            feedRoot.FacetSelections.Add(facetSelectionObject);
+
+                            facetSelectionCount++;
+                        }
+                    }
+                }
+            }
+        }
+
+        if (facetSelectionCount > 2)
+        {
+            FacetSelection facetAllObject = new FacetSelection();
+            facetAllObject.template = "ResetFilters";
+            feedRoot.FacetSelections.Insert(0, facetAllObject);
+        }
+    }
+
+    feedObject.Add(feedRoot);
+
+    string jsonFeed = "";
+
+    if (GetLoop("QueryResultItem").Count == 0)
+    {
+        jsonFeed = "[]";
+    }
+    else if (feedType == "productsOnly")
+    {
+        if (!string.IsNullOrEmpty(searchParameter) && !isLoadMore)
+        {
+            File searchMoreObject = new File();
+            searchMoreObject.template = "SearchMore";
+            searchMoreObject.searchParameter = searchParameter;
+
+            FileContainer fileContainerObject = new FileContainer();
+            fileContainerObject.File.Add(searchMoreObject);
+            feedRoot.FilesContainer.Add(fileContainerObject);
+        }
+        jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(feedRoot.FilesContainer);
+    }
+    else
+    {
+        jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(feedObject);
+    }
+}
+
+@jsonFeed

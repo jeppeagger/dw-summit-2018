@@ -1,0 +1,74 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@using System.Web
+
+@{
+    string eventName = HttpContext.Current.Request.QueryString.Get("eventName");
+    int termsPageId = GetPageIdByNavigationTag("TermsAndConditions");
+}
+
+<h3 class="u-no-margin u-margin-bottom">@eventName</h3>
+@GetValue("Form.FormStart")
+@GetValue("Form.SystemFields")
+
+@foreach (LoopItem field in GetLoop("Fields"))
+{
+    string fieldType = field.GetString("Field.Type");
+    string required = "";
+    switch (fieldType)
+    {
+        case "TextInput":
+            required = field.GetBoolean("Field.Required") ? "required" : "";
+
+            <div class="form__field-group dw-mod">
+                <label for="@field.GetValue("Field.SystemName")">@Translate(field.GetString("Field.Name"))</label>
+                <input type="text" name="@field.GetString("Field.SystemName")" id="@field.GetValue("Field.SystemName")"  placeholder="@Translate(field.GetString("Field.Name"))" value="@field.GetString("Field.Value")" @required />
+                @field.GetValue("Field.Description")
+            </div>
+            break;
+        case "Textarea":
+            required = field.GetBoolean("Field.Required") ? "required" : "";
+
+            <div class="form__field-group dw-mod">
+                <label for="@field.GetValue("Field.SystemName")">@Translate(field.GetString("Field.Name"))</label>
+                <textarea name="@field.GetString("Field.SystemName")" id="@field.GetValue("Field.SystemName")" @required>@field.GetString("Field.Value")</textarea>
+                @field.GetValue("Field.Description")
+            </div>
+            break;
+        case "Submit":
+            @field.GetString("Field.Control").Replace(" id", " class=\"btn btn--primary dw-mod u-pull--left\" onclick=\"Buttons.LockButton(event)\" id")
+            break;
+        case "Hidden":
+            string control = field.GetString("Field.Control");
+            if (field.GetString("Field.SystemName") == "eventId")
+            {
+                control = control.Replace(" id", " value='" + HttpContext.Current.Request.QueryString.Get("eventId") + "' id");
+            }
+            @control
+            break;
+        case "CheckBox":
+            string label = Translate(field.GetString("Field.Name"));
+            if (field.GetString("Field.SystemName") == "TermsAccept")
+            {
+                label += " <a href='/Default.aspx?Id=" + termsPageId + "' target='_blank'>" + Translate("the terms and conditions of this website") + "</a>";
+            }
+
+            <div class="form__field-group dw-mod">
+                <input type="checkbox" class="form__control" name="@field.GetString("Field.SystemName")" id="@field.GetValue("Field.SystemName")" value="@field.GetString("Field.Value")" @required />
+                <label for="@field.GetString("Field.SystemName")">    
+                    @label
+                </label>
+                @field.GetValue("Field.Description")
+            </div>
+            break;
+        default:
+            <div class="form__field-group dw-mod">
+                <label for="@field.GetValue("Field.SystemName")">@Translate(field.GetString("Field.Name"))</label>
+                @field.GetString("Field.Control")
+                @field.GetValue("Field.Description")
+            </div>
+            break;
+    }
+}
+
+@GetValue("Form.FormEnd")

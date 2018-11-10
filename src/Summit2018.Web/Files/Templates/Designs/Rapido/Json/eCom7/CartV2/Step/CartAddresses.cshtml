@@ -1,0 +1,172 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using System.Text.RegularExpressions
+
+@{
+    string feedType = HttpContext.Current.Request.QueryString.Get("feedtype");
+}
+
+@functions {
+    public class Country
+    {
+        public string id { get; set; }
+        public string name { get; set; }
+        public string selected { get; set; }
+    }
+
+    public class State
+    {
+        public string id { get; set; }
+        public string name { get; set; }
+        public string selected { get; set; }
+    }
+
+    public class Address
+    {
+        public string id { get; set; }
+        public string isSavedAddress { get; set; }
+        public string description { get; set; }
+        public string company { get; set; }
+        public string name { get; set; }
+        public string phone { get; set; }
+        public string email { get; set; }
+        public string address { get; set; }
+        public string zip { get; set; }
+        public string city { get; set; }
+        public string countryCode { get; set; }
+        public List<State> State { get; set; }
+        public List<Country> Country { get; set; }
+    }
+}
+
+@{
+    string jsonFeed = "";
+    string addressId = HttpContext.Current.Request.QueryString.Get("addressId");
+
+    List<Address> feedObject = new List<Address>();
+
+    if (!String.IsNullOrEmpty(addressId))
+    {
+        if (addressId == "-1")
+        {
+            Address defaultAddressObject = new Address();
+            defaultAddressObject.id = "-1";
+            defaultAddressObject.isSavedAddress = "";
+            defaultAddressObject.description = "";
+            defaultAddressObject.company = "";
+            defaultAddressObject.name = "";
+            defaultAddressObject.phone = "";
+            defaultAddressObject.email = "";
+            defaultAddressObject.address = "";
+            defaultAddressObject.zip = "";
+            defaultAddressObject.city = "";
+            defaultAddressObject.countryCode = "";
+            defaultAddressObject.State = new List<State>();
+
+            if (GetLoop("DeliveryRegions").Count > 0)
+            {
+                foreach (LoopItem state in GetLoop("DeliveryRegions"))
+                {
+                    string selected = GetString("Ecom:Order.Delivery.Region") == state.GetString("Ecom:DeliveryRegion.Name") ? "selected" : "";
+
+                    State stateObject = new State();
+                    stateObject.id = state.GetString("Ecom:DeliveryRegion.Value");
+                    stateObject.name = state.GetString("Ecom:DeliveryRegion.Name");
+                    stateObject.selected = selected;
+
+                    defaultAddressObject.State.Add(stateObject);
+                }
+            }
+
+            defaultAddressObject.Country = new List<Country>();
+
+            foreach (LoopItem country in GetLoop("Countries"))
+            {
+                string selected = GetString("Ecom:Order.Delivery.Country.Code") == country.GetString("Ecom:Country.Code2") ? "selected" : "";
+
+                Country countryObject = new Country();
+                countryObject.id = country.GetString("Ecom:Country.Code2");
+                countryObject.name = country.GetString("Ecom:Country.Name");
+                countryObject.selected = selected;
+
+                defaultAddressObject.Country.Add(countryObject);
+            }
+
+            feedObject.Add(defaultAddressObject);
+        }
+
+        if (addressId == "0")
+        {
+            Address defaultAddressObject = new Address();
+            defaultAddressObject.id = "0";
+            defaultAddressObject.isSavedAddress = "";
+            defaultAddressObject.description = Translate("Select saved address");
+            defaultAddressObject.company = GetString("Ecom:Order.Delivery.Company");
+            defaultAddressObject.name = GetString("Ecom:Order.Delivery.Name");
+            defaultAddressObject.phone = GetString("Ecom:Order.Delivery.Phone");
+            defaultAddressObject.email = GetString("Ecom:Order.Delivery.Email");
+            defaultAddressObject.address = GetString("Ecom:Order.Delivery.Address");
+            defaultAddressObject.zip = GetString("Ecom:Order.Delivery.Zip");
+            defaultAddressObject.city = GetString("Ecom:Order.Delivery.City");
+            defaultAddressObject.countryCode = GetString("Ecom:Order.Delivery.Country.Code");
+            defaultAddressObject.Country = new List<Country>();
+
+            foreach (LoopItem country in GetLoop("Countries"))
+            {
+                string selected = GetString("Ecom:Order.Delivery.Country.Code") == country.GetString("Ecom:Country.Code2") ? "selected" : "";
+
+                Country countryObject = new Country();
+                countryObject.id = country.GetString("Ecom:Country.Code2");
+                countryObject.name = country.GetString("Ecom:Country.Name");
+                countryObject.selected = selected;
+
+                defaultAddressObject.Country.Add(countryObject);
+            }
+
+            feedObject.Add(defaultAddressObject);
+        }
+
+        foreach (LoopItem address in GetLoop("UserManagement:User.UserAddresses"))
+        {
+            if (address.GetString("UserManagement:User.UserAddress.ID") == addressId)
+            {
+                Address addressObject = new Address();
+                addressObject.id = address.GetString("UserManagement:User.UserAddress.ID");
+                addressObject.isSavedAddress = "u-hidden";
+                addressObject.description = address.GetString("UserManagement:User.UserAddress.Company");
+                addressObject.company = address.GetString("UserManagement:User.UserAddress.Company");
+                addressObject.name = address.GetString("Ecom:Order.Delivery.Name");
+                addressObject.phone = address.GetString("UserManagement:User.UserAddress.Phone");
+                addressObject.email = address.GetString("UserManagement:User.UserAddress.Email");
+                addressObject.address = address.GetString("UserManagement:User.UserAddress.Address");
+                addressObject.zip = address.GetString("UserManagement:User.UserAddress.Zip");
+                addressObject.city = address.GetString("UserManagement:User.UserAddress.City");
+                addressObject.countryCode = address.GetString("UserManagement:User.UserAddress.Country");
+                addressObject.Country = new List<Country>();
+
+                foreach (LoopItem country in GetLoop("Countries"))
+                {
+                    string selected = address.GetString("UserManagement:User.UserAddress.Country") == country.GetString("Ecom:Country.Code2") ? "selected" : "";
+
+                    Country countryObject = new Country();
+                    countryObject.id = country.GetString("Ecom:Country.Code2");
+                    countryObject.name = country.GetString("Ecom:Country.Name");
+                    countryObject.selected = selected;
+
+                    addressObject.Country.Add(countryObject);
+                }
+
+                feedObject.Add(addressObject);
+
+                break;
+            }
+        }
+    }
+
+    jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(feedObject);
+
+}
+
+@jsonFeed

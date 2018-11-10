@@ -1,0 +1,137 @@
+//Responsive images
+
+.layered-image {
+    position: relative;
+
+    img {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0; 
+        margin: auto;
+    }
+} 
+
+.layered-image:before {
+  position: relative;
+  display: block;
+  content: "";
+  padding-top: 200px;
+} 
+
+.layered-image--tinted:before {
+    content: "";
+    background-color: @white;
+    opacity: 0.6;
+} 
+
+
+//bLazy
+.b-lazy {
+    transition: opacity 300ms ease-in-out;
+    max-width: 100%;
+    opacity: 0;
+}
+
+.b-lazy.b-loaded {
+    opacity: 1;
+}
+
+
+//Background images
+.background-image {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.background-image:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: inherit;
+}
+
+.background-image__wrapper {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    overflow: hidden;
+}
+
+.background-image__cover {
+    height: 100%; 
+    -o-object-fit: cover;
+    object-fit: cover; 
+    display: block;
+    max-width: 100%;
+    width: 100%;
+}
+
+//Clean image
+.image {
+    position: relative;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+}
+
+.image:after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: inherit;
+}
+
+.image__wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    top: 0;
+    overflow: hidden;
+}
+
+//Filters
+.image-filter {
+    overflow: hidden;
+
+    &.image-filter--blur {
+       filter: blur(5px);
+       transform: scale(1.2);
+    }
+
+    &.image-filter--lighten {
+       background-color:rgba(255,255,255,0.2) ;
+    }
+
+    &.image-filter--darken {
+       background-color:rgba(0,0,0,0.3) ;
+    }
+
+    &.image-filter--grayscale {
+       filter: grayscale(100%);
+    }
+
+    &.image-filter--sepia {
+       filter: sepia(1);
+    }
+
+    &.image-filter--over-exposure {
+       filter: brightness(1.2);
+    }
+
+    &.image-filter--ball {
+        border-radius: 1000px;
+    }
+}

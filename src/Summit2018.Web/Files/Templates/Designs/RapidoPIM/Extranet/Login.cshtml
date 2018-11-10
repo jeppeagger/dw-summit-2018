@@ -1,0 +1,37 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@{
+    string pageId = GetGlobalValue("Global:Page.ID");
+}
+<div class="grid grid--justify-center">
+    <div class="grid__col-md-6">
+        <h2>@Translate("Sign in")</h2>
+
+        @if (!String.IsNullOrEmpty(GetString("DW_extranet_error_uk")))
+        {
+            <div class="error-block">
+                @GetString("DW_extranet_error_uk")
+            </div>
+        }
+
+        <form method="post" id="loginform" action="@GetString("UserManagement:User.Login.SuccessRedirectToPage")">
+            <input type="hidden" name="ID" value="@pageId" />
+            <input type="hidden" name="DWExtranetUsernameRemember" value="True" />
+            <input type="hidden" name="DWExtranetPasswordRemember" value="True" />
+            <div class="form__field-group dw-mod">
+                <label for="login-username">@Translate("Email")</label>
+                <input type="text" class="u-full-width" id="login-username" name="username" placeholder="@Translate("Email")" />
+            </div>
+            <div class="form__field-group dw-mod">
+                <label for="login-password">@Translate("Password")</label>
+                <input type="password" class="u-full-width" id="login-password" name="password" placeholder="@Translate("Password")" />
+            </div>
+            <div class="form__field-group dw-mod">
+                <input type="checkbox" id="rememberMe" name="Autologin" checked="checked" value="True" class="form__control">
+                <label for="rememberMe">@Translate("Remember me")</label>
+            </div>
+
+            <button type="submit" class="btn btn--primary btn--full dw-mod" name="LoginAction" value="Login">@Translate("Sign in")</button>
+        </form>
+    </div>
+</div>

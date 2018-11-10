@@ -1,0 +1,144 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@Include("../ProductList/Includes/FeedHelpers.cshtml")
+
+@using System.Text;
+@using System.IO;
+@using System.Threading;
+@using System.Web;
+@using System.Xml.Linq;
+@using Dynamicweb.Environment;
+
+@{
+    var generateZip = false;
+
+    var generatePdfValue = HttpContext.Current.Request.QueryString.Get("GeneratePdf");
+    var generatePdf = false;
+
+    var PdfPageIdValue = HttpContext.Current.Request.Form["PdfPageId"];
+    var PdfPageId = 0;
+
+    string languageId = HttpContext.Current.Request.Form["PdfLanguageId"];
+
+    if (!string.IsNullOrEmpty(generatePdfValue) && !string.IsNullOrEmpty(PdfPageIdValue))
+    {
+        bool.TryParse(generatePdfValue, out generatePdf);
+        int.TryParse(PdfPageIdValue, out PdfPageId);
+    }
+
+    List<string> images = new List<string>();
+    List<string> documents = new List<string>();
+    var imagePrefix = "Image_";
+    var documentPrefix = "Document_";
+    foreach (var data in HttpContext.Current.Request.Form.AllKeys)
+    {
+        if(data.StartsWith(imagePrefix))
+        {
+            images.Add(data.Remove(0, imagePrefix.Length));
+        }
+        else if(data.StartsWith(documentPrefix))
+        {
+            documents.Add(data.Remove(0, documentPrefix.Length));
+        }
+    }
+
+    if (!generatePdf || (images.Count > 0 || documents.Count > 0))
+    {
+        generateZip = true;
+    }
+
+    string exportFormat = HttpContext.Current.Request.Form["format"];
+    string exportPurposeName = HttpContext.Current.Request.Form["purpose"];
+    string productId = HttpContext.Current.Request.QueryString.Get("ProductID");
+    string variantId = HttpContext.Current.Request.QueryString.Get("VariantID");
+    string siteUrl = HttpContext.Current.Request.Form["siteUrl"];
+    string filename = string.Empty;
+
+    var exportPurpose = GetExportPurposeByName(exportPurposeName);
+
+    if (string.IsNullOrEmpty(filename))
+    {
+        filename = string.Format("{0}", productId);
+    }
+
+    string format = "\"{0}\";";
+    string headerFormat = "\"{0}\";";
+    var fields = new List<Field>();
+
+    fields.Add(new Field("ID", "ID", "Ecom:Product.ID", FieldType.System));
+    fields.Add(new Field("Name", "Name", "Ecom:Product.Name", FieldType.Standard));
+    fields.Add(new Field("Number", "Number", "Ecom:Product.Number", FieldType.Standard));
+    fields.Add(new Field("ShortDescription", "Short description", "Ecom:Product.ShortDescription", FieldType.Standard));
+    fields.Add(new Field("LongDescription", "Long description", "Ecom:Product.LongDescription", FieldType.Standard));
+    fields.Add(new Field("Price", "Price", "Ecom:Product.Price.PriceFormatted", FieldType.Standard));
+    fields.Add(new Field("Created", "Created", "Ecom:Product.Created", FieldType.System));
+    fields.Add(new Field("Updated", "Updated", "Ecom:Product.Updated", FieldType.System));
+    fields.Add(new Field("Publication", "Publication Date", "Ecom:Product.Updated", FieldType.System));
+
+    foreach (LoopItem customField in GetLoop("CustomFieldList"))
+    {
+        var field = new Field(customField.GetString("Ecom:CustomField.System"), customField.GetString("Ecom:CustomField.Name"), "Ecom:Product:Field." + customField.GetString("Ecom:CustomField.Template"), FieldType.Custom);
+        fields.Add(field);
+
+    }
+
+    if (GetLoop("ProductCategories").Count > 0)
+        {
+            foreach (LoopItem categoryGroup in GetLoop("ProductCategories"))
+            {
+                foreach (LoopItem categoryField in categoryGroup.GetLoop("ProductCategoryFields"))
+                {
+                    var fieldTag = string.Format("Ecom:Product.CategoryField.{0}.{1}", categoryGroup.GetString("Ecom:Product.Category.ID"), categoryField.GetString("Ecom:Product.CategoryField.TemplateTag"));
+                    var key = GetString(string.Format("{0}.CategoryID", fieldTag)) + "_" + GetString(string.Format("{0}.ID", fieldTag));
+
+                    var field = new Field(key, key, string.Format("{0}.Value", fieldTag), FieldType.CategoryField);
+                    fields.Add(field);
+                }
+            }
+        }
+}
+
+@{
+    if (generatePdf)
+    {
+        HttpContext.Current.Response.ContentType = "application/pdf";
+        HttpContext.Current.Response.AddHeader("Content-Disposition", string.Format("attachment;filename={0}.pdf", filename));
+
+        using (var webClient = new System.Net.WebClient())
+        {
+            var pdfBytes = GetBytesFromDocument(webClient, string.Format("Default.aspx?ID={0}&ProductID={1}&RequestLanguageID={2}&pdf=true&VariantID={3}", PdfPageId, productId, languageId, variantId), siteUrl);
+            HttpContext.Current.Response.OutputStream.Write(pdfBytes, 0, pdfBytes.Length);
+        }
+    }
+    else if (generateZip)
+    {      
+        HttpContext.Current.Response.ContentType = "application/zip";
+
+        HttpContext.Current.Response.AddHeader("Content-Disposition", string.Format("attachment;filename={0}.zip", filename));
+
+
+        var zipEntries = new Dictionary<string, byte[]>();
+
+        AddImagesToZip(images, exportPurpose, siteUrl, zipEntries);
+
+        AddDocumentsToZip(documents, siteUrl, zipEntries);
+
+        var productContent = string.Empty;
+        if (exportFormat == "csv")
+        {
+            productContent = GenerateCsv(fields, productId);
+        }
+        else if (exportFormat == "json")
+        {
+            productContent = GenerateJson(fields, productId);
+        }
+        else if (exportFormat == "xml")
+        {
+            productContent = GenerateXml(fields, productId);
+        }
+
+        zipEntries.Add(string.Format("{0}.{1}", filename, exportFormat), Encoding.UTF8.GetBytes(productContent));
+
+        ZipContent(zipEntries);
+    }
+}

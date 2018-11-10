@@ -1,0 +1,27 @@
+﻿@inherits RazorTemplateBase<RazorTemplateModel<Template>>
+@using Dynamicweb.Rendering;
+@MasterPageFile("../../EmailMaster.cshtml")
+@Include("../../EmailHelpers.cshtml")
+
+<table bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="500" id="emailBody">
+    @RenderHeaderSection()
+    @RenderMessage()
+    @RenderFooterSection()
+</table>
+
+@* CONTENT HELPERS *@
+
+@helper RenderHeaderSection()
+{
+    @RenderHeaderImage();
+}
+
+@helper RenderMessage()
+{
+    Column message = new Column();
+    message.subheader = Translate("New account has been created");
+    message.text.Add("");
+    message.text.Add(Translate("Dear administrator") + ", ");
+    message.text.Add(Translate("An account has been created with this email") + ": <b>" + GetString("UserManagement:User.Email") + "</b> " + Translate("and this username") + ": <b>" + GetString("UserManagement:User.UserName") + "</b>.");
+    @CreateRow(message);
+}

@@ -1,0 +1,73 @@
+// -----------------------------------------------------------------------------
+// CSS helper/utility classes used throughout the site/application
+// -----------------------------------------------------------------------------
+
+.brand-color-mixin(@color) {  
+    .mixin() when not (@color = none) { 
+        &, h1, h2, h3, h4, h5, h6, i {
+            color: @color;
+        }
+
+        &--bg {
+            background-color: @color !important; //Fix to secure print color
+            -webkit-print-color-adjust: exact;
+        }
+
+        &--bg-lighten-10 {
+            background-color: lighten(@color, 10%);
+        }
+
+        &--bg-lighten-20 {
+            background-color: lighten(@color, 20%);
+        }
+
+        &--bg-darken-10 {
+            background-color: darken(@color, 10%);
+        }
+
+        &--bg-darken-20 {
+            background-color: darken(@color, 20%);
+        }
+    }
+
+    .mixin;
+}
+
+.u-brand-color-one {
+    .brand-color-mixin(@layout-brand-color-one); 
+}
+
+.u-brand-color-two {
+    .brand-color-mixin(@layout-brand-color-two); 
+}
+
+.u-brand-color-three {
+    .brand-color-mixin(@layout-brand-color-three); 
+}
+
+.u-brand-color-four {
+    .brand-color-mixin(@layout-brand-color-four); 
+}
+
+.u-brand-color-five {
+    .brand-color-mixin(@layout-brand-color-five); 
+}
+
+.u-color--loyalty-points {
+    .color(@ecommerce-loyalty-points-color);
+}
+
+.u-border-color--loyalty-points {
+    .border-color(@ecommerce-loyalty-points-color);
+}
+
+.u-bg-color--loyalty-points {
+    .background-color(@ecommerce-loyalty-points-color);
+}
+
+//Fonts
+
+.u-font-awesome {
+    font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free", @layout-body-text-font-family-family;
+    font-weight: 900;
+}

@@ -1,0 +1,107 @@
+// Tables
+
+.table {
+  thead > tr {
+    font-weight: bold;
+  }
+
+  .fas, .far, .fal, .fab {
+    line-height: 1.2;
+  }
+}
+
+.table--clean {
+    margin: 0;
+
+    th, td {
+        border: none;
+    }
+}
+
+.table--bordered {
+  th,
+  td {
+    border: .05rem solid @gray-light;
+  }
+}
+
+.table--striped {
+  tbody > tr:nth-child(even) > td {
+    background-color: @gray-lightest;
+  }
+  tbody > tr:nth-child(odd) > td {
+    background-color: @gray-lighter;
+  }
+}
+
+.table--hover {
+  tbody tr {
+     &:hover {
+      background-color: @gray-lighter  ;
+    }
+  }
+}
+
+.table--compact {
+  thead > tr {
+    border-bottom: .2rem solid @gray-light;
+  }
+  th,
+  td {
+    padding: .3rem;
+  }
+}
+
+.table--condensed {
+  td {
+    padding: 0;
+  }
+
+  input {                                           
+    margin: 0;
+  }
+}
+
+.table__row--no-border {
+    border: none;
+
+    td {
+        border: none;
+    }
+}
+
+.table__section-header {
+    height: 40px;
+    vertical-align: bottom;
+    font-weight: bold;
+}
+
+.table__row--border {
+    border: .05rem solid @gray-light;
+}
+
+.table__row--top-line {
+    border-top: .05rem solid @gray-light;
+}
+
+.table__row--bottom-line {
+    border-bottom: .05rem solid @gray-light;
+}
+
+.table__row--solid {
+    background-color: @gray-lightest;
+}
+
+// responsive table container
+.table-responsive {
+  overflow-x: auto;
+  width: 100%;
+
+  table {
+    margin-bottom: .5rem;
+  }
+}
+
+.table--no-top-border tr:first-child td {
+    border-top: 0;
+}

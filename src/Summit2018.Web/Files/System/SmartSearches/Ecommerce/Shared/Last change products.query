@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="bdf5e294-e009-4203-bc29-a76cb533f724" Name="Last changed products">
+  <Settings />
+  <Source Repository="Products" Item="Products.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <SortOrder>
+    <Sort Field="Updated" Direction="Descending" />
+  </SortOrder>
+  <ViewFields>
+    <Field Name="Active" SystemName="" Source="ProductActive" Sort="0" />
+    <Field Name="Product name" SystemName="" Source="ProductName" Sort="1" />
+    <Field Name="Product number" SystemName="" Source="ProductNumber" Sort="2" />
+    <Field Name="Workflow state" SystemName="" Source="ProductWorkflowStateId" Sort="3" />
+  </ViewFields>
+  <ViewLanguages />
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="WorkflowState" />
+        </Left>
+        <Right>
+          <TermExpression Value="2,3,1004,1008,1009" DisplayValue="Ready for Enrich technical details,Ready for Product manager,Ready for Marketing,Ready for Product manager,Ready for Marketing" Type="System.Int32[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Contains">
+        <Left>
+          <FieldExpression Field="IsVariant" />
+        </Left>
+        <Right>
+          <ConstantExpression Value="False" Type="System.Boolean[]" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+</Query>

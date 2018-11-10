@@ -1,0 +1,173 @@
+﻿// -----------------------------------------------------------------------------
+// Contains all styles related to the Website settings Mobile navigation section
+// -----------------------------------------------------------------------------
+
+//Main navigation
+.mobile-navigation.dw-mod {
+   .mobile-navigation-bgcolor-mixin(); 
+}
+
+.mobile-navigation-bgcolor-mixin() when not (@mobile-navigation-background-color = none) {   
+	background-color: @mobile-navigation-background-color;
+}
+
+.menu-mobile__border-bottom-mixin() when not (@mobile-navigation-border-color = none) {   
+	border-bottom-color: @mobile-navigation-border-color;
+}
+
+//Menu item specifics
+.menu-mobile__link.dw-mod,
+.mobile-navigation__link.dw-mod,
+.menu-mobile__header.dw-mod {
+    .menu-mobile__link-mixin();
+    .menu-mobile__link-color-mixin();
+}
+
+//Menu item specifics
+.menu-mobile__link.dw-mod,
+.mobile-navigation__link.dw-mod {
+    .menu-mobile__border-bottom-mixin();
+    .menu-mobile__link-align-mixin();
+}
+
+.menu-mobile__link-align-mixin() when (@mobile-navigation-text-alignment = "left") {   
+	text-align: left;
+}
+
+.menu-mobile__link-align-mixin() when (@mobile-navigation-text-alignment = "right") {   
+	text-align: right;
+}
+
+.menu-mobile__link-align-mixin() when (@mobile-navigation-text-alignment = "center") {   
+	text-align: center;
+}
+
+.menu-mobile__trigger {
+    .menu-mobile__trigger-align-mixin();
+}
+
+.menu-mobile__trigger-align-mixin() when (@mobile-navigation-text-alignment = "right") {   
+	right: 0;
+    left: .5em;
+}
+
+.menu-mobile__link-mixin() when not (@mobile-navigation-font-family-family = none) {   
+	font-family: @mobile-navigation-font-family-family;
+}
+
+.menu-mobile__link-mixin() when not (@mobile-navigation-font-size = none) {   
+	font-size: unit(@mobile-navigation-font-size, px);
+}
+
+.menu-mobile__link-mixin() when not (@mobile-navigation-font-family-weight = none) {   
+	font-weight: ~'@{mobile-navigation-font-family-weight}';
+}
+
+.menu-mobile__link-mixin() when not (@mobile-navigation-line-height = none) {   
+	line-height: unit(@mobile-navigation-line-height, em);
+}
+
+.menu-mobile__link-color-mixin() when not (@mobile-navigation-font-color = none) {   
+	color: @mobile-navigation-font-color;
+}
+
+.menu-mobile__link-mixin() when not (@mobile-navigation-casing = "none") {   
+	text-transform: ~'@{mobile-navigation-casing}';
+}
+
+.menu-mobile__font--color-mixin() when not (@mobile-navigation-font-color = none) {   
+    color: @mobile-navigation-font-color;
+}
+
+.menu-mobile__border--color-mixin() when not (@mobile-navigation-font-color = none) {   
+    border-color: @mobile-navigation-font-color;
+}
+
+.mobile-navigation.dw-mod div.btn.dw-mod, 
+.mobile-navigation.dw-mod label.btn.dw-mod,
+.mobile-navigation.dw-mod .circle-icon-btn.dw-mod,
+.menu-mobile__link--closed:before {
+    .menu-mobile__font--color-mixin();
+}
+
+.mobile-navigation.dw-mod .circle-icon-btn.dw-mod:after {
+    .menu-mobile__border--color-mixin();
+}
+
+.mobile-navigation__link.dw-mod {
+    &:hover,
+    &:focus,
+    &:active {
+        .menu-mobile__link--active-mixin()
+    }
+}
+
+.menu-mobile__link--active.dw-mod:not(.is-submenu), 
+.menu-mobile__link.dw-mod:hover:not(.is-submenu), 
+.menu-mobile__link.dw-mod:focus:not(.is-submenu), 
+.menu-mobile__link.dw-mod:active:not(.is-submenu) {
+    .menu-mobile__link--active-mixin();
+} 
+
+.menu-mobile__link--active-mixin() when not (@mobile-navigation-active-background-color = none) {   
+	background-color: @mobile-navigation-active-background-color;
+}
+
+.menu-mobile__link--active-mixin() when not (@mobile-navigation-active-border-color = none) {
+    border-bottom-color: @mobile-navigation-active-border-color;
+}
+
+.menu-mobile__link--active.dw-mod, 
+.menu-mobile__link.dw-mod,
+.menu-mobile__header.dw-mod,
+.menu-mobile__link--highlighted.dw-mod {
+    &:hover,
+    &:focus,
+    &:active {
+        .menu-mobile__link--active-mixin();
+    }
+} 
+
+.menu-mobile__header.dw-mod,
+.menu-mobile__link--highlighted.dw-mod {
+    .menu-mobile__link--active-mixin();
+}
+
+.menu-mobile__link--active-mixin() when not (@mobile-navigation-active-font-color = none) {   
+	color: @mobile-navigation-active-font-color;
+}
+
+/* slides design */
+
+.menu-mobile__submenu-mixin() when (@mobile-navigation-design = "Slides") {   
+	position: absolute;
+    left: @mobile-navigation-width;
+    top: 0;
+    bottom: 0;
+    z-index: 1;
+    transition: all 0.25s ease-in-out;
+    display: block;
+    
+    .expand-trigger:checked ~ & {
+        left: 0;
+    }
+}
+
+.menu-mobile__submenu {
+    .menu-mobile__submenu-mixin();
+    .mobile-navigation-bgcolor-mixin();
+}
+
+.menu-mobile__trigger-mixin() when (@mobile-navigation-design = "Slides") {  
+    content: "\f105"; //fa-angle-right
+    margin: -3px auto 1px;
+}
+
+.menu-mobile__trigger:before {
+    .menu-mobile__link-color-mixin();
+}
+
+.menu-mobile__trigger:before,
+.expand-trigger:checked ~ .menu-mobile__link__wrap .menu-mobile__trigger:before {
+    .menu-mobile__trigger-mixin();
+}

@@ -1,0 +1,78 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@{
+    string pageId = GetGlobalValue("Global:Page.ID");
+}
+
+<div class="grid grid--justify-center">
+    <div class="grid__col-md-6 grid__col--bleed">
+        <h2 class="u-no-margin u-margin-bottom">@Translate("Create user account")</h2>
+
+        <form name="UserManagementEditForm" id="UserManagementEditForm" method="post" action="/Default.aspx?ID=@pageId">
+            <input type="hidden" name="UserManagementForm" value="1">
+
+            <div class="form__field-group dw-mod">
+                <label for="UserManagement_Form_Name">@Translate("Name", "Name")</label>
+                <input type="text" class="u-full-width" name="UserManagement_Form_Name" id="UserManagement_Form_Name" value="@GetString("UserManagement:User.Name")" required />
+            </div>
+            <div class="field-error dw-mod">@GetString("UserManagement:User.Name.Input.Error")</div>
+
+            <div class="form__field-group dw-mod">
+                <label for="UserManagement_Form_Email">@Translate("Email") (@Translate("Username"))</label>
+                <input type="email" class="u-full-width" name="UserManagement_Form_Email" id="UserManagement_Form_Email" value="@GetString("UserManagement:User.Email")" required />
+            </div>
+            <div class="field-error dw-mod">@GetString("UserManagement:User.Email.Input.Error")</div>
+
+            <div class="form__field-group dw-mod">
+                <label for="UserManagement_Form_NewPassword">@Translate("Password", "Password")</label>
+                @GetString("UserManagement:User.NewPassword.Input").Replace("input ", "input class=\"u-full-width\"")
+            </div>
+            <div class="field-error dw-mod">@GetString("UserManagement:User.NewPassword.Input.Error")</div>
+
+            <div class="form__field-group dw-mod">
+                <label for="UserManagement_Form_NewPasswordConfirm">@Translate("Confirm password", "Confirm password")</label>
+                @GetString("UserManagement:User.NewPasswordConfirm.Input").Replace("input ", "input class=\"u-full-width\"")
+            </div>
+            <div class="field-error dw-mod">@GetString("UserManagement:User.NewPasswordConfirm.Input.Error")</div>
+
+            <div class="form__field-group dw-mod">
+                <label for="UserManagement_Form_Email">@Translate("Address", "Address")</label>
+                <input type="text" class="u-full-width" name="UserManagement_Form_Address" id="UserManagement_Form_Address" value="@GetString("UserManagement:User.Address")" />
+            </div>
+            <div class="field-error dw-mod">@GetString("UserManagement:User.Address.Input.Error")</div>
+
+            <div class="form__field-group dw-mod">
+                <label for="UserManagement_Form_Email">@Translate("Zip", "Zip")</label>
+                <input type="text" class="u-full-width" name="UserManagement_Form_Zip" id="UserManagement_Form_Zip" value="@GetString("UserManagement:User.Zip")" />
+            </div>
+            <div class="field-error dw-mod">@GetString("UserManagement:User.Zip.Input.Error")</div>
+
+            <div class="form__field-group dw-mod">
+                <label for="UserManagement_Form_Email">@Translate("City", "City")</label>
+                <input type="text" class="u-full-width" name="UserManagement_Form_City" id="UserManagement_Form_City" value="@GetString("UserManagement:User.City")" />
+            </div>
+            <div class="field-error dw-mod">@GetString("UserManagement:User.City.Input.Error")</div>
+
+            <div class="form__field-group dw-mod">
+                <label for="UserManagement_Form_Email">@Translate("Country", "Country")</label>
+                    
+                <select name="UserManagement_Form_Country" id="UserManagement_Form_Country" class="u-full-width">
+                    @foreach (LoopItem country in GetLoop("UserManagement.CountryList"))
+                    {
+                        string selected = GetString("UserManagement:User.Country") == country.GetString("Country.Code2") ? "selected" : "";
+                        <option value="@country.GetString("Country.Code2")" @selected>@country.GetString("Country.Name")</option>
+                    }
+                </select>
+            </div>
+            <div class="field-error dw-mod">@GetString("UserManagement:User.Country.Input.Error")</div>
+
+            <div class="form__field-group dw-mod">
+                <label for="UserManagement_Form_Email">@Translate("Phone", "Phone")</label>
+                <input type="text" class="u-full-width" name="UserManagement_Form_Phone" id="UserManagement_Form_Phone" value="@GetString("UserManagement:User.Phone")" />
+            </div>
+            <div class="field-error dw-mod">@GetString("UserManagement:User.Phone.Input.Error")</div>
+
+            <button type="submit" class="btn btn--primary dw-mod" id="submitter" onclick="Buttons.LockButton(event)">@Translate("Create your new account")</button>
+        </form>
+    </div>
+</div>

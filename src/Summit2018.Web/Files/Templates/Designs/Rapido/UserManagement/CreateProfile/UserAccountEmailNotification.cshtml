@@ -1,0 +1,61 @@
+﻿@inherits RazorTemplateBase<RazorTemplateModel<Template>>
+@using Dynamicweb.Rendering;
+@MasterPageFile("../../EmailMaster.cshtml")
+@Include("../../EmailHelpers.cshtml")
+
+<table bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="500" id="emailBody">
+    @RenderHeaderSection()
+    @RenderMessage()
+    @RenderFooterSection()
+</table>
+
+@* CONTENT HELPERS *@
+
+@helper RenderHeaderSection()
+{
+    @RenderHeaderImage();
+}
+
+@helper RenderMessage()
+{
+    string resultUserName = "",
+           firstName = GetString("UserManagement:User.FirstName"),
+           lastName = GetString("UserManagement:User.LastName"),
+           name = GetString("UserManagement:User.Name");
+
+    if (!string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName))
+    {
+        resultUserName = " " + firstName + " " + lastName;
+    }
+    else if (!string.IsNullOrEmpty(firstName))
+    {
+        resultUserName = " " + firstName;
+    }
+    else if (!string.IsNullOrEmpty(name))
+    {
+        resultUserName = " " + name;
+    }
+    else
+    {
+        resultUserName = "";
+    }
+
+    string website = Dynamicweb.Context.Current.Request.Url.Scheme + "://" + GetGlobalValue("Global:Request.Host"),
+           loginPage = website + "/Default.aspx?Id=" + GetPageIdByNavigationTag("SignInPage").ToString(),
+           contactUsPage = website + "/Default.aspx?Id=" + GetPageIdByNavigationTag("ContactUsPage").ToString();
+
+    Column message = new Column();
+    message.header = Translate("Welcome");
+    message.subheader = Translate("Your user account is activated.");
+    message.text.Add("");
+    message.text.Add(Translate("Hi") + resultUserName + ", ");
+    message.text.Add("");
+    message.text.Add(Translate("You've activated your user account with the user name") + " " + GetString("UserManagement:User.UserName") + ". " + Translate("Click the button below to login at") + " " + website + ".");
+    @CreateRow(message);
+
+    @RenderButton(loginPage, Translate("Login"));
+
+    Column messageEnd = new Column();
+    messageEnd.text.Add(Translate("If you have any questions about your account or other matters, please") + " <a href='" + contactUsPage + "' title='" + Translate("Contact us") + "'>" + Translate("contact us") + "</a>.");
+    @CreateRow(messageEnd);
+}

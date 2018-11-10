@@ -1,0 +1,208 @@
+// -----------------------------------------------------------------------------
+// Contains all styles related to the mobile part of the site/application.
+// -----------------------------------------------------------------------------
+
+html, body {
+    overflow-x: hidden; //fix for fixed mobile menu
+}
+
+//Navigation trigger
+.mobile-nav-trigger {
+    visibility: hidden;
+    position: absolute;
+}
+
+.mobile-nav-trigger-off {
+    display: none;
+    background-color: rgba(0,0,0,0.3);
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    z-index: @z-index-9;
+    left: 0;
+    top: 0;
+}
+
+
+
+.mobile-nav-trigger--left:checked ~ .mobile-navigation {
+    left: 0;
+}
+
+.mobile-nav-trigger--left:checked ~ .site {
+    left: @mobile-navigation-width;
+}
+
+.mobile-nav-trigger--right:checked ~ .mobile-navigation {
+    right: 0;
+}
+
+.mobile-nav-trigger--right:checked ~ .site {
+    right: @mobile-navigation-width;
+}
+
+.mobile-nav-trigger:checked ~ .mobile-nav-trigger-off  {
+    display: block;
+}
+
+.mobile-nav-trigger-button:before {
+    font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
+    font-weight: 900;
+    content: "\f0c9";
+    color: inherit;
+    cursor: pointer;
+}
+
+
+//Navigation
+.mobile-navigation--right {
+    right: -@mobile-navigation-width;
+}
+
+.mobile-navigation--left {
+    left: -@mobile-navigation-width;
+}
+
+.mobile-navigation {
+	width: @mobile-navigation-width;
+	position: fixed;
+	top: 0;
+	z-index: @z-index-top;
+	box-shadow: 0 0 10px rgba(51,51,51,.38);
+	transition: left 0.2s;
+	height: 100%;
+	overflow: auto;
+	overflow-x: hidden;
+    background: white;
+}
+
+.menu-mobile {
+    width: 100%;
+    list-style: none;
+    margin: 0;
+    white-space: nowrap;
+}
+
+.menu-mobile__item {
+    width: 100%;
+    padding: 0;
+    margin: 0;
+    color: @font-color;
+    transition: all 0.2s;
+} 
+
+.menu-mobile__link,
+.menu-mobile__header {
+    display: block;
+    text-decoration: none;
+    white-space: normal;
+    padding: @reflex-cell-spacing-md @reflex-cell-spacing-lg;
+    font-size: @font-size;
+    color: @font-color;
+    cursor: pointer;
+    margin-bottom: 0;
+    border-bottom: 1px solid @gray-lighter;
+}
+
+.menu-mobile__link:hover {
+    background-color: @gray-lightest;
+}
+
+.menu-mobile__link.u-ta-right {
+    padding-right: 40px;
+}
+
+.menu-mobile-level(@level) {
+    .menu-mobile__link--level-@{level} {
+        padding-left: @reflex-cell-spacing-md * @level + 1;
+    }
+}
+
+.menu-mobile-level(1);
+.menu-mobile-level(2);
+.menu-mobile-level(3);
+.menu-mobile-level(4);
+.menu-mobile-level(5);
+.menu-mobile-level(6);
+.menu-mobile-level(7);
+.menu-mobile-level(8);
+
+.menu-mobile__link--active {
+    background-color: @gray-lightest;
+}
+
+.menu-mobile__link--highlighted {
+    background-color: @gray-lightest;
+}
+
+.menu-mobile__link-icon {
+    width: 18px;
+    text-align: center;
+    margin-right: 5px;
+}
+
+.menu-mobile__submenu {
+    display: none;
+
+    .expand-trigger:checked ~ & {
+        display: block;
+    }
+
+    .menu-mobile__item--open > & {
+        display: inline-block;
+    }
+}
+
+.menu-mobile__link__wrap {
+    position: relative;
+}
+
+.menu-mobile__trigger {
+    position: absolute;
+    right: .5em;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 0; 
+      
+    &::before {
+        line-height: inherit;
+        font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
+        font-weight: 900;
+        content: "\f067"; //fa-plus
+        display: inline-block;
+        color: @font-color;
+        margin: 0 auto;
+
+        .expand-trigger:checked ~ .menu-mobile__link__wrap & {
+            content: "\f068"; //fa-minus
+        }
+    }
+}
+
+.expand-trigger {
+    top: 0;
+    //without it menu will have small gap in the bottom of the screen
+}
+
+/* extra */
+.menu-mobile__trigger.menu-mobile__trigger--back {
+    left: .1em;
+    right: unset;
+
+    &::before {
+        margin: -3px auto 1px;
+        content: "\f104"; //fa-angle-left
+    }
+}
+
+.menu-mobile__trigger--back + .menu-mobile__link {
+    padding-left: 30px;
+}
+
+.menu-mobile__header {
+    text-align: center;
+    cursor: default;
+}

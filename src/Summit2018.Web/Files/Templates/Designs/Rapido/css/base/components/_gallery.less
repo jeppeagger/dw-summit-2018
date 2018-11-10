@@ -1,0 +1,145 @@
+//Gallery images
+
+
+//The gallery/main view
+.gallery {
+    position: relative;
+    width: 100%;
+    cursor: pointer;
+} 
+
+.gallery__main-image {
+    display: block;
+    background-color: @gray-lighter;
+} 
+
+.gallery__image-counter {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    display: block;
+    color: @white;
+    background-color: rgba(0, 0, 0, 0.8);
+    width: 120px;
+    padding: @reflex-cell-spacing-lg;
+} 
+
+.gallery__image-counter__number{
+    font-size: 24px;
+    margin: 0 @reflex-cell-spacing-md;
+}
+
+.gallery__image-counter__text {
+    display: block;
+    margin: @reflex-cell-spacing-md 0;
+}
+
+
+//The slider
+.gallery-slider {
+    position: relative;
+    font-size: @font-size--md;
+}
+
+.gallery-slider__image {
+
+}
+
+.gallery-slider__image-counter {
+    position: absolute;
+    top: 0;
+    left: 0;
+    color: @white;
+    font-family: Arial, Helvetica, sans-serif;
+    font-size: @font-size--md;
+    font-weight: bold;
+    margin: @reflex-cell-spacing-lg;
+    padding: 5px;
+    background: rgba(0,0,0,0.5);
+}
+
+.gallery-slider__close-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: @reflex-cell-spacing-lg;
+    cursor: pointer;
+    border-radius: 30px;
+    width: 30px;
+    height: 30px;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.gallery-slider__close-btn:before {
+    font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
+    font-weight: 900;
+    content: '\f00d';
+    font-size: 18px;
+    line-height: 18px;
+    color: @white;
+}
+
+.gallery-slider__previous-btn {
+    position: absolute;
+    top: ~"calc(50% - 20px)";
+    left: 0;
+    margin: @reflex-cell-spacing-lg;
+    background-color: rgba(0,0,0,0.5);
+    border-radius: 0;
+    border: none;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 4px;
+}
+
+.gallery-slider__previous-btn:before {
+    font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
+    font-weight: 900;
+    content: '\f053';
+    font-size: 18px;
+    line-height: 18px;
+    color: @white;
+}
+
+.gallery-slider__next-btn {
+    position: absolute;
+    top: ~"calc(50% - 20px)";
+    right: 0;
+    margin: @reflex-cell-spacing-lg;
+    background-color: rgba(0,0,0,0.5);
+    border-radius: 0;
+    border: none;
+    cursor: pointer;
+    width: 40px;
+    height: 40px;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-right: 4px;
+}
+
+.gallery-slider__next-btn:before {
+    font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
+    font-weight: 900;
+    content: '\f054';
+    font-size: 18px;
+    line-height: 18px;
+    color: @white;
+}
+
+.gallery-slider__previous-btn,
+.gallery-slider__next-btn,
+.gallery-slider__close-btn {
+    &:focus {
+        outline: none;
+    }
+}

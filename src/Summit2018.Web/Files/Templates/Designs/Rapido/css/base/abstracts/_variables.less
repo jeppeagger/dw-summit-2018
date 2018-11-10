@@ -1,0 +1,151 @@
+// -----------------------------------------------------------------------------
+// This file contains all application-wide Less variables.
+// -----------------------------------------------------------------------------
+
+// Prefix
+// -------------------------
+// You can optionally reflex-prefix reflex classes to avoid clashing with other css frameworks
+// e.g. setting @reflex-prefix as "reflex-" here would cause grid__col-sm-6 to become reflex-grid__col-sm-6
+// Example: @reflex-prefix: reflex-;
+// By default this is an empty string
+@reflex-prefix: ~'';
+
+// Grid
+// -------------------------
+@reflex-columns: 12; // number of columns
+@reflex-max-width: 100%; // max-width of grid
+
+// Breakpoints
+// -------------------------
+@reflex-xs: 480px;
+@reflex-sm: 768px;
+@reflex-md: 992px;
+@reflex-lg: 1200px;
+@reflex-xlg: 1600px;
+
+@reflex-xxs-max:    (@reflex-xs - 1);
+@reflex-xs-max:     (@reflex-sm - 1);
+@reflex-sm-max:     (@reflex-md - 1);
+@reflex-md-max:     (@reflex-lg - 1);
+@reflex-lg-max:     (@reflex-xlg - 1);
+
+// Spacing
+// -------------------------
+@reflex-grid-spacing:       0.5em 0.5em;
+@reflex-cell-spacing:       0.5em;
+
+@reflex-cell-spacing-sm:    (@reflex-cell-spacing / 2);
+@reflex-cell-spacing-md:    @reflex-cell-spacing;
+@reflex-cell-spacing-lg:    (@reflex-cell-spacing * 2);
+@reflex-cell-spacing-xl:    (@reflex-cell-spacing * 4);
+
+//Globals
+@line-height:            2.4rem;
+@global-radius:          .2rem;
+@border-color:            #bbb;
+
+// Font variables
+@font-sans-serif: "Roboto", Helvetica, Arial, sans-serif;
+@font-serif:       "Merriweather", Georgia, "Times New Roman", Times, serif;
+//** Default monospace fonts for `<code>`, `<kbd>`, and `<pre>`.
+@font-monospace:   Menlo, Monaco, Consolas, "Courier New", monospace;
+@font-base:        @font-sans-serif;
+@font-color:       #222222;
+
+@font-size:                1.6rem;
+@font-size--xl:            round((@font-size) * 2, 2); // ~30px
+@font-size--lg:            round((@font-size) * 1.4, 2); // ~20px
+@font-size--md:            round((@font-size) * 1.14, 2); // ~16px
+@font-size--sm:            round((@font-size) * 0.92, 2); // ~13px
+@font-size--xs:            round((@font-size) * 0.75, 2); // ~11px
+
+
+// Gray colors for theme
+@gray-lightest:          #f6f6f6;
+@gray-lighter:           #e4e4e4;
+@gray-light:             #d3d3d3;
+@gray:                   #a8a8a8;
+@gray-dark:              #7e7e7e;
+@gray-darker:            #545454;
+@gray-darkest:           #2a2a2a;
+
+/// Main brand color
+@brand-color-one:        #545454;
+@brand-color-two:        #7e7e7e;
+@brand-color-three:      #d3d3d3;
+
+@color-primary:         @brand-color-one;
+@color-primary--dark:   darken(@color-primary, 5%);
+@color-secondary:       @brand-color-two;
+@color-tertiary:        @brand-color-three;
+
+@color-info:            #14304A;
+@color-success:         #60D200;
+@color-warning:         #EC683B;
+@color-danger:          #C3423F;
+
+@color-link:            #0085CA;
+@color-link--visited:   #9140D4;
+@color-link--hover:     darken(@color-link, 10%);
+@color-link--active:    #D44076;
+
+//Ecommerce colors
+@color-stock-in:        #60D200;
+@color-stock-not:       #C3423F;
+@color-stock-comming:   #EC683B;
+
+@color-sticker-sale:    #C3423F;
+@color-sticker-custom:  #545454;
+@color-sticker-new:     #0085CA;
+
+@white:         #ffffff;
+@yellow:        #fff176;
+
+/// Copy text color
+/// @type Color
+@text-color: rgb(34, 34, 34);
+
+// Modal sizes
+@modal-xs: 280px;
+@modal-sm: 350px;
+@modal-md: 550px;
+@modal-lg: 920px;
+
+@modal-height-xs: 100px;
+@modal-height-sm: 280px;
+@modal-height-md: 550px;
+@modal-height-lg: 920px;
+
+// Z-Index
+@z-index-0:   -1;
+@z-index-1:   10;
+@z-index-2:   20;
+@z-index-3:   30;
+@z-index-4:   40;
+@z-index-5:   50;
+@z-index-6:   60;
+@z-index-7:   70;
+@z-index-8:   80;
+@z-index-9:   90;
+@z-index-10: 100;
+@z-index-top: 10000;
+
+
+// Grid Variables
+@container-width: 1280px;
+@container-width-larger-than-mobile: 85%;
+@container-width-larger-than-phablet: 80%;
+
+// Mobile
+@mobile-navigation-width: 300px;
+
+/// Relative or absolute URL where all assets are served from
+/// @type String
+/// @example scss - When using a CDN
+/// @base-url: 'http://cdn.example.com/assets/';
+@base-url: '/assets/';
+
+//circle in media lists
+@circle-diameter: 60px;
+
+@menu-item-padding-size: 3px;

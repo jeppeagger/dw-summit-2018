@@ -1,0 +1,45 @@
+﻿@inherits RazorTemplateBase<RazorTemplateModel<Template>>
+@using Dynamicweb.Rendering;
+@MasterPageFile("../../EmailMaster.cshtml")
+@Include("../../EmailHelpers.cshtml")
+
+@CreatePreheader()
+
+<table bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="500" id="emailBody">
+    @RenderHeaderSection()
+    @RenderMessage()  
+    @RenderFooterSection()
+</table>
+
+@helper RenderHeaderSection()
+{
+    @RenderHeaderImage();
+}
+
+@helper RenderMessage()
+{
+    Column message = new Column();
+    message.header = Translate("Password recovery");
+    message.text.Add("");
+
+    if (!string.IsNullOrWhiteSpace(GetString("DWPasswordRecoveryUrl")))
+    {
+        message.text.Add(Translate("Hi") + " " + GetString("DWExtranetUsername") + ", ");
+        message.text.Add("");
+        message.text.Add(Translate("We have received a request to reset your password for your account."));
+        message.text.Add(Translate("Click on the link below to set a new password."));
+        @CreateRow(message);
+        
+        @RenderButton(GetString("DWPasswordRecoveryUrl"), "Reset password");
+
+        Column messageEnd = new Column();
+        messageEnd.text.Add(Translate("If you didn't ask to change your password, ignore this email and your password will not be changed."));
+        @CreateRow(messageEnd);
+    }
+    else
+    {
+        message.text.Add("<strong>" + Translate("Sign in") + ":</strong> " + GetString("DWExtranetUsername"));
+        message.text.Add("<strong>" + Translate("Password") + ":</strong> " + GetString("DWExtranetPassword"));
+        @CreateRow(message);
+    }
+}

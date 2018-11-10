@@ -1,0 +1,299 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.PageViewModel>
+@MasterPageFile("Master.cshtml")
+@using System.Text.RegularExpressions
+
+@*This is an example implementation of a Case template. 
+ You may want to re-configure the itemtype and adjust this template to the specific needs. *@
+
+@{ 
+    string fullBackgroundImage = "";
+    if (Model.Item.GetFile("Image") != null)
+    {
+        fullBackgroundImage = "background-image:url(/Admin/Public/GetImage.ashx?width=2500&amp;height=1100&amp;crop=0&amp;Compression=85&amp;DoNotUpscale=true&amp;image=" + Model.Item.GetFile("Image").PathUrlEncoded + ");";
+        fullBackgroundImage += " background-position: center center; background-size: cover; ";
+    }
+
+    string caseListPageId = Converter.ToString(GetPageIdByNavigationTag("CasesListFeed"));
+    string solutionTypes = "";
+    string solutionTypesValues = "";
+    string partnerLink = Model.Item.GetItem("PartnerLink") != null ? Converter.ToString(Model.Item.GetItem("PartnerLink").PageID) : ""; //This solution is wrong. We need the Item PageId here.
+
+    string cardClass = Pageview.Device.ToString() != "Tablet" ? "paragraph-card" : "";
+    string cardFooterClass = Pageview.Device.ToString() != "Tablet" ? "paragraph-card-footer" : "";
+}                                                                       
+
+    @if (fullBackgroundImage != "")
+    {
+        <section class="multiple-paragraphs-container u-color-light paragraph-container--full-width" style="@fullBackgroundImage">
+            <div class="center-container center-container--with-background-image dw-mod">
+                <div class="grid center-container--with-background-image">
+                    <div class="grid__col-md-12 grid__col-xs-12 paragraph-container paragraph-container--height-lg">
+                        <div class="u-left-middle">
+                            <div>
+                                @{
+                                    string textColor = !string.IsNullOrEmpty(Model.Item.GetString("TextColor")) ? "color:" + Model.Item.GetString("TextColor") : "";
+                                }
+                                <h1 class="article__header article__header--giant" style="@textColor">@Model.Item.GetString("BannerHeading")</h1>
+                                <div class="article__subheader article__subheader--giant" style="@textColor">@Model.Item.GetString("BannerSubheading")</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    }
+    else
+    {
+        <section class="center-container content-container dw-mod">
+            <div class="grid">
+                <div class="grid__col-12">
+                    <h1 class="article__header article__header--giant">@Model.Item.GetString("BannerHeading")</h1>
+                </div>
+            </div>
+        </section>
+    }
+
+<div class="grid article">
+    @* The descriptions *@
+    <article class="grid__col-md-8">
+        @if (!String.IsNullOrEmpty(Model.Item.GetString("Challenge")))
+        {
+            <h2 class="article__header">@Translate("Challenge")</h2>
+            <div class="article__paragraph">@Model.Item.GetString("Challenge")</div>
+        }
+
+        @if (!String.IsNullOrEmpty(Model.Item.GetString("Solution")))
+        {
+            <h2 class="article__header">@Translate("Dynamicweb as a solution")</h2>
+            <div class="article__paragraph">@Model.Item.GetString("Solution")</div>
+        }
+
+        @if (!String.IsNullOrEmpty(Model.Item.GetString("Results")))
+        {
+            <h2 class="article__header">@Translate("Results")</h2>
+            <div class="article__paragraph">@Model.Item.GetString("Results")</div>
+        }
+
+        @* Quote *@
+        @if (!String.IsNullOrEmpty(Model.Item.GetString("QuoteDescription")))
+        {
+            <div class="grid article__block">
+                @if (Model.Item.GetFile("QuoteImage") != null)
+                {
+                    <div class="grid__col-4">
+                        <div class="grid__cell-img">
+                            <img src="/Admin/Public/GetImage.ashx?width=160&amp;height=160&amp;crop=0&amp;Compression=85&amp;FillCanvas=True&amp;image=@Model.Item.GetFile("QuoteImage").PathUrlEncoded" alt="@Model.Item.GetString("QuoteAuthor")" class="article__image article__image--ball" />
+                        </div>
+                    </div>
+                }
+                <div class="grid__col-auto">
+                    <div class="article__summary u-italic">
+                        "@Model.Item.GetString("QuoteDescription")"
+                    </div>
+                    @if (!String.IsNullOrEmpty(Model.Item.GetString("QuoteAuthor")))
+                    {
+                        <div>
+                            - @Model.Item.GetString("QuoteAuthor")
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </article>
+
+    @* Customer informations *@
+    <div class="grid__col-md-4">
+        <table class="table">
+            @if (Model.Item.GetFile("CustomerLogo") != null)
+            {
+                <tr class="table__row--no-border">
+                    <td colspan="2">
+                        <div class="grid__cell">
+                            <img src="/Admin/Public/GetImage.ashx?width=280&height=80&amp;crop=5&amp;Compression=85&amp;DoNotUpscale=true&amp;image=@Model.Item.GetFile("CustomerLogo").PathUrlEncoded" alt="@Model.Item.GetString("CustomerCompanyName")" />
+                        </div>
+                    </td>
+                </tr>
+            }
+            @if (!String.IsNullOrEmpty(Model.Item.GetString("CustomerCompanyName")))
+            {
+                <tr>
+                    <td class="u-w32px"><i class="fas fa-user fa-2x u-brand-color-two"></i></td>
+                    <td>
+                        <div class="u-bold">@Translate("Client")</div>
+                        <div>@Model.Item.GetString("CustomerCompanyName")</div>
+                    </td>
+                </tr>
+            }
+            @if (!String.IsNullOrEmpty(Model.Item.GetString("CustomerLocation")))
+            {
+                <tr>
+                    <td class="u-w32px"><i class="fas fa-globe fa-2x u-brand-color-two"></i></td>
+                    <td>
+                        <div class="u-bold">@Translate("Location")</div>
+                        <div>@Model.Item.GetString("CustomerLocation")</div>
+                    </td>
+                </tr>
+            }
+            @if ((Model.Item.GetList("Industry") != null && !string.IsNullOrEmpty(Model.Item.GetList("Industry").SelectedName)) ||
+                  Model.Item.GetList("SolutionType") != null ||
+                 (Model.Item.GetList("Integration") != null && !string.IsNullOrEmpty(Model.Item.GetList("Integration").SelectedName)))
+            {
+                <tr>
+                    <td class="u-w32px"><i class="fas fa-cogs fa-2x u-brand-color-two"></i></td>
+                    <td>
+                        <div class="u-bold">@Translate("Segment")</div>
+                        <div>
+                            @{
+                                var arrayTypes = new List<string>();
+                                if (Model.Item.GetList("SolutionType") != null)
+                                {
+                                    arrayTypes.AddRange(Model.Item.GetList("SolutionType").SelectedOptions.Select(s => s.Name));
+                                    solutionTypesValues = string.Join(",", Model.Item.GetList("SolutionType").SelectedOptions.Select(s => s.Value));
+                                }
+                                if (Model.Item.GetList("Industry") != null && !string.IsNullOrEmpty(Model.Item.GetList("Industry").SelectedName))
+                                {
+                                    arrayTypes.Add(Model.Item.GetList("Industry").SelectedName);
+                                }
+                                if (Model.Item.GetList("Integration") != null && !string.IsNullOrEmpty(Model.Item.GetList("Integration").SelectedName))
+                                {
+                                    arrayTypes.Add(Model.Item.GetList("Integration").SelectedName);
+                                }
+
+                                solutionTypes = string.Join(", ", arrayTypes);
+                            }
+                            @solutionTypes
+                        </div>
+                    </td>
+                </tr>
+                                }
+            @if (!String.IsNullOrEmpty(Model.Item.GetString("CustomerWebsiteUrl")))
+            {
+                <tr>
+                    <td class="u-w32px"><i class="fas fa-desktop fa-2x u-brand-color-two"></i></td>
+                    <td>
+                        <div class="u-bold">@Translate("Website")</div>
+                        <a href="http://@Model.Item.GetString("CustomerWebsiteUrl")" target="_blank">@Model.Item.GetString("CustomerWebsiteUrl")</a>
+                    </td>
+                </tr>
+            }
+
+            @if (Model.Item.GetItem("PartnerLink") != null)
+            {
+                <tr>
+                    <td class="u-w32px"><i class="fas fa-address-card fa-2x u-brand-color-two"></i></td>
+                    <td>
+                        <div class="u-bold">@Translate("Partner")</div>
+                        <a href="/Default.aspx?ID=@partnerLink">@Model.Item.GetItem("PartnerLink").GetString("PartnerName")</a>
+                    </td>
+                </tr>
+            }
+        </table>
+    </div>
+
+    @* Images *@
+    @if (Model.Item.GetItems("Gallery") != null && Model.Item.GetItems("Gallery").Count > 0)
+    {
+        int i = 1;
+        foreach (var item in Model.Item.GetItems("Gallery"))
+        {
+            if (item.GetFile("ImagePath") != null)
+            {
+                string image = item.GetFile("ImagePath").PathUrlEncoded;
+                string imagePrefix = "/Admin/Public/GetImage.ashx?width=1200&amp;height=820&amp;crop=5&amp;Compression=75&amp;DoNotUpscale=1&amp;image=";
+                int imagesCount = Model.Item.GetItems("Gallery").Count;
+
+                if (i == 1)
+                {
+                    <div class="grid__col-md-8">
+                        <label class="gallery" for="GalleryModalTrigger" onclick="Gallery.openImage(this.querySelector('.js-gallery'))">
+                            <span class="gallery__main-image">
+                                <img src="/Admin/Public/GetImage.ashx?width=992&amp;height=760&amp;crop=0&amp;Compression=75&amp;DoNotUpscale=1&amp;image=@image" class="flex-img js-gallery" alt="" data-for="FullImage" data-image="@imagePrefix@image" />
+                            </span>
+                            <span class="gallery__image-counter">
+                                <i class="fas fa-camera fa-2x"></i> <span class="gallery__image-counter__number">@imagesCount</span>
+                                <span class="gallery__image-counter__text">@Translate("See all") <i class="fas fa-angle-right"></i></span>
+                            </span>
+                        </label>
+                    </div>
+                }
+                else
+                {
+                    <div class="u-hidden js-gallery" data-for="FullImage" data-image="@imagePrefix@image"></div>
+                }
+                i++;
+            }
+        }
+        <div class="grid__col-md-4">
+
+        </div>
+    }
+</div>
+
+<section class="multiple-paragraphs-container u-color-light-gray--bg paragraph-container--full-width">
+    <div class="center-container dw-mod">
+        <div class="grid">
+            <div class="grid__col-md-12 grid__col-xs-12 paragraph-container">                                                                                                                     
+                <h2 class="article__header u-no-margin">@Translate("Similar cases")</h2>
+            </div>
+        </div>
+
+        <div class="js-handlebars-root" id="RelatedCases" data-template="RelatedCasesTemplate" data-json-feed="/Default.aspx?ID=@caseListPageId&SolutionType=@solutionTypesValues&ExcludeCaseID=@Model.ID&PageSize=8"></div>
+    
+        <script id="RelatedCasesTemplate" type="text/x-template">
+            {{#.}}
+                <div class="grid u-no-margin">
+                    {{#Cases}}
+                        <div class="grid__col-md-3 grid__col-xs-6">
+                            <div class="@cardClass">
+                                <div class="u-margin-bottom">
+                                    <a href="{{link}}">              
+                                        <div class="layered-image {{tintedImage}}" style="{{#if image}}background-image:url(/Admin/Public/GetImage.ashx?width=450&amp;height=218&amp;crop=0&amp;Compression=75&amp;DoNotUpscale=true&amp;image={{image}}); background-size: cover;{{/if}}">
+                                            <img src="/Admin/Public/GetImage.ashx?width=240&amp;height=200&amp;crop=5&amp;Compression=75&amp;DoNotUpscale=true&amp;FillCanvas=True&amp;image={{logo}}" alt="{{title}}" class="u-padding" />
+                                        </div>
+                                    </a>
+                                </div>
+
+                                <a href="{{link}}" class="u-color-inherit u-bold u-margin-left u-margin-right">
+                                    {{title}}
+                                </a>
+
+                                <p>{{summary}}</p>
+                            </div>
+                            <div class="grid__cell-footer @cardFooterClass">
+                                <div class="grid__cell">
+                                    <div class="u-margin-top">
+                                        <a href="{{link}}" class="btn btn--secondary btn--line-height btn--full dw-mod">@Translate("Read the case")</a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    {{/Cases}}
+                </div>
+            {{/.}}
+        </script>
+    </div>
+</section>
+
+@if (Model.Item.GetItems("Gallery") != null && Model.Item.GetItems("Gallery").Count > 0)
+{
+    <!-- Trigger for the gallery modal -->
+    <input type="checkbox" id="GalleryModalTrigger" class="modal-trigger" />
+
+    <!-- Gallery modal -->
+    <div class="modal-container">
+        <label for="GalleryModalTrigger" id="GalleryModalOverlay" class="modal-overlay"></label>
+        <div class="modal modal--full" id="GalleryModal">
+            <div class="modal__body modal__body--full">
+                <div class="gallery-slider">
+                    <div class="gallery-slider__image">
+                        <img src="#" alt="" class="modal--full__img" id="FullImage" />
+                    </div>
+                    <div class="gallery-slider__image-counter" id="FullImage_counter"></div>
+                    <label class="gallery-slider__close-btn" for="GalleryModalTrigger"></label>
+                    <button class="gallery-slider__previous-btn" id="FullImage_prev" onclick="Gallery.prevImage('FullImage')"></button>
+                    <button class="gallery-slider__next-btn" id="FullImage_next" onclick="Gallery.nextImage('FullImage')"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+}

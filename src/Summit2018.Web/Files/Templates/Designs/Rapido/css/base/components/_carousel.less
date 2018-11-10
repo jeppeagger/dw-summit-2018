@@ -1,0 +1,119 @@
+.carousel {
+    position: relative;
+    overflow: hidden;
+}
+
+.carousel--hidden {
+    height: 0;
+    visibility: hidden;
+}
+
+.carousel__container {
+    position: relative;
+    left: 0;
+    z-index: 1;
+    white-space: nowrap;
+    box-sizing: border-box;
+    transition: all 0.7s ease-out;
+}
+
+
+.carousel__slide {
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    overflow: hidden;
+    vertical-align: top;
+    box-sizing: border-box;
+    white-space: normal;
+}
+
+.carousel__slide--vertical {
+    display: block;
+}
+
+.carousel-prev-btn {
+    position: absolute;
+    top: ~"calc(50% - 21px)";
+    left: @reflex-cell-spacing-lg;
+    z-index: @z-index-7;
+    color: @white;
+    margin: @reflex-cell-spacing-lg;
+    background-color: rgba(0,0,0,0.5);
+    border-radius: 200px;
+    border: none;
+    width: 42px;
+    height: 42px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.carousel-prev-btn:before {
+    font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
+    font-weight: 900;
+    content: '\f053';
+    font-size: 22px;
+    width: 18px;
+    text-align: center;
+}
+
+.carousel-next-btn {
+    position: absolute;
+    top: ~"calc(50% - 21px)";
+    right: @reflex-cell-spacing-lg;
+    z-index: @z-index-7;
+    color: @white;
+    margin: @reflex-cell-spacing-lg;
+    background-color: rgba(0,0,0,0.5);
+    border-radius: 200px;
+    border: none;
+    width: 42px;
+    height: 42px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding-left: 4px;
+}
+
+.carousel-next-btn:before {
+    font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
+    font-weight: 900;
+    content: '\f054';
+    position: relative;
+    font-size: 22px;
+}
+
+.carousel-prev-btn--vertical {
+    top: @reflex-cell-spacing-md;
+    left: ~"calc(50% - 19px)";
+    width: 32px;
+    height: 32px;
+    margin: @reflex-cell-spacing-sm;
+}
+
+.carousel-prev-btn--vertical:before {
+    content: '\f077';
+    font-size: 16px;
+    line-height: 16px;
+    height: 18px;
+}
+
+.carousel-next-btn--vertical {
+    top: auto;
+    bottom: @reflex-cell-spacing-md;
+    right: ~"calc(50% - 19px)";
+    width: 32px;
+    height: 32px;
+    margin: @reflex-cell-spacing-sm;
+    padding-left: 0;
+}
+
+.carousel-next-btn--vertical:before {
+    content: '\f078';
+    font-size: 16px;
+    line-height: 16px;
+    height: 15px;
+}

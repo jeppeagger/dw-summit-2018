@@ -1,0 +1,434 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@functions{
+    BlocksPage reviewOrderCheckoutPage = BlocksPage.GetBlockPage("CheckoutPage");
+    int cartOrderlinesFeedPageId;
+    string pageId;
+}
+
+@{ 
+    string reviewOrderType = checkoutPageType != null ? checkoutPageType : "onestep"; //The "checkoutPageType" comes from the main template for the cart page
+    pageId = GetGlobalValue("Global:Page.ID");
+    cartOrderlinesFeedPageId = GetPageIdByNavigationTag("CartOrderlinesFeed");
+
+    Block reviewOrderBlock = new Block()
+    {
+        Id = "ReviewOrder",
+        SortId = 50,
+        Template = RenderReviewOrder(),
+        SkipRenderBlocksList = true
+    };
+    reviewOrderCheckoutPage.Add("OrderContainerRow", reviewOrderBlock);
+
+    if (reviewOrderType == "onestep")
+    {
+        Block inlineAcceptanceBlock = new Block()
+        {
+            Id = "Acceptance",
+            SortId = 10,
+            Template = RenderInlineAcceptance()
+        };
+        reviewOrderCheckoutPage.Add("ReviewOrder", inlineAcceptanceBlock);
+
+        Block reviewOrderFooterBlock = new Block()
+        {
+            Id = "ReviewOrderFooter",
+            SortId = 20,
+            Template = RenderReviewOrderFooter()
+        };
+        reviewOrderCheckoutPage.Add("ReviewOrder", reviewOrderFooterBlock);
+    }
+
+    if (reviewOrderType == "quote")
+    {
+        Block reviewOrderFooterBlock = new Block()
+        {
+            Id = "ReviewOrderFooter",
+            SortId = 20,
+            Template = RenderReviewOrderFooterQuote()
+        };
+        reviewOrderCheckoutPage.Add("ReviewOrder", reviewOrderFooterBlock);
+    }
+
+    Block reviewOrderScriptTemplates = new Block()
+    {
+        Id = "ReviewOrderScriptTempaltes",
+        SortId = 30,
+        Template = RenderReviewOrderScriptTemplates()
+    };
+    reviewOrderCheckoutPage.Add("CheckoutBottomSnippets", reviewOrderScriptTemplates);
+
+    Block reviewOrderScripts = new Block()
+    {
+        Id = "ReviewOrderScripts",
+        SortId = 40,
+        Template = RenderOrderScripts()
+    };
+    reviewOrderCheckoutPage.Add("CheckoutBottomSnippets", reviewOrderScripts);
+}
+
+@helper RenderReviewOrder() {
+    cartOrderlinesFeedPageId = GetPageIdByNavigationTag("CartOrderlinesFeed");
+
+    <div class="grid__col-12">
+        <div class="js-handlebars-root" id="Cart" data-template="CartContent" data-cart-id="@cartOrderlinesFeedPageId" data-json-feed="/Default.aspx?ID=@cartOrderlinesFeedPageId" data-preloader="overlay"></div>
+    </div>
+}
+
+@helper RenderReviewOrderScriptTemplates() { 
+    List<Block> subBlocks = reviewOrderCheckoutPage.GetBlockListById("ReviewOrder").OrderBy(item => item.SortId).ToList();
+
+    bool pointShop = !String.IsNullOrEmpty(Pageview.AreaSettings.GetItem("Ecommerce").GetString("PointShopOnly")) ? Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("PointShopOnly") : false;
+    int quotesCartPageId = GetPageIdByNavigationTag("QuotesCartPage");    
+    bool useGoogleTagManager = !string.IsNullOrEmpty(Pageview.AreaSettings.GetItem("Settings").GetString("GoogleTagManagerID"));
+
+    @* Template for when the cart is empty *@
+    <script id="EmptyCart" type="text/x-template">
+        @Translate("You have no items in the cart")
+    </script>
+
+    @* Template for the cart *@
+    <script id="CartContent" type="text/x-template">
+        {{#.}}
+        @if (useGoogleTagManager)
+        {
+            <text>{{{googleEnchantImpressionEmptyCart OrderLines}}}</text>
+        }
+        <div class="card-header u-color-light--bg dw-mod">
+            <h3><i class="fas fa-list-ul"></i> @Translate("Review order") ({{numberofproducts}})</h3>
+        </div>
+        <div class="card u-color-light--bg u-no-padding--xs dw-mod">
+            <div class="{{isempty}}">
+                <table class="table cart-table dw-mod">
+                    <tbody id="OrderLines">
+                        {{#OrderLines}}
+                            {{#ifCond template "===" "CartOrderline"}}
+                                {{>CartOrderline}}
+                            {{/ifCond}}
+                            {{#ifCond template "===" "CartOrderlineMobile"}}
+                                {{>CartOrderlineMobile}}
+                            {{/ifCond}}
+                            {{#ifCond template "===" "CartOrderlineDiscount"}}
+                                {{>CartOrderlineDiscount}}
+                            {{/ifCond}}
+                        {{/OrderLines}}
+                    </tbody>
+                </table>
+            </div>
+            <div class="grid u-border-top">
+                <div class="grid__col-sm-6">
+                    @if (Dynamicweb.Security.Licensing.LicenseManager.LicenseHasFeature("LoyaltyPoints") && !string.IsNullOrWhiteSpace(GetGlobalValue("Global:Extranet.UserName")))
+                    {
+                        <text>
+                            {{#if userPoints}}
+                                <div class="u-border u-border-color--loyalty-points u-padding--lg u-full-height">
+                                    <h3 class="u-no-margin">@Translate("Your point balance")</h3>
+                                    <div class="u-font-size--lg u-margin-bottom">
+                                        <span class="u-color--loyalty-points">{{userPoints}}</span> @Translate("points")
+                                    </div>
+                                    <div>@Translate("On this order you will use"): <span class="u-color--loyalty-points">{{pointsUsedInCart}}</span> @Translate("points")</div>
+                                </div>
+                            {{/if}}
+                        </text>
+                    }
+                </div>
+
+                <div class="grid__col-sm-6">
+                    @if (!pointShop)
+                    {
+                        <div class="{{hideSubTotal}}">
+                            <div class="cart-summary__subtotals dw-mod">@Translate("Subtotal")</div>
+                            <div class="cart-summary__subtotals u-pull--right dw-mod">{{subtotalprice}}</div>
+                        </div>
+                        <div class="{{hidePaymentfee}}">
+                            <div class="cart-summary__info dw-mod"><i class="fas fa-credit-card"></i> {{paymentmethod}}</div>
+                            <div class="cart-summary__info u-pull--right dw-mod">{{paymentfee}}</div>
+                        </div>
+                    }
+                    <div class="{{hideShippingfee}}">
+                        <div class="cart-summary__info dw-mod"><i class="fas fa-truck"></i> {{shippingmethod}}</div>
+                        <div class="cart-summary__info u-pull--right dw-mod">{{shippingfee}}</div>
+                    </div>
+                    @if (!pointShop)
+                    {
+                        <div>
+                            <div class="cart-summary__info dw-mod">@Translate("VAT")</div>
+                            <div class="cart-summary__info u-pull--right dw-mod">{{totalvat}}</div>
+                        </div>
+                    }
+                    @if (Pageview.User != null && Dynamicweb.Security.Licensing.LicenseManager.LicenseHasFeature("LoyaltyPoints"))
+                    {
+                    <text>
+                        {{#if earnings}}
+                        <div>
+                            <div class="cart-summary__info dw-mod">@Translate("Earnings")</div>
+                            <div class="cart-summary__info u-pull--right dw-mod"><span class="u-color--loyalty-points">{{earnings}}</span> @Translate("points")</div>
+                        </div>
+                        {{/if}}
+                    </text>
+                    }
+                    <div class="cart-summary__totals-container dw-mod">
+                        <div class="cart-summary__totals dw-mod">@Translate("Total")</div>
+                        <div class="cart-summary__totals u-pull--right dw-mod">
+                            @if (pointShop)
+                            {
+                            <span class="u-color--loyalty-points">{{pointsUsedInCart}}</span> @Translate("points")
+                            }
+                            else
+                            {
+                            <text>{{totalprice}}</text>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid">
+                <div class="grid__col-12 grid__col--line-top"></div>
+            </div>
+
+            <div class="grid__cell u-padding--xs {{hideComment}}">
+                <textarea rows="3" class="u-full-width" placeholder="@Translate("Enter comment")" name="EcomOrderCustomerComment" id="EcomOrderCustomerComment">{{comment}}</textarea>
+            </div>
+
+            @foreach (LoopItem error in GetLoop("ValidationErrors"))
+            {
+                <div class="error-block">@error.GetString("Ecom:Cart.ValidationError.ErrorMessage")</div>
+            }
+
+            @RenderBlockList(subBlocks)
+        </div>
+        {{/.}}
+    </script>
+
+    @* Template for the orderlines *@
+    <script id="CartOrderline" type="text/x-template">
+        <tr id="Orderline{{id}}" class="cart-orderline {{isempty}}">
+            <td class="cart-orderline__cell cart-table__image u-hidden-xs u-hidden-xxs dw-mod"><div class="cart-orderline__cell__block {{hideimage}} dw-mod"><img src="/Admin/Public/GetImage.ashx?width=60&height=60&crop=5&Compression=75&image={{image}}" alt="{{name}} {{variantname}}"></div></td>
+            <td class="cart-orderline__cell dw-mod" title="{{name}} {{variantname}}">
+                <a href="{{link}}" class="u-color-inherit cart-orderline__name">{{name}}</a>
+                <div class="cart-orderline__cell__block item-number dw-mod">#{{productnumber}}</div>
+                {{#if variantname}}
+                <div class="cart-orderline__cell__block item-number dw-mod">{{variantname}}</div>
+                {{/if}}
+                {{#if unitname}}
+                <div class="cart-orderline__cell__block item-number dw-mod">{{unitname}}</div>
+                {{/if}}
+            </td>
+            <td class="cart-orderline__cell u-ta-right u-hidden-xs u-hidden-xxs dw-mod" width="120">
+                {{#if pointsTotal}}
+                <span class="u-color--loyalty-points">{{pointPrice}}</span> @Translate("points")
+                {{else}}
+                {{unitprice}}
+                {{/if}}
+            </td>
+
+            @if (!Dynamicweb.Ecommerce.Common.Context.Cart.IsQuote)
+            {
+                <td class="cart-orderline__cell u-ta-right dw-mod" width="80"><input class="u-w80px u-no-margin" id="Quantity_{{orderLineId}}" type="number" min="1" onchange="Cart.ChangeQuantity('@cartOrderlinesFeedPageId', '{{orderLineId}}', this.value)" name='QuantityOrderLine{{orderLineId}}' value="{{quantity}}"></td>
+                <td class="cart-orderline__cell u-ta-left dw-mod" width="50"><button type="button" class="btn btn--clean btn--condensed u-no-margin" onclick="{{removeFromCartGoogleImpression}}; Cart.UpdateCart('Cart', '/Default.aspx?ID=@cartOrderlinesFeedPageId', '&CartCmd=DelOrderLine&key={{orderLineId}}', true);"><i class="fas fa-times"></i></button></td>
+            }
+            else
+            {
+                <td class="cart-orderline__cell u-ta-right dw-mod" width="80">
+                    <input id="Quantity_{{orderLineId}}" type="hidden" name='QuantityOrderLine{{orderLineId}}' value="{{quantity}}">
+                    <div class="u-w80px u-no-margin">{{quantity}}</div>
+                </td>
+            }
+
+            <td class="cart-orderline__cell u-ta-right dw-mod">
+                {{#if pointsTotal}}
+                <span class="u-color--loyalty-points">{{pointsTotal}}</span> @Translate("points")
+                {{else}}
+                <div>{{totalprice}}</div>
+                {{/if}}
+                {{#if canBePurchasedWithPoints}}
+                <button type="button" onclick="Cart.BuyForPoints('@pageId', '@cartOrderlinesFeedPageId', '{{orderLineId}}', '{{id}}', '{{variantId}}');" class="btn btn--loyalty-points dw-mod btn--sm u-no-margin" title="@Translate("Use") {{pointPrice}} @Translate("points")"><i class="far fa-tag"></i> @Translate("Use") {{pointPrice}} @Translate("points")</button>
+                {{/if}}
+            </td>
+        </tr>
+        <tr class="{{hideBomItems}}">
+            <td class="cart-table__image u-hidden-xs u-hidden-xxs dw-mod"><div class="{{hideimage}}"></div></td>
+            <td colspan="5" class="u-no-padding">
+                <table class="u-no-margin u-color-light-gray--bg">
+                    <tbody>
+                        {{#BomItems}}
+                        <tr>
+                            <td class="cart-table__image u-hidden-xs u-hidden-xxs dw-mod"><img src="/Admin/Public/GetImage.ashx?width=60&height=60&crop=5&Compression=75&image={{image}}" alt="{{name}} {{variantname}}"></td>
+                            <td title="{{name}} {{variantname}}">
+                                <a href="{{link}}" class="u-color-inherit dw-mod">{{name}}</a>
+                                <div class="item-number dw-mod">#{{productnumber}}</div>
+                                {{#if variantname}}
+                                <div class="item-number dw-mod">{{variantname}}</div>
+                                {{/if}}
+                                {{#if unitname}}
+                                <div class="item-number dw-mod">{{unitname}}</div>
+                                {{/if}}
+                            </td>
+                            <td class="u-hidden-xs u-hidden-xxs">&nbsp;</td>
+                            <td>{{quantity}}</td>
+                            <td>&nbsp;</td>
+                            <td class="cart-table__price u-ta-right dw-mod">&nbsp;</td>
+                        </tr>
+                        {{/BomItems}}
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </script>
+
+    <script id="CartOrderlineMobile" type="text/x-template">
+        <tr id="Orderline{{id}}" class="{{isempty}}">
+            <td class="cart-table__image dw-mod"><div class="{{hideimage}}"><img src="/Admin/Public/GetImage.ashx?width=60&height=60&crop=5&Compression=75&image={{image}}" alt="{{name}} {{variantname}}"></div></td>
+            <td title="{{name}} {{variantname}}" colspan="4">
+                <a href="{{link}}" class="u-color-inherit">{{name}}</a>
+                <div>#{{productnumber}}</div>
+                {{#if variantname}}
+                <div>{{variantname}}</div>
+                {{/if}}
+                {{#if unitname}}
+                <div>{{unitname}}</div>
+                {{/if}}
+            </td>
+        </tr>
+        <tr class="{{isempty}} table__row--no-border">
+            <td class="cart-table__image dw-mod"></td>
+            <td colspan="4">
+                <div class="u-pull--left">
+                    <input class="u-w80px u-no-margin" id="Quantity_{{orderLineId}}" type="number" min="1" onchange="Cart.ChangeQuantity('@cartOrderlinesFeedPageId', '{{orderLineId}}', this.value)" name='QuantityOrderLine{{orderLineId}}' value="{{quantity}}">
+                    <span><button type="button" class="btn btn--clean btn--condensed u-no-margin" onclick="{{removeFromCartGoogleImpression}}; Cart.UpdateCart('Cart', '/Default.aspx?ID=@cartOrderlinesFeedPageId', '&CartCmd=DelOrderLine&key={{orderLineId}}', true);"><i class="fas fa-times"></i></button></span>
+                </div>
+                <div class="u-pull--right u-ta-right">
+                    {{#if pointsTotal}}
+                    <span class="u-color--loyalty-points">{{pointsTotal}}</span> @Translate("points")
+                    {{else}}
+                    <div>{{totalprice}}</div>
+                    {{/if}}
+                    {{#if canBePurchasedWithPoints}}
+                    <button type="button" onclick="Cart.BuyForPoints('@pageId', '@cartOrderlinesFeedPageId', '{{orderLineId}}', '{{id}}', '{{variantId}}');" class="btn btn--loyalty-points dw-mod btn--sm u-no-margin" name="CartCmd" value="addWithPoints" title="@Translate("Use") {{pointPrice}} @Translate("points")"><i class="far fa-tag"></i> @Translate("Use") {{pointPrice}} @Translate("points")</button>
+                    {{/if}}
+                </div>
+            </td>
+        </tr>
+        <tr class="{{hideBomItems}}">
+            <td colspan="6" class="u-no-padding">
+                <table class="u-no-margin u-color-light-gray--bg">
+                    <tbody>
+                        {{#BomItems}}
+                        <tr>
+                            <td class="cart-table__image u-hidden-xs u-hidden-xxs dw-mod"><img src="/Admin/Public/GetImage.ashx?width=120&height=120&crop=5&Compression=75&image={{image}}" alt="{{name}} {{variantname}}"></td>
+                            <td title="{{name}} {{variantname}}">
+                                <a href="{{link}}" class="mini-cart-orderlines__name dw-mod">{{name}}</a>
+                                <div>#{{productnumber}}</div>
+                                {{#if variantname}}
+                                <div>{{variantname}}</div>
+                                {{/if}}
+                                {{#if unitname}}
+                                <div>{{unitname}}</div>
+                                {{/if}}
+                            </td>
+                            <td class="u-hidden-xs u-hidden-xxs">&nbsp;</td>
+                            <td>{{quantity}}</td>
+                            <td>&nbsp;</td>
+                            <td class="cart-table__price u-ta-right dw-mod">&nbsp;</td>
+                        </tr>
+                        {{/BomItems}}
+                    </tbody>
+                </table>
+            </td>
+        </tr>
+    </script>
+
+    <script id="CartOrderlineDiscount" type="text/x-template">
+        <tr class="table__row--no-border">
+            <td class="cart-table__image dw-mod">&nbsp;</td>
+            <td colspan="3">{{name}}</td>
+            <td class="u-hidden-xs u-hidden-xxs">&nbsp;</td>
+            <td class="cart-table__price u-ta-right dw-mod">{{totalprice}}</td>
+        </tr>
+    </script>
+}
+
+@helper RenderInlineAcceptance() {
+    <div class="grid__cell u-padding--xs">
+        @if (GetBoolean("Ecom:Cart.UseNewsletterSubscription"))
+        {
+            <div class="form__field-group u-margin-bottom dw-mod">
+                <input type="hidden" name="EcomOrderSubscribeToNewsletter" />
+                <input type="checkbox" name="EcomOrderSubscribeToNewsletter" id="EcomOrderSubscribeToNewsletter" class="form__control">
+                <label for="EcomOrderSubscribeToNewsletter">
+                    @Translate("Subscribe to newsletter")
+                </label>
+            </div>
+        }
+        <div class="form__field-group dw-mod">
+            <input type="checkbox" name="EcomOrderCustomerAccepted" id="EcomOrderCustomerAccepted" onchange="Cart.EnableCheckoutButton()" class="form__control">
+            <label for="EcomOrderCustomerAccepted">
+                @Translate("I accept the terms and conditions")
+            </label>
+        </div>
+        <div class="field-error dw-mod">@GetString("Ecom:Cart.ValidationError.EcomOrderCustomerAccepted.ErrorMessage")</div>
+    </div>
+}
+
+@helper RenderReviewOrderFooter() {
+    int quotesCartPageId = GetPageIdByNavigationTag("QuotesCartPage");
+
+    <div class="grid">
+        <div class="grid__col-12 grid__col--line-top"></div>
+    </div>
+
+    <div class="grid__cell-footer">
+        <div class="grid__cell u-padding--xs">
+            <div class="u-pull--right">
+                <button type="submit" class="btn btn--primary btn--condensed dw-mod u-pull--right u-no-margin disabled" name="@GetString("CartV2.NextStepButtonName")" id="@GetString("CartV2.NextStepButtonName")" disabled>@Translate("Go to checkout")</button>
+            </div>
+            <div class="u-pull--left">
+                <button type="button" class="btn btn--secondary btn--condensed dw-mod u-pull--left u-no-margin" onclick="googleEnchantImpressionEmptyCart(); Cart.EmptyCart(event);">@Translate("Empty cart")</button>
+            </div>
+            @if (!Pageview.AreaSettings.GetItem("Ecommerce").GetItem("Checkout").GetBoolean("HideQuotesCartLink"))
+            {
+            <div class="u-pull--right">
+                <a href="/Default.aspx?ID=@quotesCartPageId" class="btn btn--link btn--condensed dw-mod u-no-margin u-margin-right--lg u-no-margin--xs">@Translate("Create quote request")</a>
+            </div>
+            }
+        </div>
+    </div>
+}
+
+@helper RenderReviewOrderFooterQuote() {
+    <div class="grid">
+        <div class="grid__col-12 grid__col--line-top"></div>
+    </div>
+
+    <div class="grid__cell-footer">
+        <div class="grid__cell u-padding--xs">
+            <div class="u-pull--right">
+                <button type="submit" class="btn btn--primary btn--condensed dw-mod u-pull--right u-no-margin" name="@GetString("CartV2.NextStepButtonName")" id="@GetString("CartV2.NextStepButtonName")">@Translate("Submit quote request")</button>
+            </div>
+            <div class="u-pull--left">
+                <button type="button" class="btn btn--secondary btn--condensed dw-mod u-pull--left u-no-margin" onclick="googleEnchantImpressionEmptyCart(); Cart.EmptyCart(event);">@Translate("Empty cart")</button>
+            </div>
+        </div>
+    </div>
+}
+
+@helper RenderOrderScripts() {
+    if (!string.IsNullOrWhiteSpace(Pageview.AreaSettings.GetItem("Settings").GetString("FacebookPixelID")))
+    {
+        <script>
+            fbq('track', 'InitiateCheckout', {
+                currency: '@GetString("Ecom:Order.Price.Currency.Code")',
+                value: @GetDouble("Ecom:Order.Price.Price"),
+                num_items: "@GetInteger("Ecom:Order.OrderLines.TotalProductQuantity")"
+            });
+        </script>
+    }
+} 
+

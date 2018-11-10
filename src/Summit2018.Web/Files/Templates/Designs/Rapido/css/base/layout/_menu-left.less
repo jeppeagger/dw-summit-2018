@@ -1,0 +1,67 @@
+// -----------------------------------------------------------------------------
+// Contains all styles related to the left navigation part of the site/application.
+// -----------------------------------------------------------------------------
+
+.menu-left {
+    margin: 0;
+
+    &.menu-left--submenu {
+        margin-left: 25px;
+        display: none;
+
+        .menu-left__link--open + & {
+            display: block;
+        }
+    }
+}
+
+
+.menu-left__item {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    position: relative;
+} 
+
+.menu-left__link {
+    display: block;
+    text-decoration: none;
+    white-space: normal;
+    padding: @reflex-cell-spacing-md @reflex-cell-spacing-lg;
+    color: @font-color;
+    cursor: pointer;
+
+    &:hover:not(.menu-left__link--level-2) {
+        background-color: @gray-lightest;
+    }
+
+    &.menu-left__link--active {
+        background-color: @gray-lightest;
+    }
+
+    &.menu-left__link--closed:before {
+        position: absolute;
+        right: 0;
+        top: 0;
+        line-height: inherit;
+        font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
+        font-weight: 900;
+        content: '\f105';
+        padding: @reflex-cell-spacing-md @reflex-cell-spacing-lg;
+        display: inline-block;
+        color: @font-color;
+    }
+
+    &.menu-left__link--open:before {
+        position: absolute;
+        right: 0;
+        top: 0;
+        line-height: inherit;
+        font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
+        font-weight: 900;
+        content: '\f107';
+        padding: @reflex-cell-spacing-md @reflex-cell-spacing-lg;
+        display: inline-block;
+        color: @font-color;
+    }
+}

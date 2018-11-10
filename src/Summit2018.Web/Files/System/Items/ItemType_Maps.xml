@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-16" standalone="yes"?>
+<items>
+  <item category="Content" name="Maps" systemName="Maps" description="" icon="Map" iconColor="" includeInUrlIndex="False" pageDefaultView="item" fieldForTitle="Title" title="" inherits="Layout" useCache="False">
+    <fields>
+      <field name="Location mark" systemName="LocationMark" description="" type="System.Int32, mscorlib" excludeFromSearch="False" defaultValueCulture="en-US" defaultValue="0">
+        <editor type="Dynamicweb.Content.Items.Editors.ItemRelationListEditor, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.ItemRelationListEditor"><Parameter addin="Dynamicweb.Content.Items.Editors.ItemRelationListEditor" name="Item type" value="Location" /><Parameter addin="Dynamicweb.Content.Items.Editors.ItemRelationListEditor" name="Sort by" value="" /><Parameter addin="Dynamicweb.Content.Items.Editors.ItemRelationListEditor" name="Sort order" value="ASC" /><Parameter addin="Dynamicweb.Content.Items.Editors.ItemRelationListEditor" name="Item source" value="ListItem" /><Parameter addin="Dynamicweb.Content.Items.Editors.ItemRelationListEditor" name="Minumum number of items" value="" /><Parameter addin="Dynamicweb.Content.Items.Editors.ItemRelationListEditor" name="Maximum number of items" value="" /></Parameters></editorConfuguration>
+        </editor>
+        <options sourceType="Static">
+          <Static>
+            <option name="Name" value="Name" icon="" />
+            <option name="Location" value="Location" icon="" />
+            <option name="Address" value="Address" icon="" />
+            <option name="City" value="City" icon="" />
+            <option name="zip" value="Zip" icon="" />
+          </Static>
+        </options>
+      </field>
+    </fields>
+    <rules>
+      <rule name="Allow in websites" type="Dynamicweb.Content.Items.Activation.AreaRestrictionRule, Dynamicweb" value="*" />
+      <rule name="Allowed children" type="Dynamicweb.Content.Items.Activation.ChildRestrictionRule, Dynamicweb" value="RegularPage" />
+      <rule name="" type="Dynamicweb.Content.Items.Activation.ModuleAttachmentRestrictionRule, Dynamicweb" value="Nothing" />
+      <rule name="Allowed parents" type="Dynamicweb.Content.Items.Activation.ParentRestrictionRule, Dynamicweb" value="RootOfWebsite,RegularPage" />
+      <rule name="Enable item type for" type="Dynamicweb.Content.Items.Activation.StructureRestrictionRule, Dynamicweb" value="Paragraphs" />
+    </rules>
+    <layout>
+      <groups>
+        <group name="General" systemName="General" collapsibleState="None" visibilityField="" visibilityCondition="" visibilityConditionValueType="" visibilityConditionValue="">
+          <fields>
+            <field systemName="LocationMark" />
+          </fields>
+        </group>
+        <group name="Layout settings" systemName="LayoutSettings" collapsibleState="None" visibilityField="" visibilityCondition="0" visibilityConditionValueType="" visibilityConditionValue="">
+          <fields>
+            <field systemName="Width" />
+            <field systemName="WidthMobile" />
+          </fields>
+        </group>
+      </groups>
+    </layout>
+  </item>
+</items>

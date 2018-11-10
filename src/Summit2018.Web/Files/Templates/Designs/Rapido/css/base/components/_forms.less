@@ -1,0 +1,194 @@
+// Special form related styling
+// For basic form styling, go to base/base.less
+//––––––––––––––––––––––––––––––––––––––––––––––––––
+
+//Forms
+
+.form {
+    margin-bottom: @reflex-cell-spacing-md;
+}
+
+.form__header {
+    font-weight: bold;
+    display: block;
+    width: 100%;
+    border-bottom: 1px solid @gray;
+    margin-bottom: @reflex-cell-spacing-md;
+}
+
+.form__fields-collection {
+    display: flex;
+}
+
+.form__fields-collection > * {
+    flex: auto;
+    width: 100%;
+    margin-right: @reflex-cell-spacing-md;
+
+    &:last-child {
+       margin-right: 0; 
+    }
+}
+
+.form__fields-collection--2-3 > :first-child {
+    flex: 2;
+}
+
+.form__fields-collection--2-3 > :last-child {
+    flex: 3;
+}
+
+.form__field-group, .form__field-combi {
+    margin-bottom: @reflex-cell-spacing-lg;
+    position: relative;
+
+    select, input, textarea { 
+        margin-bottom: 0;
+    }
+}
+
+.form__field-group > * {
+    width: 100%; 
+
+    &[for], &[type="checkbox"] {
+        display: inline;
+        width: auto;
+    } 
+}
+
+.form__field-combi {
+    display: flex;
+}
+
+.form__field-combi > * {
+    float: left;
+    word-break: normal;
+}
+
+.form__footer {
+    border-top: 1px solid @gray;
+    padding-top: @reflex-cell-spacing-md;
+}
+
+
+//Errors
+.error-block {
+    width: 100%;
+    padding: @reflex-cell-spacing-sm @reflex-cell-spacing-md;
+    border: 1px solid @color-danger;
+    color: @color-danger;
+    margin-bottom: @reflex-cell-spacing-lg;
+}
+
+.error-block::before {
+    font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
+    font-weight: 900;
+    content: '\f071';
+    margin-right: @reflex-cell-spacing-sm;
+    position: relative;
+}
+
+.field-error {
+    color: @color-danger;
+    font-size: @font-size--sm;
+    margin-top: 5px;
+}
+
+.field-success {
+    color: @color-success;
+    font-size: @font-size--sm;
+    position: relative;
+    top: -0.5em;
+}
+
+
+input {
+    &[type="checkbox"],
+    &[type="radio"] {
+        &.form__control {
+            display: inline;
+            position: absolute;
+            opacity: 0;
+            width: auto;
+    
+            &+label {
+                position: relative;
+                line-height: normal;
+                display: inline-block;
+
+                &::before {
+                    content: "";
+                    width: 17px;
+                    height: 17px;
+                    border: 1px lighten(@border-color, 8.8%) solid;
+                    display: inline-block;
+                    margin-right: 5px;
+                    vertical-align: top;
+                }
+            }
+
+            &:focus + label,
+            &:active + label {
+                &::before {
+                    border: 1px solid @gray-darker;
+                }
+            }
+        }
+    }
+
+    &[type="checkbox"].form__control:checked + label::after {
+        content: "";
+        height: 5px;
+        width: 10px;
+        border-left: 2px @gray-darker solid;
+        border-bottom: 2px @gray-darker solid;
+        transform: rotate(-45deg);
+        left: 4px;
+        top: 5px;
+        display: inline-block;
+        position: absolute;
+    }
+
+    &[type="radio"].form__control {
+        vertical-align: top;
+
+        &+label::before {
+            border-radius: 99px;
+        }
+
+        &:checked + label::after {
+            content: "";
+            height: 7px;
+            width: 7px;
+            left: 5px;
+            top: 5px;
+            display: inline-block;
+            position: absolute;
+            background: @gray-darker;
+            border-radius: 99px;
+        }
+    }
+}
+
+
+
+//automatic forms
+
+.formtable td {
+    border: 0;
+}
+
+.formtable td input {
+    margin-bottom: 0;
+}
+
+.formtable td input:not([type=checkbox]):not([type=radio]):not([type=submit]),
+.formtable td textarea,
+.formtable td select {
+    width: 100%;
+}
+
+//selector for automatic form templates #53362
+.formtable td input[type=submit] {
+    .btn();
+}

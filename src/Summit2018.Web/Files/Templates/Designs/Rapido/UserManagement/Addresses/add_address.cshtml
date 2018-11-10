@@ -1,0 +1,86 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+
+<div class="grid__col-12 grid__col--bleed">
+    <h2>
+        @if (!string.IsNullOrWhiteSpace(GetString("UserManagement:User.ManageAddresses.AddAddress")))
+        {
+        <i class="fas fa-plus"></i> @Translate("Add address", "Add address");
+        }
+        @if (!string.IsNullOrWhiteSpace(GetString("UserManagement:User.ManageAddresses.UpdateAddress")))
+        {
+        <i class="fas fa-pencil"></i> @Translate("Edit address")
+        }
+    </h2>
+</div>
+
+@GetString("UserManagement:User.ManageAddresses.FormStart")
+<div class="grid__col-lg-8 grid__col-md-8 grid__col-sm-8 grid__col-xs-12 grid__col--bleed">
+    <label for="UserManagement_Form_Description">@Translate("Description")</label>
+    <input type="text" class="u-full-width" name="Description" id="UserManagement_Form_Description" value="@GetString("UserManagement:User.UserAddress.Description.Value")" />
+    <div class="field-error dw-mod">@GetString("UserManagement:User.UserAddress.Description.Input.Error")</div>
+
+    <label for="UserManagement_Form_UserName">@Translate("Name")</label>
+    <input type="text" class="u-full-width" name="CustomField.AccessUserAddress_AccessUserAddress_UserName" id="UserManagement_Form_UserName" value="@GetString("UserManagement:User.UserAddress.AccessUserAddress_UserName")" />
+
+    <label for="UserManagement_Form_Company">@Translate("Company")</label>
+    <input type="text" class="u-full-width" name="Company" id="UserManagement_Form_Company" value="@GetString("UserManagement:User.UserAddress.Company.Value")" />
+
+    <label for="UserManagement_Form_Email">@Translate("Email")</label>
+    <input type="email" class="u-full-width" name="Email" id="UserManagement_Form_Email" value="@GetString("UserManagement:User.UserAddress.Email.Value")" />
+    <div class="field-error">@GetString("UserManagement:User.UserAddress.Email.Input.Error")</div>
+
+    <label for="UserManagement_Form_Phone">@Translate("Phone")</label>
+    <input type="tel" class="u-full-width" name="Phone" id="UserManagement_Form_Phone" value="@GetString("UserManagement:User.UserAddress.Phone.Value")" />
+
+    <label for="UserManagement_Form_Address">@Translate("Address")</label>
+    <input type="text" class="u-full-width" name="Address" id="UserManagement_Form_Address" value="@GetString("UserManagement:User.UserAddress.Address.Value")" />
+    <div class="field-error dw-mod">@GetString("UserManagement:User.UserAddress.Address.Input.Error")</div>
+
+    <label for="UserManagement_Form_Address2">@Translate("Address2")</label>
+    <input type="text" class="u-full-width" name="Address2" id="UserManagement_Form_Address2" value="@GetString("UserManagement:User.UserAddress.Address2.Value")" />
+
+    <label for="UserManagement_Form_Zip">@Translate("Zip code")</label>
+    <input type="text" class="u-full-width" name="Zip" id="UserManagement_Form_Zip" value="@GetString("UserManagement:User.UserAddress.Zip.Value")" />
+
+    <label for="UserManagement_Form_City">@Translate("City")</label>
+    <input type="text" class="u-full-width" name="City" id="UserManagement_Form_City" value="@GetString("UserManagement:User.UserAddress.City.Value")" />
+    <div class="field-error dw-mod">@GetString("UserManagement:User.UserAddress.City.Input.Error")</div>
+
+    <label for="UserManagement_Form_State">@Translate("State")</label>
+    <input type="text" class="u-full-width" name="State" id="UserManagement_Form_State" value="@GetString("UserManagement:User.UserAddress.State.Value")" />
+
+    <label for="UserManagement_Form_Country">@Translate("Country")</label>
+    <select name="Country" id="Country" class="u-full-width">
+        @foreach (LoopItem country in GetLoop("UserManagement.CountryList"))
+        {
+            if (GetString("UserManagement:User.UserAddress.Country.Value") == country.GetString("Country.Code2"))
+            {
+                <option value="@country.GetString("Country.Code2")" selected="selected">
+                    @country.GetString("Country.Name")
+                </option>
+            }
+            else
+            {
+                <option value="@country.GetString("Country.Code2")">
+                    @country.GetString("Country.Name")
+                </option>
+            }
+        }
+    </select>
+    <div class="field-error dw-mod">@GetString("UserManagement:User.UserAddress.Country.Input.Error")</div>
+    @{
+        string isDefault = GetBoolean("UserManagement:User.UserAddress.Default.Value") ? "checked" : "";
+    }
+    <div class="form__field-group dw-mod">
+        <input type="checkbox" id="isDefault" name="Default" @isDefault class="form__control" />
+        <label for="isDefault">
+            @Translate("Is default")
+        </label>
+    </div>
+
+    <div class="grid__cell">
+        <button type="submit" class="btn btn--primary dw-mod u-pull--right" id="submitter">@Translate("Save")</button>
+    </div>
+</div>
+@GetString("UserManagement:User.ManageAddresses.FormEnd")

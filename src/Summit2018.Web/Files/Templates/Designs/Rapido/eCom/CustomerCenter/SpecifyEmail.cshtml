@@ -1,0 +1,43 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+<link href="/Files/Templates/Designs/Dwsimple/css/customer-center.css" rel="stylesheet" />
+
+@GetValue("Ecom:CustomerCenter.SelectEmail.Javascript")
+
+<script type="text/javascript">
+    function ValidateForm(callback) {
+        if (document.getElementById("txtEmailListEntryOther").checkValidity()) {
+            callback();
+        } else {
+            document.getElementById("txtEmailListEntryOtherError").classList.remove("u-hidden");
+            document.getElementById("txtEmailListEntryOther").focus();
+        }
+    }
+</script>
+
+<div class="grid__col-12 grid__col--bleed">
+    <div class="grid__cell">
+        <h2><i class="fas fa-envelope"></i> @Translate("Send to email")</h2>
+    </div>
+</div>
+
+<div class="grid__col-md-8 grid__col--bleed">
+    <label>@Translate("Select emails")</label>
+    @foreach (LoopItem address in GetLoop("EMailAddresses"))
+    {
+        <div class="form__field-group dw-mod">
+            <input type="checkbox" name="EmailListEntry" id="EmailListEntry_@address.GetString("Ecom:CustomerCenter.EMailList.EmailIndex")" value="@address.GetString("Ecom:CustomerCenter.EMailList.Email")" class="form__control" />
+            <label for="EmailListEntry">
+                @address.GetString("Ecom:CustomerCenter.EMailList.Email")
+            </label>
+        </div>
+    }
+    <label for="txtEmailListEntryOther">@Translate("Another email", "Another email")</label>
+    <input class="u-full-width" type="email" name="EmailListEntryOther" id="txtEmailListEntryOther" />
+    <div class="field-error u-hidden dw-mod" id="txtEmailListEntryOtherError">@Translate("Please use correct email format")</div>
+</div>
+
+<div class="u-pull--right">
+    <!--<button class="btn btn--secondary dw-mod" onclick="javascript: doSpecifyEmailCancel();">@Translate("Cancel")</button>-->
+    <button class="btn btn--primary dw-mod" onclick="ValidateForm(doSpecifyEmailOK);">@Translate("Send")</button>
+</div>

@@ -1,0 +1,217 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.PageViewModel>
+
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks.Extensibility
+@using Dynamicweb.Rapido.Blocks
+
+@functions {
+    BlocksPage footerBlocksPage = BlocksPage.GetBlockPage("Master");
+}
+
+@{ 
+    string footerColumnOneContent = Model.Area.Item.GetItem("Layout").GetItem("FooterColumnOne") != null ? Model.Area.Item.GetItem("Layout").GetItem("FooterColumnOne").GetString("Content") : "";
+    string footerColumnTwoContent = Model.Area.Item.GetItem("Layout").GetItem("FooterColumnTwo") != null ? Model.Area.Item.GetItem("Layout").GetItem("FooterColumnTwo").GetString("Content") : "";
+    string footerColumnThreeContent = Model.Area.Item.GetItem("Layout").GetItem("FooterColumnThree") != null ? Model.Area.Item.GetItem("Layout").GetItem("FooterColumnThree").GetString("Content") : "";
+    string footerColumnOneHeader = Model.Area.Item.GetItem("Layout").GetItem("FooterColumnOne") != null ? Model.Area.Item.GetItem("Layout").GetItem("FooterColumnOne").GetString("Header") : "";
+    string footerColumnTwoHeader = Model.Area.Item.GetItem("Layout").GetItem("FooterColumnTwo") != null ? Model.Area.Item.GetItem("Layout").GetItem("FooterColumnTwo").GetString("Header") : "";
+    string footerColumnThreeHeader = Model.Area.Item.GetItem("Layout").GetItem("FooterColumnThree") != null ? Model.Area.Item.GetItem("Layout").GetItem("FooterColumnThree").GetString("Header") : "";
+
+    Block masterFooterContent = new Block()
+    {
+        Id = "MasterFooterContent",
+        SortId = 10,
+        Template = RenderFooter(),
+        SkipRenderBlocksList = true
+    };
+    footerBlocksPage.Add(MasterBlockId.MasterFooter, masterFooterContent);
+
+    if (!string.IsNullOrEmpty(footerColumnOneContent) || !string.IsNullOrEmpty(footerColumnOneHeader))
+    {
+        Block masterFooterColumnOne = new Block
+        {
+            Id = "MasterFooterColumnOne",
+            SortId = 10,
+            Template = RenderFooterColumn(footerColumnOneHeader, footerColumnOneContent),
+            Design = new Design {
+                Size = "auto",
+                RenderType = RenderType.Column
+            }
+        };
+        footerBlocksPage.Add("MasterFooterContent", masterFooterColumnOne);
+    }
+
+    if (!string.IsNullOrEmpty(footerColumnTwoContent) || !string.IsNullOrEmpty(footerColumnTwoHeader))
+    {
+        Block masterFooterColumnTwo = new Block
+        {
+            Id = "MasterFooterColumnTwo",
+            SortId = 20,
+            Template = RenderFooterColumn(footerColumnTwoHeader, footerColumnTwoContent),
+            Design = new Design
+            {
+                Size = "auto",
+                RenderType = RenderType.Column
+            }
+        };
+        footerBlocksPage.Add("MasterFooterContent", masterFooterColumnTwo);
+    }
+
+    if (!string.IsNullOrEmpty(footerColumnThreeContent) || !string.IsNullOrEmpty(footerColumnThreeHeader))
+    {
+        Block masterFooterColumnThree = new Block
+        {
+            Id = "MasterFooterColumnThree",
+            SortId = 30,
+            Template = RenderFooterColumn(footerColumnThreeHeader, footerColumnThreeContent),
+            Design = new Design
+            {
+                Size = "auto",
+                RenderType = RenderType.Column
+            }
+        };
+        footerBlocksPage.Add("MasterFooterContent", masterFooterColumnThree);
+    }
+
+    if (Model.Area.Item.GetItem("Layout").GetBoolean("FooterNewsletterSignUp"))
+    {
+        Block masterFooterNewsletterSignUp = new Block
+        {
+            Id = "MasterFooterNewsletterSignUp",
+            SortId = 40,
+            Template = RenderFooterNewsletterSignUp(),
+            Design = new Design
+            {
+                Size = "auto",
+                RenderType = RenderType.Column
+            }
+        };
+        footerBlocksPage.Add("MasterFooterContent", masterFooterNewsletterSignUp);
+    }
+
+    if (Model.Area.Item.GetItem("Layout").GetItems("FooterSocialLinks") != null && Model.Area.Item.GetItem("Layout").GetItems("FooterSocialLinks").Count > 0)
+    {
+        Block masterFooterSocialLinks = new Block
+        {
+            Id = "MasterFooterSocialLinks",
+            SortId = 50,
+            Template = RenderFooterSocialLinks(),
+            Design = new Design
+            {
+                Size = "auto",
+                RenderType = RenderType.Column
+            }
+        };
+        footerBlocksPage.Add("MasterFooterContent", masterFooterSocialLinks);
+    }
+
+    if (Model.Area.Item.GetItem("Layout").GetItems("FooterPayments") != null && Model.Area.Item.GetItem("Layout").GetItems("FooterPayments").Count > 0)
+    {
+        Block masterFooterPayments = new Block
+        {
+            Id = "MasterFooterPayments",
+            SortId = 60,
+            Template = RenderFooterPayments(),
+            Design = new Design
+            {
+                Size = "12",
+                RenderType = RenderType.Column
+            }
+        };
+        footerBlocksPage.Add("MasterFooterContent", masterFooterPayments);
+    }
+
+    Block masterFooterCopyright = new Block
+    {
+        Id = "MasterFooterCopyright",
+        SortId = 70,
+        Template = RenderFooterCopyright(),
+        Design = new Design
+        {
+            Size = "12",
+            RenderType = RenderType.Column
+        }
+    };
+    footerBlocksPage.Add("MasterFooterContent", masterFooterCopyright);
+}
+
+@helper RenderFooter() {
+    List<Block> subBlocks = this.footerBlocksPage.GetBlockListById("MasterFooterContent").OrderBy(item => item.SortId).ToList();
+
+    <footer class="footer dw-mod">
+        <div class="center-container top-container__center-container dw-mod">
+            <div class="grid grid--external-bleed-x">
+                @RenderBlockList(subBlocks)
+            </div>
+        </div>
+    </footer>
+}
+
+@helper RenderFooterColumn(string header, string content) {
+    <h3 class="footer__heading dw-mod">@header</h3>
+    <div class="footer__content dw-mod">
+        @content
+    </div>
+} 
+
+@helper RenderFooterNewsletterSignUp() {
+    string newsletterSignUpPageId = GetPageIdByNavigationTag("NewsletterSignUp").ToString();
+
+    <h3 class="footer__heading dw-mod">@Translate("Mailing list")</h3>
+    <div class="footer__content dw-mod">
+        <p>@Translate("Sign up if you would like to receive occasional treats from us", "Sign up if you would like to receive occasional treats from us").</p>
+        <form class="form dw-mod" name="NewsletterRedirect" action='/Default.aspx' method="get" enctype="multipart/form-data">
+            <input name="ID" value="@newsletterSignUpPageId" type="hidden" />
+            <div class="form__field-combi">
+                <input name="NewsletterEmail" id="NewsletterEmail" type="text" placeholder='@Translate("Your email address", "Your email address")' />
+                <input class="btn btn--primary btn--condensed dw-mod" type="submit" id="Submitter" value='@Translate("Go", "Go")' />
+            </div>
+        </form>
+    </div>
+}
+
+@helper RenderFooterSocialLinks() {
+    <h3 class="footer__heading dw-mod">@Translate("Social links")</h3>
+    <div class="footer__content dw-mod">
+        <div class="collection dw-mod">
+            @foreach (var socialitem in Model.Area.Item.GetItem("Layout").GetItems("FooterSocialLinks"))
+            {
+                var socialIcon = socialitem.GetValue("Icon") as Dynamicweb.Frontend.ListViewModel;
+                string socialIconClass = socialIcon.SelectedValue;
+                string socialIconTitle = socialIcon.SelectedName;
+                string socialLink = socialitem.GetString("Link");
+
+                <a href="@socialLink" target="_blank" title="@socialIconTitle" class="u-margin-bottom-5px"><i class="@socialIconClass fa-2x"></i></a>
+            }
+        </div>
+    </div>
+}
+
+@helper RenderFooterPayments() {
+    <div class="footer__content dw-mod">
+        <div class="collection dw-mod">
+            @foreach (var payment in Model.Area.Item.GetItem("Layout").GetItems("FooterPayments"))
+            {
+                var paymentItem = payment.GetValue("CardTypeOrVerifiedPayment") as Dynamicweb.Frontend.ListViewModel;
+                string paymentImage = null;
+                string paymentTitle = paymentItem.SelectedName;
+                ListOptionViewModel selected = paymentItem.SelectedOptions.FirstOrDefault();
+                if (selected != null)
+                {
+                    paymentImage = selected.Icon;
+                }
+
+                <div class="footer__card-type">
+                    <img src="/Admin/Public/GetImage.ashx?width=60&Compression=75&image=@paymentImage" alt="@paymentTitle" title="@paymentTitle" />
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@helper RenderFooterCopyright() {
+    <div class="grid__col-12 footer__copyright dw-mod">
+        <p>@Model.Area.Item.GetItem("Layout").GetString("FooterCopyrightText")</p>
+    </div>
+}

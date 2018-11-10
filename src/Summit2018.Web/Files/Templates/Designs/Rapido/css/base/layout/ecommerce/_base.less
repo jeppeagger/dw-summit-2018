@@ -1,0 +1,255 @@
+//Base classes for Ecommerce
+
+//Top micro search
+.top-micro-search {
+    left: -150px;
+}
+
+.top-micro-search .typeahead {
+    margin: -@reflex-cell-spacing-md 0;
+}
+
+//Product
+.product {
+
+}
+
+.product__thumbs {
+    background-color: @gray-lightest;
+    padding: @reflex-cell-spacing-md;
+}
+
+.product__title {
+    width:  ~"calc(100% - 60px)";
+}
+
+.product__image-container__image {
+
+}
+
+.product__info {
+
+}
+
+.product__section {
+    padding: @reflex-cell-spacing-lg 0;
+
+    &.product__section--bordered {
+        border-top: 1px @gray-light solid;
+        border-bottom: 1px @gray-light solid;
+    }
+
+    &.product__section--ribbon {
+        background: @gray-lightest;
+    }
+}
+
+.product__document {
+    display: inline-block;
+}
+
+.product__document-info {
+    display: inline-block;
+    margin-left: @reflex-cell-spacing-lg;
+}
+
+.product__document-img {
+    box-shadow: 1px 1px 5px rgba(0,0,0,0.3);
+    display: inline-block;
+}
+
+.product__document-icon {
+    font-size: 70px;
+}
+
+.product__price-actions {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+
+}
+
+.product__price-actions__price {
+    margin-bottom: @reflex-cell-spacing-md;
+    text-align: left;
+}
+
+@media (max-width: @reflex-sm) {
+    .product__price-actions {
+        display: block;
+    }
+
+    .product__price-actions__price {
+        margin-right: 0;
+    }
+}
+
+.product__price-actions__actions {
+
+}
+
+.product__description {
+
+}
+
+//Item number
+.item-number {
+    color: @gray;
+    margin-bottom: @reflex-cell-spacing-md;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: @font-size--sm;
+}
+
+.item-number--compressed {
+    line-height: 1;
+    margin-bottom: 0;
+}
+
+
+//Prices
+.price {
+    font-weight: 500;
+    font-size: @font-size--xl;
+}
+
+.price--condensed {
+    font-size: @font-size--sm;
+}
+
+.price--micro {
+    font-size: @font-size--sm !important;
+}
+
+.before-price {
+    color: @gray;
+    font-size: @font-size--md;
+    text-decoration: line-through;
+    line-height: 1.4;
+}
+
+.before-price--micro {
+    font-size: @font-size--sm !important;
+}
+
+//Stock and delivery
+
+.product__stock-delivery {
+    margin-top: @reflex-cell-spacing-md;
+    margin-bottom: @reflex-cell-spacing-lg;
+}
+
+
+//Favorites
+
+.favorites--md {
+    padding: @reflex-cell-spacing-md;
+}
+
+.favorites--lg {
+    padding: @reflex-cell-spacing-md;
+    margin-top: @reflex-cell-spacing-md;
+}
+
+.favorites--for-grid-view {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+}
+
+.favorites-list {
+    position: relative;
+}
+
+.favorites.disabled i {
+    color: @gray-light;
+}
+
+
+//Sticker
+.stickers-container {
+    position: absolute;
+    z-index: 1;
+}
+
+.stickers-container--block {
+    position: relative;
+}
+
+.stickers-container__tag {
+    position: relative;
+    margin-bottom: @reflex-cell-spacing-sm; 
+    width: auto;
+    display: table;
+    padding: 0 @reflex-cell-spacing-sm;
+    line-height: 18px; 
+}
+
+.stickers-container__tag--sale {
+    background-color: @color-sticker-sale;
+    color: @white;
+}
+
+.stickers-container__tag--custom {
+    background-color: @color-sticker-custom;
+    color: @white;
+}
+
+.stickers-container__tag--new {
+    background-color: @color-sticker-new;
+    color: @white;
+}
+
+.stickers-container--right {
+    right: @reflex-cell-spacing-md;
+    left: inherit;
+}
+
+.product .stickers-container {
+    margin-left: @reflex-cell-spacing-md / 2;
+}
+
+.stickers-container__tag--micro {
+    margin: @reflex-cell-spacing-sm;
+    padding: 0 @reflex-cell-spacing-md;
+    border-radius: 0;
+    height: 18px;
+    line-height: 18px !important;
+    color: @white;
+    font-size: 0.8em !important;
+    text-align: center;
+}
+
+
+//Stock icon
+.stock-icon {
+    width: 8px;
+    height: 8px;
+    margin-left: @reflex-cell-spacing-md;
+    margin-right: @reflex-cell-spacing-md;
+    border-radius: 100px;
+    background-color: @gray;
+    display: inline-block;
+}
+
+.stock-icon--in {
+    background-color: @color-stock-in;
+}
+
+.stock-icon--not {
+    background-color: @color-stock-not;
+}
+
+.stock-icon--comming {
+    background-color: @color-stock-comming;
+}
+
+.delivery-and-stock-info {
+    width: 100%;
+    margin-bottom: @reflex-cell-spacing-lg;
+}
+
+.parcel-shop-address {
+    margin-left: 0;
+    margin-bottom: @reflex-cell-spacing-md;
+}

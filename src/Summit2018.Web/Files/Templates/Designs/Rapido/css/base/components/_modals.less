@@ -1,0 +1,203 @@
+//modals
+.modal-container {
+    z-index: @z-index-top;
+}
+
+.modal-trigger {
+    display: none !important;
+}
+
+.modal-overlay {
+    display: none;
+    background-color: rgba(0,0,0,0.5);
+    width: 100%;
+    height: 100%;
+    position: fixed;
+    z-index: @z-index-10;
+    left: 0;
+    top: 0;
+}
+
+.modal {
+    display: none;
+    background-color: #fff;
+    position: fixed;
+    z-index: @z-index-top;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    max-width: ~"calc(100% - 5em)";
+    max-height: ~"calc(100% - 5em)";
+    overflow-y: auto;
+}
+
+.modal h2 {
+    margin: 0;
+}
+
+.modal--xs {
+    width: @modal-xs;
+}
+
+.modal--sm {
+    width: @modal-sm;
+}
+
+.modal--md {
+    width: @modal-md;
+}
+
+.modal--lg {
+    width: 100%;
+    max-width: @modal-lg;
+}
+
+.modal--full {
+    max-height: ~"calc(100vh - 2em)";
+    max-width: ~"calc(100vw - 2em)";
+}
+
+.modal--full__img {
+    margin: auto;
+    max-height: ~"calc(100vh - 6em)";
+    max-width: ~"calc(100vw - 6em)";
+}
+
+.modal--iframe {
+    height: ~"calc(100% - 130px)";
+    width: 100%;
+    overflow-y: hidden;
+}
+
+.modal-height--xs {
+    height: @modal-height-xs;
+}
+
+.modal-height--sm {
+    height: @modal-height-sm;
+}
+
+.modal-height--md {
+    height: @modal-height-md;
+}
+
+.modal-height--lg {
+    height: @modal-height-lg;
+}
+
+.modal-height--full {
+    max-height: ~"calc(100vh - 2em)";
+}
+
+.modal__header {
+    padding: @reflex-cell-spacing-md @reflex-cell-spacing-lg;
+    border-bottom: 1px solid @gray-light;
+}
+
+.modal__body {
+    padding: @reflex-cell-spacing-lg;
+    overflow-x: auto;
+    max-height: ~"calc(100vh -50px - 5em)";
+}
+
+.modal__body--full {
+    padding: 0;
+    max-height: unset;
+}
+
+.modal__body--file-preview {
+    max-height: ~"calc(100vh - 2em)";
+}
+
+.modal-tools {
+    position: fixed;
+    top: 40px;
+    right: 0;
+    z-index: @z-index-10;
+    display: none;
+    width: 920px;
+    left: 50%;
+    transform: translate(-50%,-50%);
+    text-align: right;
+}
+
+.modal-trigger:checked + .modal-container .modal-overlay {
+    display: block;
+}
+
+.modal-trigger:checked + .modal-container .modal {
+    display: block;
+}
+
+.modal-trigger:checked + .modal-container .modal-tools {
+    display: block;
+}
+
+.modal__close-btn {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: @reflex-cell-spacing-lg;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal__close-btn:before {
+    font-family: "Font Awesome 5 Pro", "Font Awesome 5 Free";
+    font-weight: 900;
+    content: '\f00d';
+    font-size: 18px;
+    line-height: 18px;
+}
+
+.modal--top-left {
+    left: 0;
+    top: 0;
+    transform: none;
+}
+
+.modal--top-right {
+    left: auto;
+    right: 0;
+    top: 0;
+    transform: none;
+}
+
+.modal--bottom-left {
+    left: 0;
+    top: auto;
+    bottom: 0;
+    transform: none;
+}
+
+.modal--bottom-right {
+    left: auto;
+    top: auto;
+    bottom: 0;
+    right: 0;
+    transform: none;
+}
+
+.modal--bottom-bar {
+    transform: none;
+    max-width: none;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    top: auto;
+}
+
+.modal--top-bar {
+    transform: none;
+    max-width: none;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: auto;
+}
+
+.modal--padding-for-close-btn {
+    padding-right: 35px;
+}

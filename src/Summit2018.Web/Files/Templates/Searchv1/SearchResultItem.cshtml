@@ -1,0 +1,14 @@
+<div class="search-result">
+    <div class="search-result__header">
+        <a href="@GetString("DwSearchResultHref")">
+            <span class="search-result__name">@GetString("DwSearchResultTitle")</span>
+        </a>(@GetString("DwSearchResultWeight"))
+    </div>
+    <div class="search-result__breadcrumbs">
+        @if (GetString("DwSearchResultPath").Length > 0) {
+            @GetString("DwSearchResultPath").Substring(1).Replace("sPathLink", "search-result__breadcrumb-item") @* Remove '/' from start *@
+        }
+    </div>
+    <div class="search-result__summary">@GetString("DwSearchResultSummary")</div>
+    <div class="search-result__date">@Translate("Last updated"): @GetString("DwSearchResultEditdate")</div>
+</div>

@@ -1,0 +1,64 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.ParagraphViewModel>
+@using Dynamicweb.Ecommerce.Frontend;
+@using System.Linq;
+
+@{
+    int productCatalogId = GetPageIdByNavigationTag("PromotionFeed");
+    string feedFullUrl = "/Default.aspx?ID=" + productCatalogId + "&PageSize=4";
+
+    var products = Model.Item.GetValue("Products") as List<ProductViewModel>;
+
+    feedFullUrl += "&ProdIDs=" + string.Join(",", products.Select(x => x.Id));
+}
+
+<div class="grid js-ajax-container" id="PromotionProductList" data-template="PromotionProducts" data-pre-render-template="ProductPreRenderContainer" data-json-feed="@feedFullUrl" data-no-result-template="NoProductsFound" data-preloader="minimal"></div>
+
+<script id="ProductPreRenderContainer" type="text/x-template">
+    <div class="grid__col-md-3">
+        <div class="pre-render-element pre-render-element--md"></div>
+    </div>
+    <div class="grid__col-md-3">
+        <div class="pre-render-element pre-render-element--md"></div>
+    </div>
+    <div class="grid__col-md-3">
+        <div class="pre-render-element pre-render-element--md"></div>
+    </div>
+    <div class="grid__col-md-3">
+        <div class="pre-render-element pre-render-element--md"></div>
+    </div>
+</script>
+
+
+@* Grid view *@
+
+<script id="PromotionProducts" type="text/x-template">
+    <div class="grid__col-lg-3 grid__col-md-3 grid__col-sm-3 grid__col-xs-6">
+        <div class="grid__cell u-color-light--bg {{noImage}}">
+            <div class="sticker {{onSale}} dw-mod">@Translate("Sale!")</div>
+            <a href="{{link}}" onclick="Scroll.SavePosition(event)"><img class="grid__cell-img grid__cell-img--centered" src="/Admin/Public/GetImage.ashx?width=300&amp;height=300&amp;crop=5&amp;Compression=75&amp;image={{image}}" alt="{{name}}" /></a>
+        </div>
+
+        <div class="grid__cell card u-color-light--bg">
+            <div class="u-ta-center">
+                <a href="{{link}}" onclick="Scroll.SavePosition(event)" title="{{name}}"><h6 class="u-ta-center u-condensed-text">{{name}}</h6></a>
+                <div class="item-number dw-mod">{{number}}</div>
+                <div class="before-price {{onSale}} dw-mod">{{discount}}</div>
+                <div class="price dw-mod">{{price}}</div>
+            </div>
+        </div>
+
+        <div class="card-footer u-color-light--bg">
+            <div class="u-ta-center">
+                <a href="{{link}}" id="CartButton_{{id}}" class="btn btn--secondary btn--full u-no-margin dw-mod">@Translate("View")</a>
+            </div>
+        </div>
+    </div>
+</script>
+    
+@* No products found *@
+
+<script id="NoProductsFound" type="text/x-template">
+    <div class="grid__col-12">
+        <h2 class="u-ta-center">@Translate("No products found")</h2>
+    </div>
+</script>

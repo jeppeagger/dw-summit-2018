@@ -1,0 +1,72 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@{
+    BlocksPage stepNavigationCheckoutPage = BlocksPage.GetBlockPage("CheckoutPage");
+
+    Block checkoutStepNavigation = new Block()
+    {
+        Id = "StepNavigation",
+        SortId = 50,
+        Template = RenderStepNavigation(),
+        Design = new Design {
+            RenderType = RenderType.Column,
+            Size = "12"
+        }
+    };
+    stepNavigationCheckoutPage.Add(checkoutStepNavigation);
+}
+
+@helper RenderStepNavigation()
+{
+    int quotesCartPageId = GetPageIdByNavigationTag("QuotesCartPage");
+    int currentStep = 1;
+    string disableNextButton = "";
+    string nextButtonName = Translate("Next");
+
+    foreach (LoopItem step in GetLoop("StepButtons"))
+    {
+        if (step.GetBoolean("Step.Current")) {
+            currentStep = step.GetInteger("Step.Number");
+        }
+
+        if (step.GetInteger("Step.Number") == currentStep + 1) {
+            nextButtonName = Translate("Go to") + " " + step.GetString("Step.Name");
+        }
+    }
+
+    if (currentStep == GetLoop("StepButtons").Count - 1) {
+        disableNextButton = "disabled";
+        nextButtonName = Translate("Confirm order");
+    }
+
+    <div class="card u-color-light--bg dw-mod">
+        @if (currentStep == 1)
+        {
+            <div class="u-pull--left">
+                <button type="button" class="btn btn--secondary btn--condensed dw-mod u-pull--left u-no-margin" onclick="googleEnchantImpressionEmptyCart(); Cart.EmptyCart(event);">@Translate("Empty cart")</button>
+            </div>
+        }
+        else
+        {
+            <div class="u-pull--left">
+                <button type="submit" class="btn btn--secondary btn--condensed dw-mod u-pull--right u-no-margin" name="@GetString("CartV2.PreviousStepButtonName")" id="@GetString("CartV2.PreviousStepButtonName")"><i class="fas fa-angle-left"></i> @Translate("Back")</button>
+            </div>
+        }
+
+        <div class="u-pull--right">
+            <button type="submit" class="btn btn--primary btn--condensed dw-mod u-pull--right u-no-margin @disableNextButton" name="@GetString("CartV2.NextStepButtonName")" id="@GetString("CartV2.NextStepButtonName")" @disableNextButton>@nextButtonName <i class="fas fa-angle-right"></i></button>
+        </div>
+
+        @if (!Pageview.AreaSettings.GetItem("Ecommerce").GetItem("Checkout").GetBoolean("HideQuotesCartLink"))
+        {
+            <div class="u-pull--right">
+                <a href="/Default.aspx?ID=@quotesCartPageId" class="btn btn--condensed btn--link dw-mod u-no-margin u-margin-right--lg u-no-margin--xs">@Translate("Create quote request")</a>
+            </div>
+        }
+    </div>
+}

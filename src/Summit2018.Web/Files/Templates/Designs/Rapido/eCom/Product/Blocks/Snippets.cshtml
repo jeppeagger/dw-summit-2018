@@ -1,0 +1,53 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@functions {
+    BlocksPage productSnippetsPage = BlocksPage.GetBlockPage("Product");
+}
+
+@{ 
+    Block googleProductSchema = new Block() {
+        Id = "GoogleProductSchema",
+        SortId = 10,
+        Template = RenderGoogleProductSchema()
+    };
+
+    productSnippetsPage.Add("Snippets", googleProductSchema);
+}
+
+@helper RenderGoogleProductSchema() {
+    <script type="application/ld+json">
+        {
+        "@@context": "http://schema.org/",
+        "@@type": "Product",
+        "name": "@GetString("Ecom:Product.Name")",
+        @if (!string.IsNullOrEmpty(GetString("Ecom:Product.ImageDefault.Default.Clean")))
+    {
+    <text>"image": [
+        "@siteURL/Admin/Public/GetImage.ashx?width=400&height=400&crop=0&Compression=75&DoNotUpscale=true&image=@GetString("Ecom:Product.ImageDefault.Default.Clean")",
+        "@siteURL/Admin/Public/GetImage.ashx?width=400&height=300&crop=0&Compression=75&DoNotUpscale=true&image=@GetString("Ecom:Product.ImageDefault.Default.Clean")",
+        "@siteURL/Admin/Public/GetImage.ashx?width=448&height=225&crop=0&Compression=75&DoNotUpscale=true&image=@GetString("Ecom:Product.ImageDefault.Default.Clean")"
+        ],</text>
+        }
+        "description": "@GetString("Ecom:Product.ShortDescription")",
+        "mpn": "925872",
+        @if (!string.IsNullOrEmpty(brand))
+        {
+        <text>"brand": {
+            "@@type": "Thing",
+            "name": "@brand"
+            },</text>
+        }
+        "offers": {
+        "@@type": "Offer",
+        "priceCurrency": "@GetString("Ecom:Product.Price.Currency.Code")",
+        "price": "@GetString("Ecom:Product.Price.Price")",
+        "availability": "@(GetInteger("Ecom:Product.Stock") > 0 ? "InStock" : "OutOfStock")"
+        }
+        }
+    </script>
+}

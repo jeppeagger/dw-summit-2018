@@ -1,0 +1,159 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@{ 
+    BlocksPage productListBottomSnippetsPage = BlocksPage.GetBlockPage("ProductList");
+
+    Block productListStickers = new Block
+    {
+        Id = "Stickers",
+        SortId = 10,
+        Template = RenderStrickersTemplates()
+    };
+    productListBottomSnippetsPage.Add("BottomSnippets", productListStickers);
+
+    Block productListUnits = new Block
+    {
+        Id = "Units",
+        SortId = 20,
+        Template = RenderUnitTemplates()
+    };
+    productListBottomSnippetsPage.Add("BottomSnippets", productListUnits);
+
+    Block productListVariants = new Block
+    {
+        Id = "Variants",
+        SortId = 30,
+        Template = RenderVariantTemplates()
+    };
+    productListBottomSnippetsPage.Add("BottomSnippets", productListVariants);
+
+    Block productListFavorites = new Block
+    {
+        Id = "Favorites",
+        SortId = 40,
+        Template = RenderFavoritesTemplates()
+    };
+    productListBottomSnippetsPage.Add("BottomSnippets", productListFavorites);
+
+    Block productListPreRender = new Block
+    {
+        Id = "PreRenders",
+        SortId = 50,
+        Template = RenderPreRenderTemplates()
+    };
+    productListBottomSnippetsPage.Add("BottomSnippets", productListPreRender);
+
+    Block productListInitializers = new Block
+    {
+        Id = "Initializers",
+        SortId = 60,
+        Template = RenderInitializers()
+    };
+    productListBottomSnippetsPage.Add("BottomSnippets", productListInitializers);
+}
+
+@helper RenderStrickersTemplates() {
+    <script id="Sticker" type="text/x-template">
+        <div class="stickers-container__tag {{className}} dw-mod">{{text}}</div>
+    </script>
+
+    <script id="MiniSticker" type="text/x-template">
+        <div class="stickers-container__tag stickers-container__tag--micro {{className}} dw-mod">{{text}}</div>
+    </script>
+}
+
+@helper RenderUnitTemplates() {
+    <script id="UnitOption" type="text/x-template">
+        <div class="dropdown__item dw-mod" onclick="HandlebarsBolt.UpdateContent('Product{{id}}', '{{link}}&feed=true&UnitID={{value}}&rid={{id}}')">{{name}}</div>
+    </script>
+}
+
+@helper RenderVariantTemplates() {
+    <script id="VariantsTemplate" type="text/x-template">
+        {{#.}}
+            <div>
+                <div class="u-bold">{{name}}</div>
+                <div>
+                    {{#VariantOptions}}
+                    {{>VariantOption}}
+                    {{/VariantOptions}}
+                </div>
+            </div>
+        {{/.}}
+    </script>
+
+    <script id="VariantOption" type="text/x-template">
+        <button type="button" data-variant-id="{{variantId}}" data-variant-group="{{groupId}}" onclick="MatchVariants.SelectThis(event)" class="btn btn--tag {{disabled}} {{selected}} js-variant-option" data-check="{{selected}}" {{disabled}}>{{name}}</button>
+    </script>
+
+    <script id="VariantOptionImage" type="text/x-template">
+        <img data-variant-id="{{variantId}}" data-friends="{{friendsList}}" data-variant-group="{{groupId}}" onclick="MatchVariants.SelectThis(event)" src="/Admin/Public/GetImage.ashx?width=100&amp;height=50&amp;crop=5&amp;Compression=75&amp;image=/Images/{{image}}" alt="{{name}}" title="{{name}}" class="btn btn--tag {{disabled}} {{selected}} js-variant-option" data-check="{{selected}}" {{disabled}} />
+    </script>
+}
+
+@helper RenderFavoritesTemplates() {
+    <script id="FavoriteTemplate" type="text/x-template">
+        <div class="favorites-list u-ta-left">
+            <label for="FavoriteTrigger_{{id}}" class="u-no-margin js-favorite-btn"><i class="{{favoriteIcon}} fa-1_5x"></i></label>
+            <input type="checkbox" id="FavoriteTrigger_{{id}}" class="dropdown-trigger" />
+            <div class="dropdown dropdown--absolute-position">
+                <div class="dropdown__content dropdown__content--show-left dropdown__content--padding u-w220px dw-mod">
+                    <ul class="list list--clean dw-mod">
+                        {{#FavoriteLists}}
+                        {{>FavoriteListItem}}
+                        {{/FavoriteLists}}
+                    </ul>
+                </div>
+                <label class="dropdown-trigger-off" for="FavoriteTrigger_{{id}}"></label>
+            </div>
+        </div>
+    </script>
+
+    <script id="FavoriteListItem" type="text/x-template">
+        <li>
+            <a href="{{link}}" class="list__link u-no-underline dw-mod" onclick="{{facebookPixelAction}}"><i class="{{favoriteIcon}}"></i> {{name}}</a>
+        </li>
+    </script>
+}
+
+@helper RenderPreRenderTemplates() {
+    string facetsViewMode = !String.IsNullOrEmpty(Pageview.AreaSettings.GetItem("ProductList").GetString("FacetsViewMode")) ? Pageview.AreaSettings.GetItem("ProductList").GetString("FacetsViewMode").ToLower() : "left";
+
+    <script id="ProductPreRenderContainer" type="text/x-template">
+        @if (facetsViewMode == "left" && Pageview.Device.ToString() != "Mobile")
+        {
+            <div class="grid__col-3">
+                <div class="pre-render-element pre-render-element--xs"></div>
+                <div class="pre-render-element pre-render-element--md"></div>
+                <div class="pre-render-element pre-render-element--md"></div>
+                <div class="pre-render-element pre-render-element--md"></div>
+            </div>
+        }
+        <div class="grid__col-auto">
+            <div class="pre-render-element pre-render-element--xs"></div>
+            <div class="pre-render-element pre-render-element--lg"></div>
+            <div class="pre-render-element pre-render-element--lg"></div>
+            <div class="pre-render-element pre-render-element--lg"></div>
+            <div class="pre-render-element pre-render-element--lg"></div>
+        </div>
+    </script>
+}
+
+@helper RenderInitializers() {
+    <script>
+	    document.addEventListener("DOMContentLoaded", function (event) {
+		    document.getElementById("productList").addEventListener('contentLoaded', function (e) {
+		        if (getTarget(e).id === "productList") {
+			        Search.Init();
+			        Facets.Init("selectedFacets", "productList");
+			    }
+		    }, false);
+	    });
+    </script>
+}
+    

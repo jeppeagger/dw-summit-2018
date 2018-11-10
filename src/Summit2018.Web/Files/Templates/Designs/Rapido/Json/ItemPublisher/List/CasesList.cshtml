@@ -1,0 +1,170 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+@using System.Collections.Specialized;
+
+@{ 
+    string selectedSolutionType = HttpContext.Current.Request.QueryString.Get("SolutionType");
+    string selectedIndustry = HttpContext.Current.Request.QueryString.Get("Industry");
+    string selectedIntegration = HttpContext.Current.Request.QueryString.Get("Integration");
+    string excludeCaseID = HttpContext.Current.Request.QueryString.Get("ExcludeCaseID");
+}
+
+@functions {
+
+    public class Case
+    {
+        public string id { get; set; }
+        public string title { get; set; }
+        public string image { get; set; }
+        public string tintedImage { get; set; }
+        public string logo { get; set; }
+        public string summary { get; set; }
+        public string link { get; set; }
+    }
+
+    public class Category
+    {
+        public string id { get; set; }
+        public string title { get; set; }
+        public string feedLink { get; set; }
+    }
+
+    public class Root
+    {
+        public List<Case> Cases { get; set; }
+
+        public string selectedSolutionType { get; set;  }
+        public List<Category> SolutionTypes { get; set; }
+
+        public string selectedIndustry { get; set; }
+        public List<Category> Industries { get; set; }
+
+        public string selectedIntegration { get; set; }
+        public List<Category> Integrations { get; set; }
+    }
+}
+
+@{
+    List<Root> feedObject = new List<Root>();
+
+    Root feedRoot = new Root();
+    feedRoot.Cases = new List<Case>();
+
+    foreach (LoopItem caseItem in GetLoop("ItemPublisher:Items.List"))
+    {
+        if (caseItem.GetString("ItemPublisher:Item.Field.PageId") != excludeCaseID)
+        {
+            Case caseObject = new Case();
+            caseObject.id = caseItem.GetString("ItemPublisher:Item.Field.Id");
+            caseObject.title = caseItem.GetString("ItemPublisher:Item.Title");
+            caseObject.image = caseItem.GetString("ItemPublisher:Item.Image");
+            caseObject.tintedImage = !String.IsNullOrEmpty(caseItem.GetString("ItemPublisher:Item.CustomerLogo")) ? "layered-image--tinted" : "";
+            caseObject.logo = caseItem.GetString("ItemPublisher:Item.CustomerLogo");
+            caseObject.summary = caseItem.GetString("ItemPublisher:Item.Summary");
+            caseObject.link = "/Default.aspx?ID=" + caseItem.GetString("ItemPublisher:Item.Field.PageId");
+
+            feedRoot.Cases.Add(caseObject); 
+        }
+    }
+
+    //Solution types
+
+    feedRoot.selectedSolutionType = Translate("All");
+    feedRoot.SolutionTypes = new List<Category>();
+
+    Category solutionTypeObjectAll = new Category();
+    solutionTypeObjectAll.id = "";
+    solutionTypeObjectAll.title = Translate("All");
+    var query = HttpUtility.ParseQueryString(HttpContext.Current.Request.QueryString.ToString());
+    query.Set("SolutionType", "");
+    solutionTypeObjectAll.feedLink = "/Default.aspx?" + query.ToString();
+
+    feedRoot.SolutionTypes.Add(solutionTypeObjectAll);
+
+    var solutionFields = GetLoop("ItemPublisher:ItemType.Fields").FirstOrDefault((item) => item.GetString("ItemPublisher:ItemType.Field.SystemName") == "SolutionType");
+
+    foreach (var solutionOptions in solutionFields.GetLoop("ItemPublisher:ItemType.Field.Options"))
+    {
+        Category solutionTypeObject = new Category();
+        solutionTypeObject.id = solutionOptions.GetString("ItemPublisher:ItemType.Field.Option.Value");
+        solutionTypeObject.title = solutionOptions.GetString("ItemPublisher:ItemType.Field.Option.Label");
+        query.Set("SolutionType", solutionTypeObject.id);
+        solutionTypeObject.feedLink = "/Default.aspx?" + query.ToString();
+
+        feedRoot.SolutionTypes.Add(solutionTypeObject);
+
+        if (selectedSolutionType == solutionOptions.GetString("ItemPublisher:ItemType.Field.Option.Value")) {
+            feedRoot.selectedSolutionType = solutionOptions.GetString("ItemPublisher:ItemType.Field.Option.Label");
+        }
+    }
+
+    //Industries
+
+    feedRoot.selectedIndustry = Translate("All");
+    feedRoot.Industries = new List<Category>();
+
+    Category industryObjectAll = new Category();
+    industryObjectAll.id = "";
+    industryObjectAll.title = Translate("All");
+    query = HttpUtility.ParseQueryString(HttpContext.Current.Request.QueryString.ToString());
+    query.Set("Industry", "");
+    industryObjectAll.feedLink = "/Default.aspx?" + query.ToString();
+
+    feedRoot.Industries.Add(industryObjectAll);
+
+    var industryFields = GetLoop("ItemPublisher:ItemType.Fields").FirstOrDefault((item) => item.GetString("ItemPublisher:ItemType.Field.SystemName") == "Industry");
+
+    foreach (var industryOptions in industryFields.GetLoop("ItemPublisher:ItemType.Field.Options"))
+    {
+        Category industryObject = new Category();
+        industryObject.id = industryOptions.GetString("ItemPublisher:ItemType.Field.Option.Value");
+        industryObject.title = industryOptions.GetString("ItemPublisher:ItemType.Field.Option.Label");
+        query.Set("Industry", industryObject.id);
+        industryObject.feedLink = "/Default.aspx?" + query.ToString();
+
+        feedRoot.Industries.Add(industryObject);
+
+        if (selectedIndustry == industryOptions.GetString("ItemPublisher:ItemType.Field.Option.Value"))
+        {
+            feedRoot.selectedIndustry = industryOptions.GetString("ItemPublisher:ItemType.Field.Option.Label");
+        }
+    }
+
+    //Integrations
+
+    feedRoot.selectedIntegration = Translate("All");
+    feedRoot.Integrations = new List<Category>();
+
+    Category integrationObjectAll = new Category();
+    integrationObjectAll.id = "";
+    integrationObjectAll.title = Translate("All");
+    query = HttpUtility.ParseQueryString(HttpContext.Current.Request.QueryString.ToString());
+    query.Set("Integration", "");
+    integrationObjectAll.feedLink = "/Default.aspx?" + query.ToString();
+
+    feedRoot.Integrations.Add(integrationObjectAll);
+
+    var integrationFields = GetLoop("ItemPublisher:ItemType.Fields").FirstOrDefault((item) => item.GetString("ItemPublisher:ItemType.Field.SystemName") == "Integration");
+
+    foreach (var integrationOptions in integrationFields.GetLoop("ItemPublisher:ItemType.Field.Options"))
+    {
+        Category integrationObject = new Category();
+        integrationObject.id = integrationOptions.GetString("ItemPublisher:ItemType.Field.Option.Value");
+        integrationObject.title = integrationOptions.GetString("ItemPublisher:ItemType.Field.Option.Label");
+        query.Set("Integration", integrationObject.id);
+        integrationObject.feedLink = "/Default.aspx?" + query.ToString();
+
+        feedRoot.Integrations.Add(integrationObject);
+
+        if (selectedIntegration == integrationOptions.GetString("ItemPublisher:ItemType.Field.Option.Value"))
+        {
+            feedRoot.selectedIntegration = integrationOptions.GetString("ItemPublisher:ItemType.Field.Option.Label");
+        }
+    }
+
+    feedObject.Add(feedRoot);
+
+    string jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(feedObject);
+}
+
+@jsonFeed

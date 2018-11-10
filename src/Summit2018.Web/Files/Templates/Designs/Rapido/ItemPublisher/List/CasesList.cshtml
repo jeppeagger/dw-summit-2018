@@ -1,0 +1,125 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+
+
+@{ 
+    string selectedSolutionType = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString.Get("SolutionType")) ? HttpContext.Current.Request.QueryString.Get("SolutionType") : Translate("All");
+    string selectedIndustry = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString.Get("Industry")) ? HttpContext.Current.Request.QueryString.Get("Industry") : Translate("All");
+    string selectedIntegration = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString.Get("Integration")) ? HttpContext.Current.Request.QueryString.Get("Integration") : Translate("All");
+    var query = HttpUtility.ParseQueryString(HttpContext.Current.Request.QueryString.ToString());
+
+    int caseListPageId = GetPageIdByNavigationTag("CasesListFeed");
+    string cardClass = Pageview.Device.ToString() != "Tablet" ? "paragraph-card" : "";
+    string cardFooterClass = Pageview.Device.ToString() != "Tablet" ? "paragraph-card-footer" : "";
+
+    var solutionFields = GetLoop("ItemPublisher:ItemType.Fields").FirstOrDefault((item) => item.GetString("ItemPublisher:ItemType.Field.SystemName") == "SolutionType");
+    foreach (var solutionOptions in solutionFields.GetLoop("ItemPublisher:ItemType.Field.Options"))
+    {
+        selectedSolutionType = selectedSolutionType == solutionOptions.GetString("ItemPublisher:ItemType.Field.Option.Value") ? solutionOptions.GetString("ItemPublisher:ItemType.Field.Option.Label") : selectedSolutionType;
+    }
+
+    var industryFields = GetLoop("ItemPublisher:ItemType.Fields").FirstOrDefault((item) => item.GetString("ItemPublisher:ItemType.Field.SystemName") == "Industry");
+    foreach (var industryOptions in industryFields.GetLoop("ItemPublisher:ItemType.Field.Options"))
+    {
+        selectedIndustry = selectedIndustry == industryOptions.GetString("ItemPublisher:ItemType.Field.Option.Value") ? industryOptions.GetString("ItemPublisher:ItemType.Field.Option.Label") : selectedIndustry;
+    }
+
+    var integrationFields = GetLoop("ItemPublisher:ItemType.Fields").FirstOrDefault((item) => item.GetString("ItemPublisher:ItemType.Field.SystemName") == "Integration");
+    foreach (var integrationOptions in integrationFields.GetLoop("ItemPublisher:ItemType.Field.Options"))
+    {
+        selectedIntegration = selectedIntegration == integrationOptions.GetString("ItemPublisher:ItemType.Field.Option.Value") ? integrationOptions.GetString("ItemPublisher:ItemType.Field.Option.Label") : selectedIntegration;
+    }
+}
+
+<div class="grid__col-12">
+    <div class="grid">
+        <div class="grid__col-12">
+            <div class="grid__cell">
+                <div class="collection">
+                    <div>
+                        <h5 class="u-inline-block u-margin-right">@Translate("Industry")</h5>
+                        <input type="checkbox" id="IndustrySelector" class="dropdown-trigger" />
+                        <div class="dropdown u-w180px u-margin-right u-inline-block dw-mod">
+                            <label class="dropdown__header dropdown__btn dw-mod" for="IndustrySelector">@Translate(selectedIndustry)</label>
+                            <div class="dropdown__content dw-mod">
+                                @{
+                                    <div class="dropdown__item" onclick="QueryArray.setParameterInCurrentURL('Industry', '');">@Translate("All")</div>
+
+                                    foreach (var options in industryFields.GetLoop("ItemPublisher:ItemType.Field.Options"))
+                                    {
+                                        <div class="dropdown__item" onclick="QueryArray.setParameterInCurrentURL('Industry', '@options.GetString("ItemPublisher:ItemType.Field.Option.Value")');">@Translate(options.GetString("ItemPublisher:ItemType.Field.Option.Label"))</div>
+                                    }
+                                }
+                            </div>
+                            <label class="dropdown-trigger-off" for="IndustrySelector"></label>
+                        </div>
+                    </div>
+                    <div class="u-hidden-xs u-hidden-xxs">
+                        <h5 class="u-inline-block u-margin-right">@Translate("Solution type")</h5>
+                        <input type="checkbox" id="SolutionTypeSelector" class="dropdown-trigger" />
+                        <div class="dropdown u-w180px u-margin-right u-inline-block dw-mod">
+                            <label class="dropdown__header dropdown__btn dw-mod" for="SolutionTypeSelector">@Translate(selectedSolutionType)</label>
+                            <div class="dropdown__content dw-mod">
+                                @{
+                                    <div class="dropdown__item dw-mod" onclick="QueryArray.setParameterInCurrentURL('SolutionType', '');">@Translate("All")</div>
+
+                                    foreach (var options in solutionFields.GetLoop("ItemPublisher:ItemType.Field.Options"))
+                                    {
+                                        <div class="dropdown__item dw-mod" onclick="QueryArray.setParameterInCurrentURL('SolutionType', '@options.GetString("ItemPublisher:ItemType.Field.Option.Value")');">@Translate(options.GetString("ItemPublisher:ItemType.Field.Option.Label"))</div>
+                                    }
+                                }
+                            </div>
+                            <label class="dropdown-trigger-off" for="SolutionTypeSelector"></label>
+                        </div>
+                    </div>
+                    <div class="u-hidden-xs u-hidden-xxs">
+                        <h5 class="u-inline-block u-margin-right">@Translate("Integration")</h5>
+                        <input type="checkbox" id="IntegrationSelector" class="dropdown-trigger" />
+                        <div class="dropdown u-w180px u-margin-right u-inline-block dw-mod">
+                            <label class="dropdown__header dropdown__btn dw-mod" for="IntegrationSelector">@Translate(selectedIntegration)</label>
+                            <div class="dropdown__content dw-mod">
+                                @{
+                                    <div class="dropdown__item" onclick="QueryArray.setParameterInCurrentURL('Integration', '');">@Translate("All")</div>
+
+                                    foreach (var options in integrationFields.GetLoop("ItemPublisher:ItemType.Field.Options"))
+                                    {
+                                        <div class="dropdown__item" onclick="QueryArray.setParameterInCurrentURL('Integration', '@options.GetString("ItemPublisher:ItemType.Field.Option.Value")');">@Translate(options.GetString("ItemPublisher:ItemType.Field.Option.Label"))</div>
+                                    }
+                                }
+                            </div>
+                            <label class="dropdown-trigger-off" for="IntegrationSelector"></label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        @foreach (LoopItem caseItem in GetLoop("ItemPublisher:Items.List"))
+        {
+            string tintedImage = !String.IsNullOrEmpty(caseItem.GetString("ItemPublisher:Item.CustomerLogo")) ? "layered-image--tinted" : "";
+
+            <div class="grid__col-md-3 grid__col-sm-3 grid__col-xs-12">
+                <div class="@cardClass">
+                    <div class="u-margin-bottom">
+                        <a href="/Default.aspx?ID=@caseItem.GetString("ItemPublisher:Item.Field.PageId")">              
+                            <div class="layered-image @tintedImage" style="background-image:url(/Admin/Public/GetImage.ashx?width=992&amp;height=760&amp;crop=0&amp;Compression=75&amp;DoNotUpscale=True&amp;image=@caseItem.GetString("ItemPublisher:Item.Image")); background-size: cover;">
+                                <img src="/Admin/Public/GetImage.ashx?width=240&amp;height=200&amp;crop=5&amp;Compression=75&amp;DoNotUpscale=true&amp;FillCanvas=True&amp;image=@caseItem.GetString("ItemPublisher:Item.CustomerLogo")" class="u-padding" alt="@caseItem.GetString("ItemPublisher:Item.Title")" />
+                            </div>
+                        </a>
+                    </div>
+                    <a href="/Default.aspx?ID=@caseItem.GetString("ItemPublisher:Item.Field.PageId")" class="u-color-inherit u-bold u-margin-left u-margin-right u-block">
+                        @caseItem.GetString("ItemPublisher:Item.Title")
+                    </a>
+                    <p>@caseItem.GetString("ItemPublisher:Item.Summary")</p>
+                </div>
+                <div class="grid__cell-footer @cardFooterClass">
+                    <div class="grid__cell">
+                        <div class="u-margin-top">
+                            <a href="/Default.aspx?ID=@caseItem.GetString("ItemPublisher:Item.Field.PageId")" class="btn btn--secondary btn--full dw-mod">@Translate("Read the case")</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

@@ -1,0 +1,231 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="f5d27e0a-46db-45a0-a761-d88037d8dbc0" Name="Products.query">
+  <Settings />
+  <Parameters>
+    <Parameter Name="Search" Type="System.String" DefaultValue="" />
+    <Parameter Name="PriceRange" Type="System.String[]" DefaultValue="" />
+    <Parameter Name="GroupID" Type="System.String[]" DefaultValue="" />
+    <Parameter Name="Color" Type="System.String[]" DefaultValue="" />
+    <Parameter Name="Format" Type="System.String[]" DefaultValue="" />
+    <Parameter Name="Type" Type="System.String[]" DefaultValue="" />
+    <Parameter Name="Material" Type="System.String[]" DefaultValue="" />
+    <Parameter Name="EcoFriendly" Type="System.Boolean[]" DefaultValue="" />
+    <Parameter Name="Brand" Type="System.String[]" DefaultValue="" />
+    <Parameter Name="Weight" Type="System.String[]" DefaultValue="" />
+    <Parameter Name="ParentGroup" Type="System.String[]" DefaultValue="" />
+    <Parameter Name="Bikes" Type="System.String" DefaultValue="" />
+    <Parameter Name="CoolCruiser" Type="System.String" DefaultValue="" />
+    <Parameter Name="LadyBikes" Type="System.String" DefaultValue="" />
+    <Parameter Name="WheelsForThisBike" Type="System.String" DefaultValue="" />
+    <Parameter Name="RelatedProducts" Type="System.String" DefaultValue="" />
+    <Parameter Name="DoNotShowVariantsAsSingleProducts" Type="System.Boolean" DefaultValue="" />
+    <Parameter Name="ExtraExtra" Type="System.String" DefaultValue="" />
+    <Parameter Name="MainProductID" Type="System.String" DefaultValue="" />
+    <Parameter Name="OnlyShowVariants" Type="System.Boolean" DefaultValue="" />
+  </Parameters>
+  <Source Repository="Products" Item="Products.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <SortOrder>
+    <Sort Field="_score" Direction="Descending" />
+  </SortOrder>
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="Active" />
+        </Left>
+        <Right>
+          <ConstantExpression Value="True" Type="System.Boolean" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="PriceRange" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="PriceRange" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="Color_Facet" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="Color" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="Type_Facet" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="Type" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="Material_Facet" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="Material" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="CustomField_EcoFriendly" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="EcoFriendly" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="Brand_Facet" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="Brand" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="Weight_Facet" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="Weight" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="Format_Facet" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="Format" />
+        </Right>
+      </BinaryExpression>
+      <GroupExpression Operator="Or">
+        <BinaryExpression Operator="Equal">
+          <Left>
+            <FieldExpression Field="ProductName_Search" />
+          </Left>
+          <Right>
+            <ParameterExpression Name="Search" />
+          </Right>
+        </BinaryExpression>
+        <BinaryExpression Operator="Equal">
+          <Left>
+            <FieldExpression Field="ProductNumber_Search" />
+          </Left>
+          <Right>
+            <ParameterExpression Name="Search" />
+          </Right>
+        </BinaryExpression>
+        <BinaryExpression Operator="Contains">
+          <Left>
+            <FieldExpression Field="freetext" />
+          </Left>
+          <Right>
+            <ParameterExpression Name="Search" />
+          </Right>
+        </BinaryExpression>
+      </GroupExpression>
+      <BinaryExpression Operator="MatchAny">
+        <Left>
+          <FieldExpression Field="ParentGroupIDs" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="GroupID" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="LanguageID" />
+        </Left>
+        <Right>
+          <MacroExpression Lookup="Dynamicweb.Ecommerce.Context:LanguageID" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="MatchAny">
+        <Left>
+          <FieldExpression Field="ProductRelationGroup_RELGRP8" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="Bikes" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="MatchAny">
+        <Left>
+          <FieldExpression Field="ProductRelationGroup_RELGRP5" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="CoolCruiser" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="MatchAny">
+        <Left>
+          <FieldExpression Field="ProductRelationGroup_RELGRP7" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="LadyBikes" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="MatchAny">
+        <Left>
+          <FieldExpression Field="ProductRelationGroup_RELGRP4" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="WheelsForThisBike" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="MatchAny">
+        <Left>
+          <FieldExpression Field="ProductRelationGroup_RELGRP1" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="RelatedProducts" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="AutoID" />
+        </Left>
+        <Right>
+          <MacroExpression Lookup="Dynamicweb.UserManagement.Context:FavoritesAutoIdByUserId" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="ShowMasterOrVariantInList" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="DoNotShowVariantsAsSingleProducts" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="ID" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="MainProductID" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="MatchAny">
+        <Left>
+          <FieldExpression Field="IsVariant" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="OnlyShowVariants" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="MatchAny">
+        <Left>
+          <FieldExpression Field="ShopIDs" />
+        </Left>
+        <Right>
+          <MacroExpression Lookup="Dynamicweb.Ecommerce.Context:ShopID" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields />
+  <ViewLanguages />
+  <Meta />
+</Query>

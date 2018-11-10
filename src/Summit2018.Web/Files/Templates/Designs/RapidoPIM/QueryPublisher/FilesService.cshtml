@@ -1,0 +1,186 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+@using System.Collections;
+
+@functions {
+    public class File
+    {
+        public string path { get; set; }
+        public string name { get; set; }
+        public string extension { get; set; }
+    }
+
+    public class FileContainer
+    {
+        public FileContainer()
+        {
+            File = new List<File>();
+        }
+
+        public string template { get; set; }
+        public string id { get; set; }
+        public List<File> File { get; set; }
+    }
+
+    public class Root
+    {
+        public Root()
+        {
+            CartFiles = null;
+        }
+
+        public int filesCount { get; set; }
+        public List<File> CartFiles { get; set; }
+    }
+
+    public class FilesRoot
+    {
+        public FilesRoot()
+        {
+            FilesContainer = new List<FileContainer>();
+        }
+
+        public List<FileContainer> FilesContainer { get; set; }
+    }
+}
+
+@{
+    var fileServiceUrlParameters = new List<string>() { "AddFilePath", "RemoveFilePath", "AddAll", "AddAllFeedId", "AddAllMaxItems", "Reset", "ID", "PageSize" };
+    List<Root> feedObject = new List<Root>();
+
+    Root feedRoot = new Root();
+
+    var addedFile = HttpContext.Current.Request["AddFilePath"];
+    var removedFile = HttpContext.Current.Request["RemoveFilePath"];
+    var addAllParameter = HttpContext.Current.Request["AddAll"];
+    var addAllFeedId = HttpContext.Current.Request["AddAllFeedId"];
+    var addAllMaxItems = HttpContext.Current.Request["AddAllMaxItems"];
+    var resetValue = HttpContext.Current.Request["Reset"];
+
+    var addAll = false;
+
+    bool.TryParse(addAllParameter, out addAll);
+
+    var selectedFiles = HttpContext.Current.Session["PIM_Files"] as List<File>;
+
+    if (!string.IsNullOrEmpty(addedFile))
+    {
+        selectedFiles = HttpContext.Current.Session["PIM_Files"] as List<File>;
+
+        if (selectedFiles == null)
+        {
+            selectedFiles = new List<File>();
+        }
+
+        var newFile = new File()
+        {
+            path = addedFile,
+            name = System.IO.Path.GetFileNameWithoutExtension(addedFile),
+            extension = System.IO.Path.GetExtension(addedFile)
+        };
+
+        if (!selectedFiles.Exists(file => file.path == addedFile))
+        {
+            selectedFiles.Add(newFile);
+        }
+
+        HttpContext.Current.Session["PIM_Files"] = selectedFiles;
+
+    }
+
+    if (!string.IsNullOrEmpty(removedFile))
+    {
+        var fileToRemove = selectedFiles.Find(file => file.path == removedFile);
+
+        if (fileToRemove != null)
+        {
+            selectedFiles.Remove(fileToRemove);
+        }
+
+        if (selectedFiles.Count == 0)
+        {
+            selectedFiles = null;
+        }
+
+        HttpContext.Current.Session["PIM_Files"] = selectedFiles;
+    }
+
+    if (addAll)
+    {
+        selectedFiles = HttpContext.Current.Session["PIM_Files"] as List<File>;
+
+        if (selectedFiles == null)
+        {
+            selectedFiles = new List<File>();
+        }
+
+        using (var webClient = new System.Net.WebClient())
+        {
+            var siteUrl = HttpContext.Current.Request.Url.Host;
+            var url = string.Format("http://{0}/Default.aspx?ID={1}&PageSize={2}", siteUrl, addAllFeedId, addAllMaxItems);
+
+
+            foreach (string parameter in HttpContext.Current.Request.QueryString)
+            {
+                if (!fileServiceUrlParameters.Contains(parameter))
+                {
+
+                    url += string.Format("&{0}={1}", parameter, HttpContext.Current.Request.QueryString[parameter]);
+                }
+            }
+
+            var json = webClient.DownloadString(url);
+            
+            var fileRoots = Newtonsoft.Json.JsonConvert.DeserializeObject<List<FilesRoot>>(json);
+
+            foreach (var fileRoot in fileRoots)
+            {
+                foreach (var newFileContainer in fileRoot.FilesContainer)
+                {
+                    foreach (var newFile in newFileContainer.File)
+                    {
+                        if (!selectedFiles.Exists(file => file.path == newFile.path))
+                        {
+                            selectedFiles.Add(newFile);
+                        }
+                    }
+                }
+            }
+
+            HttpContext.Current.Session["PIM_Files"] = selectedFiles;
+        }
+
+    }
+
+    if (!string.IsNullOrEmpty(resetValue))
+    {
+        bool reset = false;
+
+        if (bool.TryParse(resetValue, out reset))
+        {
+            if (reset)
+            {
+                selectedFiles = null;
+                HttpContext.Current.Session["PIM_Files"] = selectedFiles;
+            }
+        }
+    }
+
+    string jsonFeed = string.Empty;
+
+    if (selectedFiles != null && selectedFiles.Count > 0)
+    {
+        feedRoot.CartFiles = selectedFiles;
+        feedRoot.filesCount = selectedFiles.Count;
+
+        feedObject.Add(feedRoot);
+
+        jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(feedObject);
+    }
+    else
+    {
+        jsonFeed = "[]";
+    }
+}
+
+@jsonFeed

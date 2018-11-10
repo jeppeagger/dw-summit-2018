@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="fa0d3a39-e0ee-4c8b-b426-cdc560dbf863" Name="Mountainbikes">
+  <Settings />
+  <Source Repository="Products" Item="Products.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="Name" />
+        </Left>
+        <Right>
+          <TermExpression Value="bike" DisplayValue="bike" Type="System.String" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields>
+    <Field Name="Back derailleur" SystemName="CustomField_BackDerailleur" Source="CustomField_BackDerailleur" Sort="0" />
+    <Field Name="Breaks" SystemName="CustomField_Breaks" Source="CustomField_Breaks" Sort="1" />
+    <Field Name="Cassette" SystemName="CustomField_Cassette" Source="CustomField_Cassette" Sort="2" />
+    <Field Name="Crankset" SystemName="CustomField_Crankset" Source="CustomField_Crankset" Sort="3" />
+    <Field Name="Deck" SystemName="CustomField_Deck" Source="CustomField_Deck" Sort="4" />
+    <Field Name="Fork" SystemName="CustomField_Fork" Source="CustomField_Fork" Sort="5" />
+    <Field Name="Frame" SystemName="CustomField_Frame" Source="CustomField_Frame" Sort="6" />
+    <Field Name="Front derailleur" SystemName="CustomField_FrontDerailleur" Source="CustomField_FrontDerailleur" Sort="7" />
+    <Field Name="Gear" SystemName="CustomField_Gear" Source="CustomField_Gear" Sort="8" />
+    <Field Name="Light" SystemName="CustomField_Light" Source="CustomField_Light" Sort="9" />
+    <Field Name="Lock" SystemName="CustomField_Lock" Source="CustomField_Lock" Sort="10" />
+    <Field Name="Materiale" SystemName="CustomField_Materiale" Source="CustomField_Materiale" Sort="11" />
+    <Field Name="Monitor" SystemName="CustomField_Monitor" Source="CustomField_Monitor" Sort="12" />
+    <Field Name="Shifter" SystemName="CustomField_Shifter" Source="CustomField_Shifter" Sort="13" />
+    <Field Name="Wheel" SystemName="CustomField_Wheel" Source="CustomField_Wheel" Sort="14" />
+    <Field Name="Active" SystemName="Active" Source="ProductActive" Sort="15" />
+    <Field Name="Product images" SystemName="ProductImages" Source="ProductImages" Sort="16" />
+    <Field Name="Product name" SystemName="Name" Source="ProductName" Sort="17" />
+    <Field Name="Product number" SystemName="Number" Source="ProductNumber" Sort="18" />
+    <Field Name="Price" SystemName="Price" Source="ProductPrice" Sort="19" />
+    <Field Name="Short description" SystemName="ShortDescription" Source="ProductShortDescription" Sort="20" />
+    <Field Name="Weight" SystemName="Weight" Source="ProductWeight" Sort="21" />
+    <Field Name="Colors" SystemName="VariantGroup_VARGRP1" Source="VariantGroup_VARGRP1" Sort="22" />
+    <Field Name="Materials" SystemName="VariantGroup_VARGRP6" Source="VariantGroup_VARGRP6" Sort="23" />
+  </ViewFields>
+  <ViewLanguages />
+</Query>

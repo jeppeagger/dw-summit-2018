@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="8834b390-ae89-4601-adea-8ebc46f9df31" Name="WF0 - Newly arrived products">
+  <Settings />
+  <Source Repository="Products" Item="Products.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="WorkflowState" />
+        </Left>
+        <Right>
+          <TermExpression Value="1,8" DisplayValue="Newly arrived Products (from ERP),Newly arrived Products (from ERP)" Type="System.Int32[]" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields>
+    <Field Name="Active" SystemName="" Source="ProductActive" Sort="0" />
+    <Field Name="Product name" SystemName="" Source="ProductName" Sort="1" />
+    <Field Name="Product number" SystemName="" Source="ProductNumber" Sort="2" />
+    <Field Name="Price" SystemName="" Source="ProductPrice" Sort="3" />
+    <Field Name="Workflow state" SystemName="" Source="ProductWorkflowStateId" Sort="4" />
+  </ViewFields>
+  <ViewLanguages />
+  <Meta />
+</Query>

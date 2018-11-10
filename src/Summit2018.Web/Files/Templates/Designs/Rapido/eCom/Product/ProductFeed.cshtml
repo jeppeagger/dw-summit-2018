@@ -1,0 +1,631 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+@using Dynamicweb.Core;
+
+@{ 
+    string favoriteIcon = Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetString("FavoriteIcon") != null ? "fas fa-" + Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("FavoriteIcon").SelectedValue : "fas fa-star";
+    string favoriteOutlineIcon = Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetString("FavoriteIcon") != null ? "far fa-" + Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("FavoriteIcon").SelectedValue : "far fa-star";
+    string variantSelection = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString.Get("variantId")) ? HttpContext.Current.Request.QueryString.Get("variantId").Replace(".", ",") : "";
+    int quantity = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString.Get("quantity")) ? Converter.ToInt32(HttpContext.Current.Request.QueryString.Get("quantity")) : 1;
+    bool pointShopOnly = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("PointShopOnly");
+    bool useFacebookPixel = !string.IsNullOrEmpty(Pageview.AreaSettings.GetItem("Settings").GetString("FacebookPixelID"));
+    bool useGoogleTagManager = !string.IsNullOrEmpty(Pageview.AreaSettings.GetItem("Settings").GetString("GoogleTagManagerID"));
+
+    Array availableCustomFields = Pageview.AreaSettings.GetItem("ProductPage").GetString("VariantsTableColumns") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetString("VariantsTableColumns").Split(',') : new string[] { };
+}
+
+@functions {
+    public class ThumbnailImage
+    {
+        public string productId { get; set; }
+        public string image { get; set; }
+    }
+
+    public class VariantSelectionName
+    {
+        public string name { get; set; }
+    }
+
+    public class Combi
+    {
+        public string id { get; set; }
+    }
+
+    public class VariantOption
+    {
+        public string id { get; set; }
+        public string variantId { get; set; }
+        public string productId { get; set; }
+        public string template { get; set; }
+        public string name { get; set; }
+        public string groupId { get; set; }
+        public string selected { get; set; }
+        public string disabled { get; set; }
+        public string color { get; set; }
+        public string image { get; set; }
+    }
+
+    public class Variant
+    {
+        public string id { get; set; }
+        public string name { get; set; }
+        public List<VariantOption> VariantOptions { get; set; }
+    }
+
+    public class FavoriteItem
+    {
+        public string name { get; set; }
+        public string link { get; set; }
+        public string facebookPixelAction { get; set; }
+        public string favoriteIcon { get; set; }
+    }
+
+    public class Favorite
+    {
+        public string id { get; set; }
+        public string favoriteIcon { get; set; }
+        public List<FavoriteItem> FavoriteLists { get; set; }
+    }
+
+    public class Unit
+    {
+        public string id { get; set; }
+        public string value { get; set; }
+        public string name { get; set; }
+        public string selected { get; set; }
+        public string link { get; set; }
+    }
+
+    public class BOMProduct
+    {
+        public string link { get; set; }
+        public string image { get; set; }
+        public string name { get; set; }
+    }
+
+    public class Sticker
+    {
+        public string className { get; set; }
+        public string text { get; set; }
+    }
+
+    public class CustomField
+    {
+        public string name { get; set; }
+        public string value { get; set; }
+    }
+
+    public class Product
+    {
+        public string id { get; set; }
+        public string productId { get; set; }
+        public string name { get; set; }
+        public string number { get; set; }
+        public string price { get; set; }
+        public int quantity { get; set; }
+        public string discount { get; set; }
+        public string stockState { get; set; }
+        public string stockText { get; set; }
+        public string outOfStock { get; set; }
+        public string hideDelivery { get; set; }
+        public string deliveryText { get; set; }
+        public string link { get; set; }
+        public string variantid { get; set; }
+        public double priceDouble { get; set; }
+        public string description { get; set; }
+        public string image { get; set; }
+        public int thumbsCount { get; set; }
+        public string noImage { get; set; }
+        public double points { get; set; }
+        public bool havePointPrice { get; set; }
+        public bool canBePurchasedWithPoints { get; set; }
+        public string onSale { get; set; }
+        public string hasVariants { get; set; }
+        public string disabledBuyButton { get; set; }
+        public bool showProductNumber { get; set; }
+        public string hideHelpText { get; set; }
+        public string hideViewMore { get; set; }
+        public string viewMoreText { get; set; }
+        public string hideBuyOptions { get; set; }
+        public string hasUnits { get; set; }
+
+        public string facebookPixelAction { get; set; }
+        public GoogleImpression googleImpression { get; set; }
+        public string googleImpressionClick { get; set; }
+        public string productInfo { get; set; }
+
+        public string unitName { get; set; }
+        public string unitId { get; set; }
+        public string hideBOMProducts { get; set; }
+        public string currency { get; set; }
+        public List<BOMProduct> BOMProducts { get; set; }
+        public List<Unit> unitOptions { get; set; }
+        public List<Favorite> Favorite { get; set; }
+        public List<Combi> Combinations { get; set; }
+        public List<Variant> Variants { get; set; }
+        public List<Sticker> Stickers { get; set; }
+        public List<CustomField> CustomFields { get; set; }
+        public List<VariantSelectionName> VariantSelectionNames { get; set; }
+        public List<ThumbnailImage> ThumbnailImages { get; set; }
+        public string variantGroupsCount { get; set; }
+        public string combinationsStringArray { get; set; }
+        public string variantsStringArray { get; set; }
+        public string variantSelections { get; set; }
+    }
+
+    public class GoogleImpression
+    {
+        public string name { get; set; }
+        public string id { get; set; }
+        public double price { get; set; }
+        public string brand { get; set; }
+        public string category { get; set; }
+        public string variant { get; set; }
+        public string list { get; set; }
+        public int position { get; set; }
+    }
+
+    public class FacebookAction
+    {
+        public string content_name { get; set; }
+        public List<string> content_ids { get; set; }
+        public string content_type { get; set; }
+        public double value { get; set; }
+        public string currency { get; set; }
+    }
+}
+
+@{
+    List<Product> productFeedObject = new List<Product>();
+
+    //PRODUCT
+    Product productObject = new Product();
+
+    Boolean hasVariants = GetLoop("VariantGroups").Count > 0 ? true : false;
+
+    productObject.id = !string.IsNullOrEmpty(HttpContext.Current.Request.QueryString["rid"]) ? HttpContext.Current.Request.QueryString["rid"] : GetString("Ecom:Product.ID");
+    productObject.productId = GetString("Ecom:Product.ID");
+    productObject.name = GetString("Ecom:Product.Name");
+    //productObject.showProductNumber = generalSettings["ShowProductNumber"] != null ? Converter.ToBoolean(generalSettings["ShowProductNumber"]) : true;
+    productObject.number = GetString("Ecom:Product.Number");
+    productObject.price = GetString("Ecom:Product.Discount.Price.PriceFormatted") != GetString("Ecom:Product.Price.PriceFormatted") ? GetString("Ecom:Product.Discount.Price.PriceFormatted") : GetString("Ecom:Product.Price.PriceFormatted");
+    productObject.priceDouble = GetDouble("Ecom:Product.Discount.Price.Price") != GetDouble("Ecom:Product.Price.Price") ? GetDouble("Ecom:Product.Discount.Price.Price") : GetDouble("Ecom:Product.Price.Price");
+    productObject.discount = GetString("Ecom:Product.Discount.Price.PriceFormatted") != GetString("Ecom:Product.Price.PriceFormatted") ? GetString("Ecom:Product.Price.PriceFormatted") : "";
+    productObject.stockState = GetInteger("Ecom:Product.Stock") > 0 ? "stock-icon--in" : "stock-icon--not";
+    productObject.stockText = GetString("Ecom:Product:Stock.Text");
+    productObject.outOfStock = GetInteger("Ecom:Product.Stock") <= 0 ? "disabled" : "";
+    productObject.onSale = GetString("Ecom:Product.Discount.Price.PriceFormatted") == GetString("Ecom:Product.Price.PriceFormatted") ? "u-hidden" : "";
+    productObject.hideDelivery = string.IsNullOrEmpty(GetString("Ecom:Product:Stock.DeliveryText")) ? "u-hidden" : "";
+    productObject.deliveryText = Translate("Shipping") + " " + GetString("Ecom:Product:Stock.DeliveryText") + " " + GetString("Ecom:Product:Stock.DeliveryUnit");
+    productObject.variantid = !string.IsNullOrEmpty(GetString("Ecom:Product.VariantID")) ? GetString("Ecom:Product.VariantID") : GetString("Ecom:Product.VariantID.Extented");
+    productObject.description = GetString("Ecom:Product.ShortDescription");
+    productObject.image = System.Web.HttpContext.Current.Server.UrlEncode(GetString("Ecom:Product.ImageDefault.Default.Clean"));
+    productObject.thumbsCount = GetLoop("Details").Count;
+    productObject.quantity = quantity;
+    productObject.points = GetDouble("Ecom:Product.PointPrice") * quantity;
+    productObject.havePointPrice = productObject.points != 0;
+    productObject.canBePurchasedWithPoints = false;
+    productObject.currency = GetString("Ecom:Product.Price.Currency.Code");
+    var user = Dynamicweb.Security.UserManagement.User.get_Current(Dynamicweb.Security.UserManagement.PagePermissionLevels.Frontend);
+
+    if (user != null)
+    {
+        var availablePoints = user.PointBalance;
+        var cart = Dynamicweb.Ecommerce.Common.Context.Cart;
+        var pointsUsedInCart = cart != null ? cart.TotalPoints : 0;
+        productObject.canBePurchasedWithPoints = productObject.points > 0 && availablePoints - pointsUsedInCart >= productObject.points;
+    }
+    productObject.disabledBuyButton = hasVariants || (pointShopOnly && !productObject.canBePurchasedWithPoints) ? "disabled" : "";
+
+    foreach (LoopItem alternativeImage in GetLoop("Ecom:Product.AlternativeImages"))
+    {
+        if (!String.IsNullOrEmpty(alternativeImage.GetString("Ecom:Product.AlternativeImages.Image")))
+        {
+            productObject.thumbsCount++;
+        }
+    }
+
+    if (useGoogleTagManager)
+    {
+        var groupObject = Dynamicweb.Ecommerce.Services.ProductGroups.GetGroup(GetString("Ecom:Product.PrimaryOrFirstGroupID"));
+        productObject.googleImpression = new GoogleImpression()
+        {
+            name = productObject.name,
+            brand = GetString("Ecom:Product:Field.brand.Value"),
+            category = (groupObject != null ? groupObject.Name : ""),
+            id = productObject.productId,
+            position = 1,
+            price = productObject.priceDouble,
+            variant = productObject.variantid,
+            list = "Product catalogue"
+        };
+        productObject.googleImpressionClick = Newtonsoft.Json.JsonConvert.SerializeObject(productObject.googleImpression);
+    }
+
+    if (useFacebookPixel) {
+        //Pixel
+        FacebookAction facebookPixelAction = new FacebookAction() {
+            content_name = GetString("Ecom:Product.Name"),
+            content_ids = new List<string>(new string[] { GetString("Ecom:Product.Number") }),
+            content_type = "product",
+            value = productObject.priceDouble,
+            currency = productObject.currency
+        };
+        productObject.facebookPixelAction = "fbq('track', 'AddToCart', " + Newtonsoft.Json.JsonConvert.SerializeObject(facebookPixelAction) + ");";
+    }
+
+    productObject.noImage = String.IsNullOrEmpty(GetString("Ecom:Product.ImageDefault.Default.Clean")) ? "u-hidden" : "";
+    productObject.hasVariants = hasVariants ? "disabled" : "";
+    productObject.hideBuyOptions = hasVariants ? "u-hidden" : "";
+    productObject.hideViewMore = hasVariants ? "" : "u-hidden";
+    productObject.hasUnits = GetLoop("Units").Count > 0 ? "" : "u-hidden";
+    productObject.hideBOMProducts = GetLoop("BOMProducts").Count > 0 ? "" : "u-hidden";
+
+    productObject.Stickers = new List<Sticker>();
+
+    if (Pageview.AreaSettings.GetItem("Ecommerce").GetItem("SaleSticker").GetBoolean("Enable") && !pointShopOnly)
+    {
+        string contentType = Pageview.AreaSettings.GetItem("Ecommerce").GetItem("SaleSticker").GetString("ContentType") != null ? Pageview.AreaSettings.GetItem("Ecommerce").GetItem("SaleSticker").GetString("ContentType") : "Name";
+        var currency = Dynamicweb.Ecommerce.Services.Currencies.GetDefaultCurrency();
+        Sticker saleSticker = new Sticker();
+
+        switch (contentType)
+        {
+            case "Name":
+                foreach (LoopItem discount in GetLoop("ProductDiscounts"))
+                {
+                    saleSticker = new Sticker();
+                    saleSticker.text = discount.GetString("Ecom:Product.Discount.Name");
+                    saleSticker.className = "stickers-container__tag--sale";
+                    productObject.Stickers.Add(saleSticker);
+                }
+                break;
+            case "Amount":
+                if (GetLoop("ProductDiscounts").Count > 0)
+                {
+                    saleSticker = new Sticker();
+                    saleSticker.text = Dynamicweb.Ecommerce.Services.Currencies.Format(currency, GetDouble("Ecom:Product.Discount.Price.Price") - GetDouble("Ecom:Product.Price.Price"));
+                    saleSticker.className = "stickers-container__tag--sale";
+                    productObject.Stickers.Add(saleSticker);
+                }
+                break;
+            case "Percents":
+                double percents = 0;
+                foreach (LoopItem discount in GetLoop("ProductDiscounts"))
+                {
+                    percents += discount.GetDouble("Ecom:Product.Discount.PercentWithoutVAT");
+                }
+                if (percents > 0) {
+                    saleSticker = new Sticker();
+                    saleSticker.text = Math.Round(percents, 0) + "%";
+                    saleSticker.className = "stickers-container__tag--sale";
+                    productObject.Stickers.Add(saleSticker);
+                }
+                break;
+            case "Amount+and+percents":
+                double amount = 0;
+                double percent = 0;
+                foreach (LoopItem discount in GetLoop("ProductDiscounts"))
+                {
+                    if (discount.GetString("Ecom:Product.Discount.Type") == "PERCENT")
+                    {
+                        percent += discount.GetDouble("Ecom:Product.Discount.PercentWithoutVAT");
+                    }
+                    else if (discount.GetString("Ecom:Product.Discount.Type") == "AMOUNT")
+                    {
+                        amount += discount.GetDouble("Ecom:Product.Discount.AmountWithVAT");
+                    }
+                }
+
+                if (percent > 0)
+                {
+                    saleSticker = new Sticker();
+                    saleSticker.text = percent + "%";
+                    saleSticker.className = "stickers-container__tag--sale";
+                    productObject.Stickers.Add(saleSticker);
+                }
+
+                if (amount > 0)
+                {
+                    saleSticker = new Sticker();
+                    saleSticker.text = "-" + Dynamicweb.Ecommerce.Services.Currencies.Format(currency, amount);
+                    saleSticker.className = "stickers-container__tag--sale";
+                    productObject.Stickers.Add(saleSticker);
+                }
+                break;
+            default:
+                if (GetLoop("ProductDiscounts").Count > 0)
+                {
+                    saleSticker = new Sticker();
+                    saleSticker.text = Translate("Sale!");
+                    saleSticker.className = "stickers-container__tag--sale";
+                    productObject.Stickers.Add(saleSticker);
+                }
+                break;
+        }
+    }
+
+    if (!pointShopOnly && Pageview.AreaSettings.GetItem("Ecommerce").GetItem("NewSticker").GetBoolean("Enable") && GetDate("Ecom:Product.Created").AddDays(Converter.ToDouble(Pageview.AreaSettings.GetItem("Ecommerce").GetItem("NewSticker").GetString("Expiration"))) > DateTime.Now)
+    {
+        Sticker newSticker = new Sticker();
+        newSticker.className = "stickers-container__tag--new";
+        newSticker.text = Translate("New!");
+        productObject.Stickers.Add(newSticker);
+    }
+
+    if (!pointShopOnly && !String.IsNullOrEmpty(GetString("Ecom:Product:Field.CustomSticker.Value")))
+    {
+        Sticker customSticker = new Sticker();
+        customSticker.className = "stickers-container__tag--custom";
+        customSticker.text = GetString("Ecom:Product:Field.CustomSticker.Value");
+        productObject.Stickers.Add(customSticker);
+    }
+
+    productObject.unitOptions = new List<Unit>();
+
+    //Custom fields
+    productObject.CustomFields = new List<CustomField>();
+
+    foreach (string availableField in availableCustomFields)
+    {
+        bool fieldExists = false;
+
+        foreach (LoopItem field in GetLoop("CustomFieldValues"))
+        {
+            if (field.GetString("Product.CustomField.Template").ToLower() == availableField.ToLower())
+            {
+                CustomField customField = new CustomField();
+                customField.name = field.GetString("Product.CustomField.Label");
+                customField.value = field.GetString("Product.CustomField.Value");
+                productObject.CustomFields.Add(customField);
+
+                fieldExists = true;
+            }
+        }
+
+        if (fieldExists == false)
+        {
+            CustomField customField = new CustomField();
+            customField.name = "";
+            customField.value = "";
+            productObject.CustomFields.Add(customField);
+        }
+    }
+
+    //Variant current selection names
+    productObject.VariantSelectionNames = new List<VariantSelectionName>();
+    String[] variantSelectionNamesArr = GetString("Ecom:Product.VariantText").Replace(" - ", ".").Split('.');
+
+    foreach (String name in variantSelectionNamesArr)
+    {
+        VariantSelectionName variantName = new VariantSelectionName();
+        variantName.name = name;
+        productObject.VariantSelectionNames.Add(variantName);
+    }
+
+    //Units
+    foreach (LoopItem unitOption in GetLoop("Units"))
+    {
+        Unit unitObject = new Unit();
+        unitObject.id = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString["rid"]) ? HttpContext.Current.Request.QueryString["rid"] : unitOption.GetString("Ecom:VariantOption.ID");
+        unitObject.value = unitOption.GetString("Ecom:VariantOption.ID");
+        unitObject.name = unitOption.GetString("Ecom:VariantOption.Name");
+        unitObject.selected = unitOption.GetString("Ecom:VariantOption.Selected");
+        unitObject.link = "/" + GetString("Ecom:Product.LinkGroup.Clean") + (!string.IsNullOrEmpty(GetString("Ecom:Product.VariantID")) ? "&VariantID=" + GetString("Ecom:Product.VariantID") : "");
+        productObject.unitOptions.Add(unitObject);
+
+        if (unitOption.GetString("Ecom:VariantOption.Selected") == "SELECTED")
+        {
+            productObject.unitName = unitOption.GetString("Ecom:VariantOption.Name");
+            productObject.unitId = unitOption.GetString("Ecom:VariantOption.ID");
+        }
+    }
+
+    //Favorites
+    if (Dynamicweb.Core.Converter.ToBoolean(GetGlobalValue("Global:Extranet.UserName")))
+    {
+        productObject.Favorite = new List<Favorite>();
+        Favorite favoriteObject = new Favorite();
+        favoriteObject.id = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString["rid"]) ? HttpContext.Current.Request.QueryString["rid"] : GetString("Ecom:Product.ID");
+        favoriteObject.favoriteIcon = GetBoolean("Ecom:Product.IsProductInFavoriteList") ? favoriteIcon : favoriteOutlineIcon;
+        favoriteObject.FavoriteLists = new List<FavoriteItem>();
+        string AddToWishlist = "";
+        if (useFacebookPixel)
+        {
+            FacebookAction addToWishlistPixelAction = new FacebookAction() {
+                content_name = GetString("Ecom:Product.Name"),
+                content_ids = new List<string>(new string[]{ GetString("Ecom:Product.Number")}),
+                content_type = "product",
+                value = productObject.priceDouble,
+                currency = productObject.currency
+            };
+            AddToWishlist = "fbq('track', 'AddToWishlist', " + Newtonsoft.Json.JsonConvert.SerializeObject(addToWishlistPixelAction) + ");";
+        }
+
+        if (GetLoop("CustomerCenter.ListTypes").Count > 0)
+        {
+            foreach (LoopItem favoriteList in GetLoop("CustomerCenter.ListTypes"))
+            {
+                foreach (LoopItem favoriteItem in favoriteList.GetLoop("CustomerCenter.ProductLists"))
+                {
+                    FavoriteItem favoriteItemObject = new FavoriteItem();
+                    favoriteItemObject.name = favoriteItem.GetString("Ecom:CustomerCenter.List.Name");
+                    favoriteItemObject.link = favoriteItem.GetString("Ecom:Product.List.IsProductInThisList") == "True" ? favoriteItem.GetString("Ecom:Product.RemoveFromThisList") : favoriteItem.GetString("Ecom:Product.AddToThisListAction");
+                    favoriteItemObject.facebookPixelAction = favoriteItem.GetString("Ecom:Product.List.IsProductInThisList") != "True" ? AddToWishlist : "";
+                    favoriteItemObject.favoriteIcon = favoriteItem.GetString("Ecom:Product.List.IsProductInThisList") == "True" ? favoriteIcon : favoriteOutlineIcon;
+                    favoriteObject.FavoriteLists.Add(favoriteItemObject);
+                }
+            }
+        }
+        else
+        {
+            FavoriteItem favoriteItemObject = new FavoriteItem();
+            favoriteItemObject.name = Translate("My favorites");
+            favoriteItemObject.link = GetString("Ecom:Product.AddToFavorites") + "&CCListType=0&CCCreateNewList=" + Translate("My favorites");
+            favoriteItemObject.favoriteIcon = favoriteOutlineIcon;
+            favoriteItemObject.facebookPixelAction = AddToWishlist;
+            favoriteObject.FavoriteLists.Add(favoriteItemObject);
+        }
+
+
+        productObject.Favorite.Add(favoriteObject);
+    }
+
+    //Variants
+    productObject.variantGroupsCount = GetLoop("VariantGroups").Count.ToString();
+    productObject.Variants = new List<Variant>();
+    var simpleVariantGroupsList = new List<List<String>>();
+
+    bool hasSelection = false;
+
+    List<LoopItem> variantGroupsLoop = new List<LoopItem>();
+    variantGroupsLoop = GetLoop("VariantGroups");
+
+    if (GetBoolean("Ecom:Product.ShowInProductList") && !String.IsNullOrEmpty(GetString("Ecom:Product.VariantID")) && variantGroupsLoop.Count > 1)
+    {
+        variantGroupsLoop.RemoveAt(0);
+    }
+
+    foreach (LoopItem variantgroup in GetLoop("VariantGroups"))
+    {
+        Variant variantObject = new Variant();
+        var simpleVariantsList = new List<String>();
+
+        variantObject.id = GetString("Ecom:Product.ID") + "_" + variantgroup.GetString("Ecom:VariantGroup.ID");
+        variantObject.name = variantgroup.GetString("Ecom:VariantGroup.Name");
+        variantObject.VariantOptions = new List<VariantOption>();
+
+        foreach (LoopItem variantoption in variantgroup.GetLoop("VariantAvailableOptions"))
+        {
+            if (variantoption.GetBoolean("Ecom:VariantOption.Selected"))
+            {
+                hasSelection = true;
+                break;
+            }
+        }
+
+        foreach (LoopItem variantoption in variantgroup.GetLoop("VariantAvailableOptions"))
+        {
+            VariantOption variantOptionObject = new VariantOption();
+            variantOptionObject.id = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString["rid"]) ? HttpContext.Current.Request.QueryString["rid"] : GetString("Ecom:Product.ID");
+            variantOptionObject.variantId = variantoption.GetString("Ecom:VariantOption.ID");
+            variantOptionObject.productId = GetString("Ecom:Product.ID");
+            variantOptionObject.name = variantoption.GetString("Ecom:VariantOption.Name");
+            variantOptionObject.groupId = variantgroup.GetString("Ecom:VariantGroup.ID");
+            if (variantoption.GetBoolean("Ecom:VariantOption.Selected"))
+            {
+                variantOptionObject.selected = "checked";
+                hasSelection = true;
+            }
+            else
+            {
+                variantOptionObject.selected = "";
+            }
+            variantOptionObject.disabled = "";
+            variantOptionObject.color = variantoption.GetString("Ecom:VariantOption.Color");
+            variantOptionObject.image = variantoption.GetString("Ecom:VariantOption.ImgSmall.Clean");
+            if (!string.IsNullOrEmpty(variantOptionObject.image))
+            {
+                variantOptionObject.template = "VariantOptionImage";
+            }
+            else
+            {
+                variantOptionObject.template = "VariantOption";
+            }
+
+            simpleVariantsList.Add(variantoption.GetString("Ecom:VariantOption.ID"));
+            variantObject.VariantOptions.Add(variantOptionObject);
+        }
+
+        simpleVariantGroupsList.Add(simpleVariantsList);
+        productObject.Variants.Add(variantObject);
+    }
+
+    if (hasSelection)
+    {
+        productObject.hasVariants = "";
+        productObject.hideHelpText = "u-visibility-hidden";
+    }
+
+    productObject.variantsStringArray = Newtonsoft.Json.JsonConvert.SerializeObject(simpleVariantGroupsList).Replace("\"", "\'");
+
+    //Set the link, now that we know the variant id
+    productObject.link = "/" + GetString("Ecom:Product.LinkGroup.Clean") + (!string.IsNullOrWhiteSpace(productObject.variantid) ? "&VariantID=" + productObject.variantid : "");
+
+    productObject.productInfo = Newtonsoft.Json.JsonConvert.SerializeObject(new {
+        link = productObject.link,
+        image = productObject.image,
+        name = productObject.name,
+        variantName = Dynamicweb.Ecommerce.Services.Variants.GetVariantName(productObject.variantid),
+        unitName = productObject.unitName,
+        googleImpression = productObject.googleImpression
+    });
+
+    //Combinations
+    productObject.Combinations = new List<Combi>();
+    var variantCombinationsList = new List<Array>();
+
+    foreach (LoopItem variantcomb in GetLoop("VariantStockCombinations"))
+    {
+        Combi combiObject = new Combi();
+        combiObject.id = variantcomb.GetString("Ecom:VariantStockCombination.VariantID");
+        productObject.Combinations.Add(combiObject);
+
+        string[] combinations = variantcomb.GetString("Ecom:VariantStockCombination.VariantID").Split('.');
+        variantCombinationsList.Add(combinations);
+    }
+
+    productObject.combinationsStringArray = Newtonsoft.Json.JsonConvert.SerializeObject(variantCombinationsList).Replace("\"", "\'");
+    productObject.variantSelections = variantSelection;
+
+    //For deprecated the Variants.js engine
+    if (productObject.Combinations.Any()) {
+        productObject.Variants = productObject.Variants.OrderBy(varGroup => productObject.Combinations.Max(combination => combination.id.IndexOf(varGroup.VariantOptions.First().variantId))).ToList();
+    }
+    //
+
+    //BOM Items
+    productObject.BOMProducts = new List<BOMProduct>();
+
+    foreach (LoopItem BOMProductItem in GetLoop("BOMProducts"))
+    {
+        BOMProduct BOMProductObject = new BOMProduct();
+        BOMProductObject.name = BOMProductItem.GetString("Ecom:Product.Name");
+        BOMProductObject.link = "/" + BOMProductItem.GetString("Ecom:Product.LinkGroup.Clean") + (!String.IsNullOrEmpty(BOMProductItem.GetString("Ecom:Product.VariantID")) ? "&VariantID=" + BOMProductItem.GetString("Ecom:Product.VariantID") : "");
+        BOMProductObject.image = BOMProductItem.GetString("Ecom:Product.ImageDefault.Default.Clean");
+        productObject.BOMProducts.Add(BOMProductObject);
+    }
+
+    //Thumbnail images
+    productObject.ThumbnailImages = new List<ThumbnailImage>();
+
+    ThumbnailImage defaultThumbnailImageObject = new ThumbnailImage();
+    defaultThumbnailImageObject.productId = GetString("Ecom:Product.ID");
+    defaultThumbnailImageObject.image = GetString("Ecom:Product.ImageDefault.Default.Clean");
+    productObject.ThumbnailImages.Add(defaultThumbnailImageObject);
+
+    foreach (LoopItem alternativeImage in GetLoop("Ecom:Product.AlternativeImages"))
+    {
+        if (!String.IsNullOrEmpty(alternativeImage.GetString("Ecom:Product.AlternativeImages.Image")))
+        {
+            ThumbnailImage thumbnailImageObject = new ThumbnailImage();
+            thumbnailImageObject.productId = GetString("Ecom:Product.ID");
+            thumbnailImageObject.image = alternativeImage.GetString("Ecom:Product.AlternativeImages.Image");
+            productObject.ThumbnailImages.Add(thumbnailImageObject);
+        }
+    }
+
+    foreach (LoopItem detail in GetLoop("Details"))
+    {
+        ThumbnailImage thumbnailImageObject = new ThumbnailImage();
+        thumbnailImageObject.productId = GetString("Ecom:Product.ID");
+        thumbnailImageObject.image = detail.GetString("Ecom:Product.AlternativeImages.Image");
+        productObject.ThumbnailImages.Add(thumbnailImageObject);
+    }
+
+    productFeedObject.Add(productObject);
+
+    string jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(productFeedObject);
+}
+
+@jsonFeed

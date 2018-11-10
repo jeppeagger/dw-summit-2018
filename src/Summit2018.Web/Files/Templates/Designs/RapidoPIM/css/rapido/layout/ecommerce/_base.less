@@ -1,0 +1,193 @@
+//Base classes for Ecommerce
+
+.product-thumbs__item.dw-mod:hover, 
+.product-thumbs__item--active.dw-mod {
+    border: 4px solid @layout-brand-color-two;
+}
+
+.make-sticker(@background-color, @design) {
+    .mixin() when not (@background-color = none) {
+        background-color: @background-color;
+    }
+    
+    .mixin() when (@design = "rounded") {
+	    border-radius: 5px 5px 5px 5px;
+    }
+
+    .mixin() when (@design = "ball") and not (@background-color = none) {
+        &:not(.stickers-container__tag--micro) {
+            position: relative;
+            width: 100px;
+            height: 100px;
+            vertical-align: middle;
+            display: table-cell;
+            background-color: transparent;
+            z-index: @z-index-1;
+            text-align: center;
+
+            &::before {
+                position: absolute;
+                left: 0;
+                top: 0;
+                content: '';
+                width: 100px;
+                height: 100px;
+                border-radius: 200px;
+                background-color: @background-color;
+                z-index: @z-index-0;
+            }
+        }
+    }
+
+    .mixin;
+}
+
+/* 
+    Sale stickers
+*/
+
+.stickers-container__tag--sale.dw-mod {
+    .font-mixin(
+        @ecommerce-sale-tag-font-family-family,
+        @ecommerce-sale-tag-font-size,
+        @ecommerce-sale-tag-font-family-weight,
+        @ecommerce-sale-tag-line-height,
+        @ecommerce-sale-tag-font-color,
+        @ecommerce-sale-tag-casing
+    );
+
+    .make-sticker(
+        @ecommerce-sale-tag-background-color,
+        @ecommerce-sale-tag-design
+    );
+}
+
+/* 
+    New stickers
+*/
+
+.stickers-container__tag--new.dw-mod {
+    .font-mixin(
+        @new-stickers-font-family-family,
+        @new-stickers-font-size,
+        @new-stickers-font-family-weight,
+        @new-stickers-line-height,
+        @new-stickers-font-color,
+        @new-stickers-casing
+    );
+
+    .make-sticker(
+        @new-stickers-background, 
+        @new-stickers-design
+    );
+}
+
+/*
+    Custom sticker
+*/
+
+.stickers-container__tag--custom.dw-mod {
+    .font-mixin(
+        @custom-stickers-font-family-family,
+        @custom-stickers-font-size,
+        @custom-stickers-font-family-weight,
+        @custom-stickers-line-height,
+        @custom-stickers-font-color,
+        @custom-stickers-casing
+    );
+
+    .make-sticker(
+        @custom-stickers-background-color,
+        @custom-stickers-design
+    );
+}
+
+
+//Receipt
+.receipt__header.dw-mod {
+    .receipt-header-mixin();
+}
+
+.receipt__header.dw-mod * {
+    .receipt-header-color-mixin();
+}
+
+.receipt-header-mixin() when (@ecommerce-receipt-header = none) {
+    background-color: @layout-brand-color-two !important;
+}
+
+.receipt-header-mixin() when not (@ecommerce-receipt-header = none) {
+    background-color: @ecommerce-receipt-header !important;
+}
+
+.receipt-header-color-mixin() when (@ecommerce-receipt-header = none) {
+    color: white !important;
+}
+
+.receipt-header-color-mixin() when not (@ecommerce-receipt-header-font-color = none) {
+    color: @ecommerce-receipt-header-font-color !important;
+}
+
+//Product details
+.product__price-actions__actions.dw-mod {
+    .product__price-actions__actions-mixin();
+} 
+
+.product__price-actions__actions-mixin() when not (@-product-details-buy-section-alignment = "full") {
+    text-align: ~'@{-product-details-buy-section-alignment}';
+} 
+
+.product__price-actions__actions-mixin() when (@-product-details-buy-section-alignment = "full") {
+    width: 100%;
+    display: flex;
+
+    .btn.dw-mod {
+        width: 100%;
+    }
+}
+
+.product__stock-delivery.dw-mod {
+    .product__stock-delivery-mixin();
+} 
+
+.product__stock-delivery-mixin() when not (@-product-details-stock-alignment = "none") {
+    text-align: ~'@{-product-details-stock-alignment}';
+} 
+
+.product__price-actions__price.dw-mod {
+    .product__price-actions__price-mixin();
+} 
+
+.product__price-actions__price-mixin() when not (@-product-details-price-alignment = "none") {
+    text-align: ~'@{-product-details-price-alignment}';
+} 
+
+.price--product-page.dw-mod {
+    .font-mixin (
+        @-product-details-price-font-design-font-family-family,
+        @-product-details-price-font-design-font-size,
+        @-product-details-price-font-design-font-family-weight,
+        @-product-details-price-font-design-line-height,
+        @-product-details-price-font-design-font-color,
+        @-product-details-price-font-design-casing
+    );
+
+    .price-product-page-mixin (
+        @-product-details-price-background-color,
+        @-product-details-price-border-color
+    );
+}
+
+.price-product-page-mixin(@background-color, @border-color) {
+    .mixin() when not (@background-color = none) {   
+	    background-color: @background-color;
+        display: inline-block;
+    }
+
+    .mixin() when not (@border-color = none) {   
+	    border: 1px solid @border-color;
+        display: inline-block;
+    }
+
+    .mixin;
+}

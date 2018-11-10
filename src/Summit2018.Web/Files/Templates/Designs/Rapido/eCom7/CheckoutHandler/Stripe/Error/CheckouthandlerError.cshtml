@@ -1,0 +1,14 @@
+@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+<fieldset>
+    <legend>@Translate("An error has happend")</legend>
+    <p>
+        @GetString("CheckoutHandler:ErrorMessage")</br>
+
+        @if(GetString("CheckoutHandler:ErrorType") == "SavedCard") {
+            <span>
+                @Translate("The credit card is no longer attached to this shop. The credit card token is expired or deleted. Make a new payment in order to save the credit card again.")
+            </span>
+        }
+    </p>
+</fieldset>

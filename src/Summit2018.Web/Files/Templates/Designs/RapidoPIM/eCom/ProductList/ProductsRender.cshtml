@@ -1,0 +1,485 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Frontend.Devices
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Text.RegularExpressions
+
+@{
+    int areaId = Int32.Parse(GetGlobalValue("Global:Area.ID"));
+
+    string pageUrl = GetGlobalValue("Global:Pageview.Url.Raw");
+    string feedFullUrl = pageUrl + "&feed=true";
+    string productCatalogId = GetGlobalValue("Global:Page.ID");
+
+    int productsPageId = GetPageIdByNavigationTag("ProductsPage");
+    int productsSearchFeedId = productsPageId;
+    int productGroupsPageId = GetPageIdByNavigationTag("ProductGroupsFeed");
+    string searchPlaceholder = Translate("Search products");
+
+    string requestQuery = GetGlobalValue("Global:Request.Query") + "&feed=true";
+
+    string listId = HttpContext.Current.Request.QueryString.Get("ListID");
+    bool isFavoriteList = !String.IsNullOrEmpty(listId) ? true : false;
+    requestQuery += !isFavoriteList ? "&DoNotShowVariantsAsSingleProducts=True" : "";
+    feedFullUrl += !isFavoriteList ? "&DoNotShowVariantsAsSingleProducts=True" : "";
+
+    int listViewsCount = 0;
+    listViewsCount += Converter.ToBoolean(Pageview.Area.Item["ProductItemContainer"]) ? 1 : 0;
+    listViewsCount += Converter.ToBoolean(Pageview.Area.Item["ProductGridItemContainer"]) ? 1 : 0;
+    listViewsCount += Converter.ToBoolean(Pageview.Area.Item["ProductDetailsItemContainer"]) ? 1 : 0;
+
+    string listCookie = "";
+    if (HttpContext.Current.Request.Cookies["ProductsContainerTemplate"] != null)
+    {
+        listCookie = HttpContext.Current.Request.Cookies["ProductsContainerTemplate"].Value;
+    }
+    listCookie = !String.IsNullOrEmpty(listCookie) ? listCookie : Pageview.Area.Item["ProductDefaultListView"].ToString();
+
+    string listViewSelected = listCookie == "ProductItemContainer" ? "checked" : "";
+    string gridViewSelected = listCookie == "ProductGridItemContainer" ? "checked" : "";
+    string detailsViewSelected = listCookie == "ProductDetailsItemContainer" ? "checked" : "";
+}
+
+@RenderSnippet("PIMListTools")
+
+<div class="fit-to-panel-size">
+    <div class="grid grid--align-content-start js-handlebars-root" id="productList" data-template="ProductContainer" data-pre-render-template="ProductPreRenderContainer" data-json-feed="@feedFullUrl" data-preloader="overlay"></div>
+
+    <script id="ProductPreRenderContainer" type="text/x-template">
+        @if (Pageview.Area.Item["EcommerceFacetsViewMode"].ToString() == "left" || Pageview.Device.ToString() == "Mobile")
+        {
+            <div class="grid__col-md-3">
+                <div class="pre-render-element pre-render-element--xs"></div>
+                <div class="pre-render-element pre-render-element--md"></div>
+                <div class="pre-render-element pre-render-element--md"></div>
+                <div class="pre-render-element pre-render-element--md"></div>
+            </div>
+        }
+        <div class="grid__col-md-9">
+            <div class="pre-render-element pre-render-element--xs"></div>
+            <div class="pre-render-element pre-render-element--xs"></div>            
+            <div class="pre-render-element pre-render-element--lg"></div>
+            <div class="pre-render-element pre-render-element--lg"></div>
+            <div class="pre-render-element pre-render-element--lg"></div>
+            <div class="pre-render-element pre-render-element--lg"></div>
+        </div>
+    </script>
+
+    <script id="ProductContainer" type="text/x-template">
+        {{#.}}
+            @if (Pageview.Area.Item["EcommerceFacetsViewMode"].ToString() == "top" || Pageview.Device.ToString() == "Mobile")
+            {
+            <div class="grid__col-12">
+                <input type="checkbox" id="CheckFacetGroups" class="js-remember-state u-hidden" data-expand="CheckFacetGroups" />
+			    <div class="grid grid--external-bleed-x dw-mod expandable--collapsed facets-container facets-container--top" data-trigger="CheckFacetGroups">
+                    {{#FacetGroups}}
+                    <div class="grid__col-lg-3 grid__col-md-3 grid__col-sm-4 grid__col-xs-12">
+                        <input type="checkbox" id="OptionsGroup_{{counter}}" class="dropdown-trigger" />
+                        <div class="dropdown dw-mod js-filter">
+                            <label class="dropdown__header dropdown__btn dw-mod" for="OptionsGroup_{{counter}}">{{name}}</label>
+                            <div id="FacetOptions" class="dropdown__content dropdown__content--padding dw-mod">
+                                <div class="u-margin-bottom {{showFilter}}">
+                                    <input type="text" class="u-full-width u-no-margin" onkeyup="Filter.FilterItems(event)" placeholder="@Translate("Search")" />
+                                </div>
+                                {{#FacetOptions}}
+						            {{#ifCond template "===" "Checkboxes"}}
+						                {{>Checkboxes}}
+						            {{/ifCond}}
+						            {{#ifCond template "===" "Range"}}
+						                {{>Checkboxes}}
+						            {{/ifCond}}
+						            {{#ifCond template "===" "Weight"}}
+						                {{>Checkboxes}}
+						            {{/ifCond}}
+						            {{#ifCond template "===" "Tags"}}
+						                {{>Tags}}
+						            {{/ifCond}}
+						            {{#ifCond template "===" "Colors"}}
+						                {{>Colors}}
+						            {{/ifCond}}
+						        {{/FacetOptions}}
+                            </div>
+                            <label class="dropdown-trigger-off" for="OptionsGroup_{{counter}}"></label>
+                        </div>
+                    </div>
+                    {{/FacetGroups}}
+                </div>
+                <label for="CheckFacetGroups" class="btn btn--primary btn--full dw-mod js-expand-hide facets-container-trigger" data-trigger="CheckFacetGroups">@Translate("Select filters")</label>
+                <label for="CheckFacetGroups" class="btn btn--primary btn--full dw-mod expandable--collapsed facets-container-trigger" data-trigger="CheckFacetGroups">@Translate("Close filters")</label>
+            </div>
+            }
+
+            @if (Pageview.Area.Item["EcommerceFacetsViewMode"].ToString() == "left" && Pageview.Device.ToString() != "Mobile")
+            {
+            <div class="grid__col-3">
+                <h2>@Translate("Filters")</h2>
+                <input type="checkbox" id="CheckFacetGroups" class="js-remember-state u-hidden" data-expand="CheckFacetGroups" />
+			    <div class="facets-container facets-container--left expandable--collapsed" data-trigger="CheckFacetGroups">
+                    {{#FacetGroups}}
+                    <input type="checkbox" id="OptionsGroup_{{counter}}" class="expand-trigger js-remember-state" {{defaultState}} />
+
+                    <div class="expand-container facets-container__box dw-mod js-filter">
+                        <label class="expand-container__btn facets-container__header dw-mod" for="OptionsGroup_{{counter}}">{{name}}</label>
+                        <div class="expand-container__content dw-mod">
+                            <div class="u-margin {{showFilter}}">
+                                <input type="text" class="u-full-width u-no-margin" onkeyup="Filter.FilterItems(event)" placeholder="@Translate("Search")" />
+                            </div>
+                            <div class="facets-container__list dw-mod">
+                                {{#FacetOptions}}
+						            {{#ifCond template "===" "Checkboxes"}}
+						                {{>Checkboxes}}
+						            {{/ifCond}}
+						            {{#ifCond template "===" "Range"}}
+						                {{>Checkboxes}}
+						            {{/ifCond}}
+						            {{#ifCond template "===" "Weight"}}
+						                {{>Checkboxes}}
+						            {{/ifCond}}
+						            {{#ifCond template "===" "Tags"}}
+						                {{>Tags}}
+						            {{/ifCond}}
+						            {{#ifCond template "===" "Colors"}}
+						                {{>Colors}}
+						            {{/ifCond}}
+						        {{/FacetOptions}}
+                            </div>
+                        </div>
+                    </div>
+                    {{/FacetGroups}}
+                </div>
+                <label for="CheckFacetGroups" class="btn btn--primary btn--full dw-mod js-expand-hide facets-container-trigger" data-trigger="CheckFacetGroups">@Translate("Select filters")</label>
+                <label for="CheckFacetGroups" class="btn btn--primary btn--full dw-mod expandable--collapsed facets-container-trigger" data-trigger="CheckFacetGroups">@Translate("Close filters")</label>
+            </div>
+            }
+
+            <div class="grid__col-9">
+                <div class="grid--align-self-center grid__col--bleed grid__col-12 u-margin-bottom">
+                    <div class="typeahead u-margin u-color-inherit js-typeahead" data-page-size="10" id="TopProductSearch" data-search-feed-id="@productsSearchFeedId&feed=true" data-result-page-id="@productsPageId" data-groups-page-id="@productGroupsPageId">
+                        <button type="button" class="btn btn--condensed u-color-light-gray--bg typeahead-group-btn dw-mod js-typeahead-groups-btn" data-group-id="all">@Translate("All")</button>
+                        <ul class="dropdown dropdown--absolute-position u-min-w220px js-handlebars-root js-typeahead-groups-content dw-mod" id="TopProductSearchGroupsContent" data-template="SearchGroupsTemplate" data-json-feed="/Default.aspx?ID=@productGroupsPageId&feedType=productGroups" data-init-onload="false" data-preloader="minimal"></ul>
+                        <input type="text" class="typeahead-search-field u-no-margin js-typeahead-search-field" placeholder="@searchPlaceholder">
+                        <ul class="dropdown dropdown--absolute-position js-handlebars-root js-typeahead-search-content u-min-w220px u-full-width dw-mod" id="TopProductSearchContent" data-template="SearchContentTemplate" data-json-feed="/Default.aspx?ID=@productsSearchFeedId&feed=true&feedType=productsOnly" data-init-onload="false" data-preloader="minimal"></ul>
+                        <button type="button" class="btn btn--condensed btn--primary u-no-margin dw-mod js-typeahead-enter-btn"><i class="fas fa-search"></i></button>
+                    </div>
+                </div>
+                <div class="grid__cell">
+                        
+                    <div class="grid">
+                        <div class="grid__col--bleed-y grid__col-md-auto">
+                            <h2>{{header}}</h2>
+                        </div>
+                        <div class="grid--align-end grid__col--bleed-y grid__col-md-8">
+                            <div class="collection u-no-margin">
+                                @if (listViewsCount > 1)
+                                {
+                                    if (Converter.ToBoolean(Pageview.Area.Item["ProductItemContainer"]))
+                                    {
+                                        <input type="radio" class="tag-btn-trigger" id="ListViewBtnOne" name="ViewBtnGroup" @listViewSelected>
+                                        <label for="ListViewBtnOne" class="btn btn--tag" onclick="HandlebarsBolt.UpdateTemplate('ProductsContainer', 'ProductItemContainer')"><i class="fas fa-th-list"></i></label>
+                                    }
+                                    if (Converter.ToBoolean(Pageview.Area.Item["ProductGridItemContainer"]))
+                                    {
+                                        <input type="radio" class="tag-btn-trigger" id="ListViewBtnTwo" name="ViewBtnGroup" @gridViewSelected>
+                                        <label for="ListViewBtnTwo" class="btn btn--tag" onclick="HandlebarsBolt.UpdateTemplate('ProductsContainer', 'ProductGridItemContainer')"><i class="fas fa-th"></i></label>
+                                    }
+                                    if (Converter.ToBoolean(Pageview.Area.Item["ProductDetailsItemContainer"]))
+                                    {
+                                        <input type="radio" class="tag-btn-trigger" id="ListViewBtnThree" name="ViewBtnGroup" @detailsViewSelected>
+                                        <label for="ListViewBtnThree" class="btn btn--tag" onclick="HandlebarsBolt.UpdateTemplate('ProductsContainer', 'ProductDetailsItemContainer')"><i class="fas fa-list"></i></label>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid">
+                        <div class="grid__col-md-12 grid__col--bleed-y">
+                            <div class="collection u-no-margin" id="selectedFacets">
+                                {{#FacetSelections}}
+						            {{#ifCond template "===" "SelectedFilter"}}
+						                {{>SelectedFilter}}
+						            {{/ifCond}}
+						            {{#ifCond template "===" "SelectedColorFilter"}}
+						                {{>SelectedColorFilter}}
+						            {{/ifCond}}
+						            {{#ifCond template "===" "ResetFilters"}}
+						                {{>ResetFilters}}
+						            {{/ifCond}}
+						        {{/FacetSelections}}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="ProductsContainer" data-template="{{listTemplate}}" class="grid product-list dw-mod" data-save-cookie="true">
+                        {{#ProductsContainer}}
+                            {{#ifCond template "===" "ProductItemContainer"}}
+                                {{>ProductItemContainer}}
+                            {{/ifCond}}
+                            {{#ifCond template "===" "ProductGridItemContainer"}}
+                                {{>ProductGridItemContainer}}
+                            {{/ifCond}}
+                            {{#ifCond template "===" "ProductDetailsItemContainer"}}
+                                {{>ProductDetailsItemContainer}}
+                            {{/ifCond}}
+                        {{/ProductsContainer}}
+                    </div>
+            
+                    <div class="grid">
+                        <div class="grid__col-md-12 grid__col--bleed-y">
+                            <button class="btn btn--primary btn--full  {{nextdisabled}} dw-mod" data-current="{{currentPage}}" data-page-size="{{pageSize}}" data-total="{{totalPages}}" data-container="ProductsContainer" data-feed-url="/Default.aspx?ID=@productCatalogId&feed=true" onclick="LoadMore.Next(this)" {{nextdisabled}}>@Translate("Load") {{pageSizeText}} @Translate("more")</button>
+                            <button type="button" class="btn btn--clean" onclick="window.scroll(0, 0)">@Translate("Return to top")</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {{/.}}
+
+        {{^.}}
+            <div class="grid__col-12">
+                <h2 class="u-ta-center">@Translate("No products found")</h2>
+            </div>
+        {{/.}}
+    </script>
+
+    @* Templates for Typeahead *@
+    <script id="SearchGroupsTemplate" type="text/x-template">
+        {{#.}}
+            <li class="dropdown__item dw-mod" onclick="Search.UpdateGroupSelection(this)" data-group-id="{{id}}">{{name}}</li>
+        {{/.}}
+    </script>
+
+    <script id="SearchContentTemplate" type="text/x-template">
+        {{#.}}
+            {{#Product}} 
+                {{#ifCond template "!==" "SearchMore"}}
+                    <li class="dropdown__item dropdown__item--seperator dw-mod">
+                        <div>
+                            <a href="{{link}}" class="js-typeahead-link u-color-inherit u-pull--left">
+                                <div class="u-margin-right u-pull--left {{noimage}} u-hidden-xs u-hidden-xxs">
+                                    <img src="/Admin/Public/GetImage.ashx?width=45&height=38&crop=5&FillCanvas=True&Compression=75&image={{image}}" alt="{{name}}">
+                                </div>
+                                <div class="u-pull--left">
+                                    <div class="u-bold u-max-w220px u-truncate-text js-typeahead-name">{{name}}</div>
+                                </div>
+                            </a>
+                            <div class="u-margin-left u-pull--right u-hidden-xs u-hidden-xxs">
+                                <a class="btn btn--primary btn--condensed u-pull--right u-no-margin dw-mod" href="{{listLink}}"><i class="fas {{listIcon}}"></i></a>
+                            </div>
+                        </div>
+                    </li>
+                {{/ifCond}}
+                {{#ifCond template "===" "SearchMore"}}
+                    {{>SearchMore}}
+                {{/ifCond}}
+            {{/Product}}
+        {{/.}}
+        {{^.}}
+            <li class="dropdown__item dropdown__item--seperator dw-mod">
+                @Translate("No products found")
+            </li>
+        {{/.}}
+    </script>
+
+    <script id="SearchMore" type="text/x-template">
+        <li class="dropdown__item dropdown__item--not-selectable dw-mod">
+            <a href="/Default.aspx?ID=@productsPageId&Search={{searchParameter}}&GroupID={{groupId}}" class="btn btn--primary btn--full u-no-margin dw-mod js-typeahead-link">
+                @Translate("View all")
+            </a>
+        </li>
+    </script>
+
+    @* Facets templates *@
+
+    <script id="FacetGroup" type="text/x-template">
+        <input type="checkbox" id="OptionsGroup_{{counter}}" class="expand-trigger js-remember-state" checked />
+
+        <div class="expand-box expand-container dw-mod">
+            <label class="expand-box__header expand-container__btn dw-mod" for="OptionsGroup_{{counter}}">{{name}}</label>
+            <div id="FacetOptions" class="expand-box__content expand-container__content expand-container__content--limit-height dw-mod"></div>
+        </div>
+    </script>
+
+    <script id="FacetTopGroup" type="text/x-template">
+        <div class="grid__col-3">
+            <input type="checkbox" id="OptionsGroup_{{counter}}" class="dropdown-trigger" />
+            <div class="dropdown dw-mod">
+                <label class="dropdown__header dropdown__btn dw-mod" for="OptionsGroup_{{counter}}">{{name}}</label>
+                <div id="FacetOptions" class="dropdown__content dropdown__content--padding dw-mod"></div>
+                <label class="dropdown-trigger-off" for="OptionsGroup_{{counter}}"></label>
+            </div>
+        </div>
+    </script>
+
+    @*Facets*@
+    <script id="Checkboxes" type="text/x-template">
+        <input type="checkbox" class="{{selected}} form__control checkbox-facet__checkbox dw-mod" onclick="Facets.UpdateFacets(this);" name="{{queryParameter}}" id="{{queryParameter}}{{value}}" value="{{value}}" {{selected}} {{disabled}}>
+        <label class="{{disabled}} checkbox-facet dw-mod" data-filter-value="{{label}}" for="{{queryParameter}}{{value}}">
+            <span class="checkbox-facet__label dw-mod">{{label}}</span>
+            <span class="checkbox-facet__count dw-mod">({{count}})</span>
+        </label>
+    </script>
+
+    <script id="Tags" type="text/x-template">
+        <button type="button" class="btn btn--tag {{selected}} {{disabled}}" data-filter-value="{{label}}" data-check="{{selected}}" onclick="Facets.UpdateFacets(this);" name="{{queryParameter}}" value="{{value}}" {{disabled}}>
+            {{label}} <span class="facets-group__counter">({{count}})</span>
+        </button>
+    </script>
+
+    <script id="Colors" type="text/x-template">
+        <button type="button" class="btn btn--colorbox u-margin-right {{selected}} {{disabled}}" data-filter-value="{{label}}" style="background-color: {{value}}" title="{{label}}" data-check="{{selected}}" onclick="Facets.UpdateFacets(this);" name="{{queryParameter}}" value="{{value}}" {{disabled}}></button>
+    </script>
+
+    @*Facet selections*@
+    <script id="SelectedFilter" type="text/x-template">
+        <button type="button" class="btn btn--tag" data-check="checked" onclick="Facets.UpdateFacets(this);" name="{{queryParameter}}" value="{{value}}" title="@Translate("Remove filter")">
+            {{group}}: {{label}} <i class="fas fa-times"></i>
+        </button>
+    </script>
+
+    <script id="SelectedColorFilter" type="text/x-template">
+        <button type="button" class="btn btn--tag" data-check="checked" onclick="Facets.UpdateFacets(this);" name="{{queryParameter}}" value="{{value}}" title="@Translate("Remove filter")">
+            {{group}}: <div class="btn__colorbox" style="background-color: {{label}}"></div> <i class="fas fa-times"></i>
+        </button>
+    </script>
+
+    <script id="ResetFilters" type="text/x-template">
+        <button type="button" class="btn btn--tag" onclick="Facets.ResetFacets();">
+            @Translate("Reset all filters") <i class="fas fa-redo"></i>
+        </button>
+    </script>
+
+    @* Product list templates *@
+
+    @* List view *@
+
+    <script id="ProductItemContainer" type="text/x-template">
+        {{#.}}
+            <div id="Product{{id}}" data-template="ProductItem" data-preloader="overlay" class="grid__col-12">
+                {{#Product}}
+                    {{>ProductItem}}
+                {{/Product}}
+            </div>
+        {{/.}}
+    </script>
+
+    <script id="ProductItem" type="text/x-template">
+        {{#.}}
+            <div class="grid product-list__list-item dw-mod">
+                <div class="grid__col-md-4 product-list__list-item__left dw-mod {{noImage}}">
+                    <div class="grid__cell">
+                        <a href="{{link}}" onclick="Scroll.SavePosition(event)">
+                            <img class="grid__cell-img grid__cell-img--centered" src="/Admin/Public/GetImage.ashx?width=300&amp;height=300&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;image={{image}}" alt="{{name}}" />
+                        </a>
+                    </div>
+                </div>
+                <div class="grid__col-md-auto product-list__list-item__right dw-mod">
+                    <div>
+                        <div class="u-pull--left">
+                            <a href="{{link}}" onclick="Scroll.SavePosition(event)" title="{{name}}"><h2 class="u-no-margin">{{name}}</h2></a>
+                            <div class="item-number">{{number}}</div>
+                        </div>
+                    </div>
+
+                    <div class="grid__cell">
+                        {{{description}}}
+                    </div>
+
+                    <div class="grid__cell-footer product-list-item__footer dw-mod">
+                        <div class="grid__cell">
+                            <div class="u-pull--right">
+                                <div class="buttons-collection buttons-collection--right">
+                                    <a class="btn btn--primary btn--condensed u-pull--right dw-mod" href="{{listLink}}"><i class="fas {{listIcon}}"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {{/.}}
+    </script>
+
+    @* Grid view *@
+
+    <script id="ProductGridItemContainer" type="text/x-template">
+        {{#.}}
+            <div id="Product{{id}}" data-template="ProductGridItem" data-preloader="overlay" class="grid__col-lg-4 grid__col-md-4 grid__col-sm-4 grid__col-xs-6 product-list__grid-item dw-mod">
+                {{#Product}}
+                    {{>ProductGridItem}}
+                {{/Product}}
+            </div>
+        {{/.}}
+    </script>
+
+    <script id="ProductGridItem" type="text/x-template">
+        {{#.}}
+            <div class="grid__cell product-list__grid-item__image dw-mod {{noImage}}">
+                <a href="{{link}}" onclick="Scroll.SavePosition(event)">
+                    <img class="grid__cell-img grid__cell-img--centered" src="/Admin/Public/GetImage.ashx?width=300&amp;height=300&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;image={{image}}" alt="{{name}}" />
+                </a>
+            </div>
+
+            <div class="grid__cell product-list__grid-item__price-info product-list__grid-item__price-info--short dw-mod">
+                <a href="{{link}}" onclick="Scroll.SavePosition(event)" title="{{name}}"><h6 class="u-condensed-text">{{name}}</h6></a>
+                <div class="item-number">{{number}}</div>
+            </div>
+            <div class="product-list__grid-item__footer dw-mod">
+                <div class="u-pull--right">
+                    <a class="btn btn--primary btn--condensed u-pull--right dw-mod u-no-margin" href="{{listLink}}"><i class="fas {{listIcon}}"></i></a>
+                </div>
+            </div>
+        {{/.}}
+    </script>
+
+    @* Details view *@
+
+    <script id="ProductDetailsItemContainer" type="text/x-template">
+        {{#.}}
+            <div id="Product{{id}}" data-template="ProductDetailsItem" data-preloader="overlay" class="grid__col-md-12 product-list__details-item dw-mod" style="z-index: {{zIndex}}">
+                {{#Product}}
+                    {{>ProductDetailsItem}}
+                {{/Product}}
+            </div>
+        {{/.}}
+    </script>
+
+    <script id="ProductDetailsItem" type="text/x-template">
+        {{#.}}
+            <div class="grid__col-md-12 grid__col--bleed-y">
+                <div class="grid__cell">
+                    <div class="product-list__details-item__left">
+                        <div class="lightbox">
+                            <a href="{{link}}" onclick="Scroll.SavePosition(event)">
+                                <img class="lightbox__image {{noImage}}" src="/Admin/Public/GetImage.ashx?width=220&amp;height=220&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;image={{image}}" alt="{{name}}" />
+                                <img class="grid__cell-img u-margin-right {{noImage}}" src="/Admin/Public/GetImage.ashx?width=40&amp;height=35&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;image={{image}}" alt="{{name}}" />
+                            </a>
+                        </div>
+                        <div class="u-margin-right">
+                            <a href="{{link}}" onclick="Scroll.SavePosition(event)" title="{{name}}"><h6 class="u-no-margin">{{name}}</h6></a>
+                            <div class="item-number item-number--compressed">{{number}}</div>
+                        </div>
+                    </div>
+                    <div class="product-list__details-item__right">
+                        <div class="u-pull--right">
+                            <a class="btn btn--primary btn--condensed u-pull--right dw-mod u-no-margin" href="{{listLink}}"><i class="fas {{listIcon}}"></i></a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {{/.}}
+    </script>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function (event) {
+
+        document.getElementById("productList").addEventListener('contentLoaded', function (e) {
+            if (getTarget(e).id === "productList") {
+                Search.Init();
+                Facets.Init("selectedFacets", "productList");
+            }
+        }, false);
+    });
+</script>

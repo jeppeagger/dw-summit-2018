@@ -1,0 +1,60 @@
+﻿@inherits RazorTemplateBase<RazorTemplateModel<Template>>
+@using Dynamicweb.Rendering;
+@MasterPageFile("../../EmailMaster.cshtml")
+@Include("../../EmailHelpers.cshtml")
+
+<table bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="500" id="emailBody">
+    @RenderHeaderSection()
+    @RenderMessage()
+    @RenderFooterSection()
+</table>
+
+@* CONTENT HELPERS *@
+
+@helper RenderHeaderSection()
+{
+    @RenderHeaderImage();
+}
+
+@helper RenderMessage()
+{
+    string resultUserName = "",
+           firstName = GetString("UserManagement:User.FirstName"),
+           lastName = GetString("UserManagement:User.LastName"),
+           name = GetString("UserManagement:User.Name");
+
+    if (!string.IsNullOrEmpty(firstName) && !string.IsNullOrEmpty(lastName))
+    {
+        resultUserName = " " + firstName + " " + lastName;
+    }
+    else if (!string.IsNullOrEmpty(firstName))
+    {
+        resultUserName = " " + firstName;
+    }
+    else if (!string.IsNullOrEmpty(name))
+    {
+        resultUserName = " " + name;
+    }
+    else
+    {
+        resultUserName = "";
+    }
+
+    string website = Dynamicweb.Context.Current.Request.Url.Scheme + "://" + GetGlobalValue("Global:Request.Host"),
+           email = GetString("UserManagement:User.Email");
+
+    Column message = new Column();
+    message.header = Translate("Confirm your account");
+    message.subheader = Translate("You are one click away from activating your user account.");
+    message.text.Add("");
+    message.text.Add(Translate("Hi") + resultUserName + ", ");
+    message.text.Add("");
+    message.text.Add(Translate("Welcome. Please click the button below to confirm your email") + " <b>" + email + "</b> " + Translate("for your user account at") + " " + website + ".");
+    @CreateRow(message);
+        
+    @RenderButton(GetString("UserManagement.ApprovalUrl"), "Confirm email");
+
+    Column messageEnd = new Column();
+    messageEnd.text.Add(Translate("You'll receive an email when your user account is ready to use."));
+    @CreateRow(messageEnd);
+}

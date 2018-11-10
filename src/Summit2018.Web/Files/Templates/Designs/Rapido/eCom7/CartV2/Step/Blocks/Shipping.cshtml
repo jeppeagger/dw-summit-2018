@@ -1,0 +1,153 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@{ 
+    BlocksPage shippingCheckoutPage = BlocksPage.GetBlockPage("CheckoutPage");
+
+    if (GetLoop("Shippingmethods").Count > 0) {
+        Block shippingBlock = new Block()
+        {
+            Id = "Shipping",
+            SortId = 20,
+            Template = RenderShipping(),
+            Design = new Design
+            {
+                RenderType = RenderType.Column,
+                Size = "6"
+            }
+        };
+        shippingCheckoutPage.Add("OrderContainerRow", shippingBlock);
+
+        Block parcelShopsModal = new Block()
+        {
+            Id = "ParcelShopsModal",
+            SortId = 10,
+            Template = RenderParcelShopsModal()
+        };
+        shippingCheckoutPage.Add("CheckoutTopSnippets", parcelShopsModal);
+    }
+}
+
+@helper RenderShipping() {
+    string cardHeightClass = Pageview.Device.ToString() != "Tablet" ? "u-full-height" : "";
+    bool defaultShippingIsSet = Dynamicweb.Ecommerce.Orders.Shipping.GetDefaultShippingMethod(Dynamicweb.Ecommerce.Common.Context.Cart.ShippingMethodCountryCode) != null;
+
+    <div class="card-header u-color-light--bg dw-mod">
+        <h3><i class="fas fa-truck"></i> @Translate("Shipping")</h3>
+    </div>
+
+    <div class="card u-color-light--bg @cardHeightClass dw-mod">
+        @{
+            bool haveShippingContent = GetLoop("Shippingmethods").Count != 1 || !defaultShippingIsSet;
+            bool showShippingsBlock = haveShippingContent;
+        }
+
+        @foreach (LoopItem shipping in GetLoop("Shippingmethods"))
+        {
+            bool selected = Converter.ToBoolean(shipping.GetString("Ecom:Cart.Shippingmethod.IsSelected"));
+            object shippingProviderContent = selected ? Newtonsoft.Json.JsonConvert.DeserializeObject(shipping.GetString("Ecom:ShippingProvider.Content")) : null;
+            string isChecked = selected ? "checked" : "";
+            string hideLabel = haveShippingContent ? "" : "u-hidden";
+            string leftMargin = haveShippingContent ? "u-margin-left" : "";
+
+            <div class="form__field-group dw-mod">
+                <input onchange="Cart.SubmitCart()" type="radio" class="form__control" name="EcomCartShippingmethodID" id="EcomCartShippingmethodID_@shipping.GetString("Ecom:Cart.Shippingmethod.ID")" value="@shipping.GetString("Ecom:Cart.Shippingmethod.ID")" @isChecked />
+                <label for="EcomCartShippingmethodID_@shipping.GetString("Ecom:Cart.Shippingmethod.ID")" class="@hideLabel">
+                    @shipping.GetString("Ecom:Cart.Shippingmethod.Name")
+                </label>
+            </div>
+
+            if (shippingProviderContent != null)
+            {
+                showShippingsBlock = true;
+
+                <div id="ShippingProviderContent" class="@leftMargin" data-template="ShippingProviderContentTemplate"></div>
+                    <script>
+                        document.addEventListener("DOMContentLoaded", function (event) {
+                            HandlebarsBolt.CreateItemsFromJson(@shippingProviderContent, "ShippingProviderContent", "ShippingProviderContentTemplate");
+                            HandlebarsBolt.CreateItemsFromJson(@shippingProviderContent, "ParcelShops", "ParcelShopsTemplate");
+                        });
+
+                        var data = @shippingProviderContent;
+
+                        if (document.getElementById("DeliveryAddressFields")) {
+                            document.getElementById("DeliveryAddressFields").addEventListener("contentLoaded", setParcelShopToDeliveryFields);
+                        } else {
+                            setParcelShopToDeliveryFields();
+                        }
+
+                        function setParcelShopToDeliveryFields() {
+
+                            var deliveryAddress = document.getElementById("EcomOrderDeliveryAddress").value;
+
+                            if (data != "") {
+                                if (deliveryAddress == "") {
+                                    document.getElementById("AlternateAddressBlock").checked = true;
+
+                                    document.getElementById("EcomOrderDeliveryCompany").value = data[0].ParcelShops[0].company;
+                                    document.getElementById("EcomOrderDeliveryName").value = data[0].ParcelShops[0].company;
+                                    document.getElementById("EcomOrderDeliveryPhone").value = "";
+                                    document.getElementById("EcomOrderDeliveryEmail").value = "";
+                                    document.getElementById("EcomOrderDeliveryAddress").value = data[0].ParcelShops[0].address;
+                                    document.getElementById("EcomOrderDeliveryZip").value = data[0].ParcelShops[0].zip;
+                                    document.getElementById("EcomOrderDeliveryCity").value = data[0].ParcelShops[0].city;
+                                    document.getElementById("Country").setAttribute("data-countrycode", data[0].ParcelShops[0].countryCode);
+                                }
+                            }
+
+                            document.getElementById("DeliveryAddressFields").removeEventListener("contentLoaded", setParcelShopToDeliveryFields);
+                        }
+                    </script>
+            }
+
+            if (shipping.GetString("Ecom:ShippingProvider.Content") != "" && @shipping.GetString("Ecom:ShippingProvider.Content").Length < 10)
+            {
+            <button class="btn btn--secondary btn--full u-no-margin u-margin-bottom dw-mod" onclick="Cart.SubmitCart()">@Translate("Get parcel shops")</button>
+                    <small class="help-text dw-mod">@Translate("Requires an address for either billing og shipping")</small>
+            }
+        }
+        @if (!showShippingsBlock)
+        {
+            <script>
+                    document.getElementById("shippingsBlock").classList.add("u-hidden");
+            </script>
+        }
+    </div>
+}
+
+@helper RenderParcelShopsModal() {
+    string parcelShopModalHeader = Pageview.Device.ToString() != "Mobile" ? Translate("Choose a parcel shop") : Translate("Choose");
+
+     <!-- Trigger for the pacel shops modal -->
+    <input type="checkbox" id="ParcelShopsModalTrigger" class="modal-trigger" />
+
+    <!-- Map modal -->
+    <div class="modal-container">
+        <label for="ParcelShopsModalTrigger" id="ParcelShopsModalOverlay" class="modal-overlay"></label>
+        <div class="modal modal--lg" id="ParcelShopsModal">
+            <div class="modal__header">
+                <h2>@parcelShopModalHeader</h2>
+            </div>
+            <div class="modal__body">
+                <div class="grid">
+                    <div class="grid__col-auto">
+                        <ul class="list list--clean list--scroll dw-mod" id="ParcelShops" data-template="ParcelShopsTemplate"></ul>
+                    </div>
+                    @if (Pageview.Device.ToString() != "Mobile")
+                    {
+                    <div class="grid__col-8">
+                        <div class="map-container">
+                            <div id="MapCanvas" class="map-container__canvas"></div>
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}
+

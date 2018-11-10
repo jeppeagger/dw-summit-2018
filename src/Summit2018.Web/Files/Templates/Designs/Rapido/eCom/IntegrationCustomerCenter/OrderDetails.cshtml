@@ -1,0 +1,51 @@
+@inherits RazorTemplateBase<RazorTemplateModel<Template>>
+@using Dynamicweb
+@using Dynamicweb.Ecommerce.Prices
+@using Dynamicweb.Ecommerce.Products;
+@using Dynamicweb.Rendering;
+
+<div class="grid__col-12">
+    <h1>@Translate("Order") #@GetString("ID")</h1>
+</div>
+
+<div class="grid__col-12">
+    @{
+        var listLoop = GetLoop("OrderLinesLoop");
+        if (listLoop.Count == 0)
+        {
+            <p>
+                <i>@Translate("No items found")</i>
+            </p>
+        }
+        else
+        {
+            <table class="table table-striped" id="orderlist">
+                <thead>
+                    <tr>
+                        <td>
+                            <span>@Translate("Quantity", "Quantity")</span>
+                        </td>
+                        <td>
+                            <span>@Translate("Item number", "Item number")</span>
+                        </td>
+                        <td>
+                            <span>@Translate("Unit price", "Unit price")</span>
+                        </td>
+                        <td>
+                            <span>@Translate("Total price", "Total price")</span>
+                        </td>
+                    </tr>
+                </thead>
+                @foreach (LoopItem orderLine in listLoop)
+                {
+                    <tr>
+                        <td>@orderLine.GetString("Quantity")</td>
+                        <td>@orderLine.GetString("ProductNumber")</td>
+                        <td>@(new PriceInfo { PriceWithoutVAT = orderLine.GetInteger("UnitPriceWithoutVAT") }.PriceWithoutVATFormatted)</td>
+                        <td>@(new PriceInfo { PriceWithoutVAT = orderLine.GetInteger("PriceWithoutVAT") }.PriceWithoutVATFormatted)</td>
+                    </tr>
+                }
+            </table>
+        }
+    }
+</div>

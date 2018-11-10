@@ -1,0 +1,90 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks.Extensibility
+@using Dynamicweb.Rapido.Blocks
+
+
+@{ 
+    BlocksPage loginBlocksPage = BlocksPage.GetBlockPage("Master");
+
+    Block loginModal = new Block()
+    {
+        Id = "LoginModal",
+        SortId = 10,
+        Template = LoginModal()
+    };
+
+    loginBlocksPage.Add(MasterBlockId.MasterTopSnippets, loginModal);
+}
+
+@helper LoginModal() {
+    int pageId = Model.TopPage.ID;
+    string userSignedInError = !Model.LogOnFailed ? "" : "checked";
+    string userSignedInErrorText = "";
+    int signInProfilePageId = GetPageIdByNavigationTag("SignInPage");
+    string forgotPasswordPageLink = "/Default.aspx?ID=" + signInProfilePageId + "&LoginAction=Recovery";
+    int createAccountPageId = GetPageIdByNavigationTag("CreateAccount");
+
+    if (Model.LogOnFailed) {
+        switch (Model.LogOnFailedReason)
+        {
+            case Dynamicweb.Security.UserManagement.LogOnFailedReason.PasswordLengthInvalid:
+                userSignedInErrorText = Translate("Password length is invalid");
+                break;
+            case Dynamicweb.Security.UserManagement.LogOnFailedReason.IncorrectLogin:
+                userSignedInErrorText = Translate("Invalid email or password");
+                break;
+            case Dynamicweb.Security.UserManagement.LogOnFailedReason.ExceededFailedLogOnLimit:
+                userSignedInErrorText = Translate("You have exceeded the limit of allowed login attempts. The user account is temporarily locked");
+                break;
+            case Dynamicweb.Security.UserManagement.LogOnFailedReason.LoginLocked:
+                userSignedInErrorText = Translate("The user account is temporarily locked");
+                break;
+            case Dynamicweb.Security.UserManagement.LogOnFailedReason.PasswordExpired:
+                userSignedInErrorText = Translate("The password has expired and needs to be renewed");
+                break;
+            default:
+                userSignedInErrorText = Translate("An unknown error occured");
+                break;
+        }
+    }
+
+    <!-- Trigger for the login modal -->
+    <input type="checkbox" id="SignInModalTrigger" class="modal-trigger" @userSignedInError />
+
+    <!-- Login modal -->
+    <div class="modal-container">
+        <label for="SignInModalTrigger" id="SignInModalOverlay" class="modal-overlay"></label>
+        <div class="modal modal--xs" id="SignInModal">
+            <div class="modal__header">
+                <h2>@Translate("Sign in")</h2>
+            </div>
+            <div class="modal__body">
+                <form method="post" id="LoginForm" class="u-no-margin">
+                    <input type="hidden" name="ID" value="@pageId" />
+                    <input type="hidden" name="DWExtranetUsernameRemember" value="True" />
+                    <input type="hidden" name="DWExtranetPasswordRemember" value="True" />
+                    <input type="text" class="u-full-width" id="LoginUsername" name="username" placeholder="@Translate("Email")" />
+                    <input type="password" class="u-full-width" id="LoginPassword" name="password" placeholder="@Translate("Password")" />
+                    <div class="field-error dw-mod">@userSignedInErrorText</div>
+
+                    <div class="form__field-group dw-mod">
+                        <input type="checkbox" id="rememberMe" name="Autologin" checked="checked" value="True" class="form__control">
+                        <label for="rememberMe">
+                            @Translate("Remember me", "Remember me")
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn--primary btn--full dw-mod" name="LoginAction" value="Login" onclick="Buttons.LockButton(event)">@Translate("Sign in")</button>
+
+                    <a class="btn btn--link-clean dw-mod" href="@forgotPasswordPageLink">@Translate("Forgot your password?", "Forgot your password?")</a>
+
+                    <a class="btn btn--link-clean dw-mod" href="/default.aspx?ID=@createAccountPageId">@Translate("Create account")?</a>
+                </form>
+            </div>
+        </div>
+    </div>
+}

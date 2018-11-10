@@ -1,0 +1,154 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.ParagraphViewModel>
+@using Dynamicweb.Ecommerce.Frontend;
+@using Dynamicweb.Core;
+@using System.Linq;
+
+@Include("Layout.cshtml")
+
+
+@{
+    int productCatalogId = GetPageIdByNavigationTag("PromotionFeed");
+    string feedFullUrl = "/Default.aspx?ID=" + productCatalogId;
+    int paragraphId = Model.ID;
+
+    var products = new List<ProductViewModel>();
+
+    if (Model.Item.GetValue("Products") != null) {
+        products = Model.Item.GetValue("Products") as List<ProductViewModel>;
+    }
+
+    feedFullUrl += "&Combinations=";
+    bool onlyPreview = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("OnlyPreviewForAnonymous") && Pageview.User == null;
+    bool pointShopOnly = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("PointShopOnly");
+
+    bool gridViewShowCartButton = Pageview.AreaSettings.GetItem("ProductList").GetItem("GridView").GetString("ShowAddToCartButton") != null ? Pageview.AreaSettings.GetItem("ProductList").GetItem("GridView").GetBoolean("ShowAddToCartButton") : true;
+    bool gridViewShowViewButton = Pageview.AreaSettings.GetItem("ProductList").GetItem("GridView").GetString("ShowViewButton") != null ? Pageview.AreaSettings.GetItem("ProductList").GetItem("GridView").GetBoolean("ShowViewButton") : true;
+    bool gridViewShowStock = Pageview.AreaSettings.GetItem("ProductList").GetItem("GridView").GetString("ShowStockAndShipping") != null ? Pageview.AreaSettings.GetItem("ProductList").GetItem("GridView").GetBoolean("ShowStockAndShipping") : true;
+
+    if (products != null) {
+        for (var i = 0; i < products.Count; i++)
+        {
+            feedFullUrl += products[i].Id;
+            feedFullUrl += products[i].VariantId != "" ? "%20" + products[i].VariantId : "";
+            feedFullUrl += ",";
+        }
+    } else {
+        feedFullUrl = "";
+    }
+
+    var columnSize = 3;
+
+    if (products.Count == 3) {
+        columnSize = 4;
+    }
+
+    if (products.Count == 2)
+    {
+        columnSize = 6;
+    }
+
+    if (products.Count == 1)
+    {
+        columnSize = 12;
+    }
+
+    switch (Model.Item.GetList("Width").SelectedValue) {
+        case "6":
+        case "4":
+            columnSize = 6;
+            break;
+        case "3":
+            columnSize = 12;
+            break;
+    }
+}
+
+<div class="@columnClass() paragraph-container">
+    <div class="grid grid--external-bleed js-handlebars-root" id="PromotionProductList_@paragraphId" data-template="PromotionProducts_@paragraphId" data-pre-render-template="ProductPreRenderContainer_@paragraphId" data-json-feed="@feedFullUrl" data-preloader="minimal"></div>
+</div>
+
+<script id="ProductPreRenderContainer_@paragraphId" type="text/x-template">
+    <div class="grid__col-md-@columnSize">
+        <div class="pre-render-element pre-render-element--md"></div>
+    </div>
+    <div class="grid__col-md-@columnSize">
+        <div class="pre-render-element pre-render-element--md"></div>
+    </div>
+    <div class="grid__col-md-@columnSize">
+        <div class="pre-render-element pre-render-element--md"></div>
+    </div>
+    <div class="grid__col-md-@columnSize">
+        <div class="pre-render-element pre-render-element--md"></div>
+    </div>
+</script>
+
+
+@* Grid view *@
+
+<script id="PromotionProducts_@paragraphId" type="text/x-template">
+    {{#.}}
+        <div class="grid__col-lg-@columnSize grid__col-md-@columnSize grid__col-sm-@columnSize grid__col-xs-6 product-list__grid-item dw-mod">
+            <div class="grid__cell product-list__grid-item__image dw-mod {{noImage}}">
+                <div class="stickers-container u-padding dw-mod">
+                    {{#Stickers}}
+                        {{>Sticker_@paragraphId}}
+                    {{/Stickers}}
+                </div>
+                <a href="{{link}}" onclick="Scroll.SavePosition(event)">
+                    <img class="grid__cell-img grid__cell-img--centered u-padding b-lazy" src="/Files/Images/placeholder.gif" data-src="/Admin/Public/GetImage.ashx?width=300&amp;height=300&amp;crop=5&amp;Compression=75&amp;DoNotUpscale=true&amp;image={{image}}" alt="{{name}}" />
+                </a>
+            </div>
+
+            <div class="grid__cell product-list__grid-item__price-info {{shortGridInfo}} dw-mod">
+                <a href="{{link}}" onclick="Scroll.SavePosition(event)" title="{{name}}"><h6 class="u-condensed-text">{{name}}</h6></a>
+                {{#if showProductNumber}}
+                    <div class="item-number dw-mod">{{number}}</div>
+                {{/if}}
+                @if (!onlyPreview)
+                {
+                    if (pointShopOnly)
+                    {
+                        <text>
+                            {{#if havePointPrice}}
+                                <div class="price price--product-list dw-mod">{{points}} @Translate("points")</div>
+                            {{else}}
+                                @Translate("Not avaliable")
+                            {{/if}}
+                        </text>
+                    }
+                    else
+                    {
+                        <div class="price price--product-list dw-mod">{{price}}</div>
+                        <div class="before-price {{onSale}} dw-mod">{{discount}}</div>
+                    }
+                }
+            </div>
+
+            <div class="product-list__grid-item__footer dw-mod">
+                @if (gridViewShowViewButton)
+                {
+                    <div class="u-ta-center">
+                        <a href="{{link}}" class="btn btn--secondary btn--full u-no-margin dw-mod">{{viewMoreText}}</a>
+                    </div>
+                }
+
+                @if (!onlyPreview && gridViewShowStock)
+                {
+                    <div>
+                        <span class="stock-icon {{stockState}} u-no-margin dw-mod" title="{{stockText}}"></span> {{stockText}}{{deliveryText}}
+                    </div>
+                }
+            </div>
+        </div>
+    {{/.}}
+
+    {{^.}}
+        <div class="grid__col-12">
+            <h2 class="u-ta-center">@Translate("No products found")</h2>
+        </div>
+    {{/.}}
+</script>
+
+<script id="Sticker_@paragraphId" type="text/x-template">
+    <div class="stickers-container__tag {{className}} dw-mod">{{text}}</div>
+</script>

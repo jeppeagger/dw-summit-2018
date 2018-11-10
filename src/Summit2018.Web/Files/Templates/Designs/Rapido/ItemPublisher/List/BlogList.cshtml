@@ -1,0 +1,126 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+
+@functions {
+    public string Truncate(string value, int maxChars)
+    {
+        return value.Length <= maxChars ? value : value.Substring(0, maxChars) + "...";
+    }
+}
+
+@{
+    string selectedCategory = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString.Get("Category")) ? HttpContext.Current.Request.QueryString.Get("Category") : Translate("All");
+    var query = HttpUtility.ParseQueryString(HttpContext.Current.Request.QueryString.ToString());
+
+    var categoryFields = GetLoop("ItemPublisher:ItemType.Fields").FirstOrDefault((item) => item.GetString("ItemPublisher:ItemType.Field.SystemName") == "Category");
+    foreach (var options in categoryFields.GetLoop("ItemPublisher:ItemType.Field.Options"))
+    {
+        selectedCategory = selectedCategory == options.GetString("ItemPublisher:ItemType.Field.Option.Value") ? options.GetString("ItemPublisher:ItemType.Field.Option.Label") : selectedCategory;
+    }
+}
+
+<div class="grid__col-md-8 grid__col--bleed-x">
+
+    <div class="grid">
+        <div class="grid__col-12">
+            <div class="collection u-no-margin">
+                <h5>@Translate("Category")</h5>
+                <input type="checkbox" id="CategorySelector" class="dropdown-trigger" />
+                <div class="dropdown u-w180px dw-mod">
+                    <label class="dropdown__header dropdown__btn dw-mod" for="CategorySelector">@Translate(selectedCategory)</label>
+                    <div class="dropdown__content dw-mod">
+                        @{
+                            query.Set("Category", "");
+                            <div class="dropdown__item" onclick="window.location = '/Default.aspx?@query.ToString()'">@Translate("All")</div>
+
+                            foreach (var options in categoryFields.GetLoop("ItemPublisher:ItemType.Field.Options"))
+                            {
+                                query.Set("Category", options.GetString("ItemPublisher:ItemType.Field.Option.Value"));
+                                <div class="dropdown__item" onclick="window.location = '/Default.aspx?@query.ToString()'">@Translate(options.GetString("ItemPublisher:ItemType.Field.Option.Label"))</div>
+                            }
+                        }
+                    </div>
+                    <label class="dropdown-trigger-off" for="CategorySelector"></label>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid">
+            @foreach (LoopItem blogItem in GetLoop("ItemPublisher:Items.List"))
+            {
+                string date = !string.IsNullOrWhiteSpace(blogItem.GetString("ItemPublisher:Item.Date")) ? blogItem.GetDate("ItemPublisher:Item.Date").ToString("dd.MM.yyyy, HH:mm") : "";
+                string subscription = "";
+
+                if (!(string.IsNullOrWhiteSpace(blogItem.GetString("ItemPublisher:Item.Author")) && string.IsNullOrWhiteSpace(@date)))
+                {
+                    subscription += Translate("Written");
+                }
+                if (!string.IsNullOrWhiteSpace(blogItem.GetString("ItemPublisher:Item.Author")))
+                {
+                    subscription += " " + Translate("by") + " " + blogItem.GetString("ItemPublisher:Item.Author");
+                }
+                if (!string.IsNullOrWhiteSpace(@date))
+                {
+                    subscription += " " + Translate("on") + " " + date;
+                }
+
+                <div class="grid__col-md-4 grid__col-sm-4 grid__col-xs-12 grid__col-xxs-12">
+                    <a href="/Default.aspx?ID=@blogItem.GetString("ItemPublisher:Item.Field.PageId")" class="flex-img">
+                        <img src="/Admin/Public/GetImage.ashx?width=800&height=600&amp;crop=0&amp;DoNotUpscale=true&amp;Compression=75&amp;image=@blogItem.GetString("ItemPublisher:Item.Image")" alt="@blogItem.GetString("ItemPublisher:Item.Title")" />
+                    </a>
+                </div>
+                <div class="grid__col-md-8 grid__col-sm-8 grid__col-xs-12 grid__col-xxs-12">
+                    <a href="/Default.aspx?ID=@blogItem.GetString("ItemPublisher:Item.Field.PageId")"><h2 class="article__header u-truncate-text dw-mod">@blogItem.GetString("ItemPublisher:Item.Title")</h2></a>
+                    <small class="article__subscription dw-mod">@subscription</small>
+
+                    <p class="article__short-summary dw-mod">@Truncate(blogItem.GetString("ItemPublisher:Item.Summary"), 120)</p>
+
+                    <div class="grid__cell-footer">
+                        <a href="/Default.aspx?ID=@blogItem.GetString("ItemPublisher:Item.Field.PageId")" class="btn btn--secondary u-no-margin dw-mod">@Translate("Read more")</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+<div class="grid__col-12 u-margin-top">
+    <div class="pager">
+        <div class="pager__info">
+            @Translate("Page") @GetString("ItemPublisher:Items.Paging.CurrentPage") @Translate("of") @GetString("ItemPublisher:Items.Paging.TotalPages")
+        </div>
+        <ul class="pager__list">
+            @if (GetString("ItemPublisher:Items.Paging.PrevPage") != "#")
+            {
+                <li class="pager__btn">
+                    <a href="@GetString("ItemPublisher:Items.Paging.PrevPage")" class="pager__num dw-mod"><i class="fas fa-angle-left"></i></a>
+                </li>
+            }
+
+            @foreach (LoopItem page in GetLoop("ItemPublisher:Items.Paging.Pages"))
+            {
+                bool isActive = page.GetBoolean("ItemPublisher:Items.Paging.Pages.Page.IsCurrent");
+                <li class="pager__btn">
+                    @if (isActive)
+                    {
+                        <span class="pager__num pager__num--current dw-mod">
+                            @page.GetString("ItemPublisher:Items.Paging.Pages.Page.Number")
+                        </span>
+                    }
+                    else
+                    {
+                        <a href="@page.GetString("ItemPublisher:Items.Paging.Pages.Page.Url")" class="pager__num dw-mod">
+                            @page.GetString("ItemPublisher:Items.Paging.Pages.Page.Number")
+                        </a>
+                    }
+                </li>
+            }
+
+            @if (GetString("ItemPublisher:Items.Paging.NextPage") != "#")
+            {
+                <li class="pager__btn">
+                    <a href="@GetString("ItemPublisher:Items.Paging.NextPage")" class="pager__num dw-mod"><i class="fas fa-angle-right"></i></a>
+                </li>
+            }
+        </ul>
+    </div>
+</div>

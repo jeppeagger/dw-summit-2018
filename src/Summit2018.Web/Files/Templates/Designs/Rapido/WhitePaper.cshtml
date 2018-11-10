@@ -1,0 +1,75 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.PageViewModel>
+@MasterPageFile("Master.cshtml")
+@using System.Text.RegularExpressions
+
+@*This is an example implementation of a Case template.
+    You may want to re-configure the itemtype and adjust this template to the specific needs. *@
+
+@{
+    string fullBackgroundImage = "";
+    if (Model.Item.GetFile("Image") != null)
+    {
+        fullBackgroundImage = "background-image:url(/Admin/Public/GetImage.ashx?width=2500&amp;height=1100&amp;crop=0&amp;Compression=85&amp;DoNotUpscale=true&amp;image=" + Model.Item.GetFile("Image").PathUrlEncoded + ");";
+        fullBackgroundImage += " background-position: center center; background-size: cover; ";
+    }
+}
+
+<div class="grid article">
+
+    @* Escape the container and section *@
+</div>
+    </section>
+@* ----------------------------------- *@
+
+@if (fullBackgroundImage != "")
+{
+    <section class="multiple-paragraphs-container u-color-light" style="@fullBackgroundImage">
+        <div class="center-container center-container--with-background-image dw-mod">
+            <div class="grid center-container--with-background-image">
+                <div class="grid__col-md-12 grid__col-xs-12 paragraph-container paragraph-container--height-lg">
+                    <div class="u-left-middle">
+                        <div>
+                            <h1 class="article__header article__header--giant">@Model.Item.GetString("Title")</h1>
+                            <div class="article__subheader article__subheader--giant">@Model.Item.GetString("Summary")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+else
+{
+    <section class="center-container content-container dw-mod">
+        <div class="grid">
+            <div class="grid__col-12">
+                <h1 class="article__header article__header--giant">@Model.Item.GetString("Title")</h1>
+            </div>
+        </div>
+    </section>
+}
+
+@* Re-enter the container and section *@
+<section class="content-container center-container dw-mod u-padding">
+    <div class="grid u-margin-top--lg">
+        @* ----------------------------------- *@
+
+        @* The descriptions *@
+        <div class="grid__col-md-8">
+           @Model.Item.GetString("Text")
+        </div>
+        <div class="grid__col-md-4">
+            @Model.Placeholder("dwcontent", "content", "default:true;sort:1")
+        </div>
+
+        @* Related cases *@
+        @* Escape the container and section *@
+    </div>
+</section>
+@* ----------------------------------- *@
+
+@* Re-enter the container and section *@
+<section class="content-container center-container dw-mod">
+    <div class="grid">
+        @* ----------------------------------- *@
+    </div>

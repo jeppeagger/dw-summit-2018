@@ -1,0 +1,43 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>> 
+@using System.Web;
+@{ string feedType = HttpContext.Current.Request.QueryString.Get("feedtype"); }
+@if (feedType == "orderlines") {
+<text>[</text>
+foreach (LoopItem orderline in GetLoop("OrderLines"))
+{
+if (orderline.Index > 1)
+{<text>,</text>}<text>{
+"id": "@orderline.GetString("Ecom:Product.ID")",
+"name": "@orderline.GetString("Ecom:Order:OrderLine.ProductName") @if (!string.IsNullOrEmpty(GetString("Ecom:Order:OrderLine.ProductVariantText"))) { @GetString("Ecom:Order:OrderLine.ProductVariantText") }",
+"variantname": "@orderline.GetString("Ecom:Order:OrderLine.ProductVariantText")",
+"quantity": "@orderline.GetString("Ecom:Order:OrderLine.Quantity")",
+"unitprice": "@orderline.GetString("Ecom:Order:OrderLine.UnitPrice")",
+"totalprice": "@orderline.GetString("Ecom:Order:OrderLine.TotalPrice")",
+"link": "@orderline.GetString("Ecom:Product.LinkGroup.Clean")",
+"image": "@orderline.GetString("Ecom:Product.ImageSmall.Default.Clean")"
+}</text>}
+
+<text>]</text>
+} else if (feedType == "summary") {
+<text>[
+{
+"pageid": "@GetGlobalValue("Global:Page.ID")",
+"numberofproducts": "@GetString("Ecom:Order.OrderLines.TotalProductQuantity")",
+"isempty": "@if (!string.IsNullOrEmpty(GetString("Ecom:Order.IsEmpty")))
+{<text>u-hidden</text>}",
+"paymentmethod": "@GetString("Ecom:Order.PaymentMethod")",
+"paymentfee": "@GetString("Ecom:Order.PaymentFee.PriceFormatted")",
+"shippingmethod": "@GetString("Ecom:Order.ShippingMethod")",
+"shippingfee": "@GetString("Ecom:Order.ShippingFee.PriceFormatted")",
+"totalprice": "@GetString("Ecom:Order.OrderLines.Total.PriceWithVAT")"
+}
+]</text>
+} else {
+<text>[
+{
+"numberofproducts": "@GetString("Ecom:Order.OrderLines.TotalProductQuantity")",
+"isempty": "@if (!string.IsNullOrEmpty(GetString("Ecom:Order.IsEmpty")))
+{<text>u-hidden</text>}"
+}
+]</text>
+}

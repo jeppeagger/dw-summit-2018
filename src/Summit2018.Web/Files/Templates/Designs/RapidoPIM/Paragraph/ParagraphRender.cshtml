@@ -1,0 +1,221 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.ParagraphViewModel>
+@using Dynamicweb.Frontend
+
+@helper RenderContent(ItemViewModel item, bool isCarousel = false)
+{
+    string cardClass = item.GetBoolean("ShowAsCard") ? "paragraph-card" : "grid__cell";
+    cardClass = Pageview.Device.ToString() != "Tablet" ? cardClass : "grid__cell";
+
+    if (item.GetList("ContentPositions").SelectedValue == "image-top" || item.GetList("ContentPositions").SelectedValue == "image-centered" || string.IsNullOrEmpty(item.GetList("ContentPositions").SelectedValue))
+    {
+        <div class="@cardClass">
+            @RenderImage(item, isCarousel)
+            @RenderHeading(item)
+            @RenderText(item)
+            @RenderModule(item)
+        </div>
+            @RenderButton(item)
+    }
+
+    if (item.GetList("ContentPositions").SelectedValue == "title-top")
+    {
+            <div class="@cardClass">
+                @RenderHeading(item)
+                @RenderImage(item, isCarousel)
+                @RenderText(item)
+                @RenderModule(item)
+            </div>
+            @RenderButton(item)
+    }
+
+    if (item.GetList("ContentPositions").SelectedValue == "image-left")
+    {
+            <div class="grid">
+                <div class="grid__col-3">
+                    @RenderImage(item, isCarousel)
+                </div>
+                <div class="grid__col-9">
+                    @RenderHeading(item)
+                    @RenderText(item)
+                    @RenderModule(item)
+                    @RenderButton(item)
+                </div>
+            </div>
+    }
+
+    if (item.GetList("ContentPositions").SelectedValue == "all-centered")
+    {
+            <div class="u-ta-center @cardClass">
+                @RenderImage(item, isCarousel)
+                @RenderHeading(item)
+                @RenderText(item)
+                @RenderModule(item)
+            </div>
+            @RenderButton(item)
+    }
+
+    if (item.GetList("ContentPositions").SelectedValue == "middle-center")
+    {
+            <div class="u-ta-center u-middle">
+                <div class="@cardClass">
+                    @RenderImage(item, isCarousel)
+                    @RenderHeading(item)
+                    @RenderText(item)
+                    @RenderModule(item)
+                </div>
+                @RenderButton(item)
+            </div>
+    }
+
+    if (item.GetList("ContentPositions").SelectedValue == "middle-left")
+    {
+            <div class="grid__cell u-middle">
+                <div class="@cardClass">
+                    @RenderImage(item, isCarousel)
+                    @RenderHeading(item)
+                    @RenderText(item)
+                    @RenderModule(item)
+                </div>
+                @RenderButton(item)
+            </div>
+    }
+}
+
+@helper RenderHeading(ItemViewModel item)
+{
+    if (item.GetBoolean("ShowTitle") != false && !string.IsNullOrEmpty(item.GetString("Title")))
+    {
+        string headerMargin = item.GetString("Text") != "" && item.GetString("Image") != "" ? "u-margin-bottom" : "";
+        headerMargin = Model.GetModuleOutput() == "" ? headerMargin : "u-margin-bottom";
+        string url = item.GetString("Link");
+
+        if (!String.IsNullOrEmpty(url))
+        {
+        <a href="@url">
+            <h2 class="u-no-margin @headerMargin">@item.GetString("Title")</h2>
+        </a>
+        }
+        else
+        {
+        <h2 class="u-no-margin @headerMargin">@item.GetString("Title")</h2>
+        }
+    }
+}
+
+@helper RenderButton(ItemViewModel item)
+{
+    string url = item.GetString("Link");
+    string linkText = item.GetString("LinkText");
+    string footerCssClass = "";
+    string cardFooterClass = item.GetBoolean("ShowAsCard") ? "paragraph-card-footer" : "grid__cell-footer";
+    cardFooterClass = Pageview.Device.ToString() != "Tablet" ? cardFooterClass : "";
+
+    if (item.GetList("ContentPositions").SelectedValue == "all-centered" || item.GetList("ContentPositions").SelectedValue == "middle-center")
+    {
+        footerCssClass = "grid--justify-center";
+    }
+
+    if (!string.IsNullOrEmpty(url) && !string.IsNullOrEmpty(linkText))
+    {
+        string buttonStyle = !String.IsNullOrEmpty(item.GetList("ButtonDesign").SelectedValue) ? item.GetList("ButtonDesign").SelectedValue : "primary";
+
+        <div class="@footerCssClass @cardFooterClass">
+            <div class="u-margin-top u-margin-bottom">
+                @if (url.Contains("http"))
+                {
+                <a href="@url" class="btn btn--@buttonStyle dw-mod" target="_blank">@linkText</a>
+                }
+                else if (url.Contains("/"))
+                {
+                <a href="@url" class="btn btn--@buttonStyle dw-mod" download>@linkText</a>
+                }
+                else
+                {
+                <a href="@url" class="btn btn--@buttonStyle dw-mod">@linkText</a>
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="grid__cell-footer @footerCssClass @cardFooterClass"></div>
+    }
+}
+
+@helper RenderText(ItemViewModel item)
+{
+    if (!string.IsNullOrWhiteSpace(item.GetString("Text")))
+    {
+        @item.GetString("Text")
+    }
+}
+
+@helper RenderModule(ItemViewModel item)
+{
+    @Model.GetModuleOutput();
+}
+
+@helper RenderImage(ItemViewModel item, bool isCarousel)
+{
+    if (!string.IsNullOrEmpty(item.GetString("Image")) && item.GetList("ImageStyle").SelectedValue != "background")
+    {
+        string url = item.GetString("Link");
+
+        <div class="u-margin-bottom">
+            @if (!String.IsNullOrEmpty(url))
+            {
+            <a href="@url">
+                @RenderImageElement(item, isCarousel)
+            </a>
+            }
+            else
+            {
+            @RenderImageElement(item, isCarousel)
+            }
+        </div>
+    }
+}
+
+@helper RenderImageElement(ItemViewModel item, bool isCarousel)
+{
+    string image = item.GetFile("Image") != null ? item.GetFile("Image").PathUrlEncoded : "";
+    string altText = item.GetString("Title");
+    string imgCssClass = "";
+    string imgCrop = !string.IsNullOrEmpty(item.GetList("ImageCrop").SelectedValue) ? item.GetList("ImageCrop").SelectedValue : "5";
+    string imageBoxWidth = "480";
+    int imageWidth = Int32.Parse(item.GetList("Width").SelectedValue) < 3 ? 496 : 992;
+    int imageHeight = Int32.Parse(item.GetList("Width").SelectedValue) < 3 ? 380 : 760;
+    string placeHolderImage = "/Files/Images/placeholder.gif";
+
+    if (item.GetList("ContentPositions").SelectedValue == "image-centered" || item.GetList("ContentPositions").SelectedValue == "all-centered" || item.GetList("ContentPositions").SelectedValue == "middle-center")
+    {
+        imgCssClass = "grid__cell-img--centered";
+    }
+
+    if (item.GetList("ImageStyle").SelectedValue == "ball")
+    {
+        imgCssClass += " grid__cell-img--ball";
+        if (!isCarousel)
+        {
+            <img class="grid__cell-img @imgCssClass b-lazy" src="@placeHolderImage" data-src="/Admin/Public/GetImage.ashx?width=@imageBoxWidth&amp;height=@imageBoxWidth&amp;crop=@imgCrop&amp;Compression=75&amp;DoNotUpscale=true&amp;FillCanvas=true&amp;image=@image" alt="@altText">
+        }
+        else
+        {
+            <img class="grid__cell-img @imgCssClass" src="/Admin/Public/GetImage.ashx?width=@imageBoxWidth&amp;height=@imageBoxWidth&amp;crop=@imgCrop&amp;Compression=75&amp;DoNotUpscale=true&amp;image=@image" alt="@altText">
+        }
+    }
+    else
+    {
+        string largeImage = "/Admin/Public/GetImage.ashx?width=" + imageWidth + "&amp;height=" + imageHeight + "&amp;crop=" + imgCrop + "&amp;Compression=75&amp;FillCanvas=true&amp;DoNotUpscale=true&amp;image=" + image;
+        string smallImage = "/Admin/Public/GetImage.ashx?width=" + imageWidth / 2 + "&amp;height=" + imageHeight / 2 + "&amp;crop=" + imgCrop + "&amp;Compression=75&amp;DoNotUpscale=true&amp;FillCanvas=true&amp;image=" + image;
+
+        if (!isCarousel)
+        {
+            <img class="@imgCssClass b-lazy" src="@placeHolderImage" data-src="@largeImage" data-src-small="@smallImage" alt="@altText">
+        }
+        else
+        {
+            <img class="@imgCssClass" src="@largeImage" alt="@altText">
+        }
+    }
+}

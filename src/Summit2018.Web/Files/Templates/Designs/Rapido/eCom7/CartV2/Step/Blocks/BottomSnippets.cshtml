@@ -1,0 +1,87 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@{ 
+    BlocksPage snippetsCheckoutPage = BlocksPage.GetBlockPage("CheckoutPage");
+
+    Block parcelShopsScriptTemplates = new Block()
+    {
+        Id = "ShippingProviderTemplates",
+        SortId = 10,
+        Template = RenderShippingProviderTemplates()
+    };
+    snippetsCheckoutPage.Add("CheckoutBottomSnippets", parcelShopsScriptTemplates);
+}
+
+@helper RenderShippingProviderTemplates() {
+    <script id="ShippingProviderContentTemplate" type="text/x-template">
+        {{#.}}
+        <div class="{{hideShippingProvider}}">
+            <ul class="list list--clean parcel-shop-address dw-mod" id="SelectedParcelShop">
+                {{#SelectedParcelShop}}
+                <li data-number="{{number}}" data-lat="{{latitude}}" data-lng="{{longitude}}">
+                    <div class="u-hidden">
+                        <input type="radio" class="u-no-margin" name="{{fieldPrefix}}{{fieldPostfix}}" value="{{number}}" {{selected}} />
+                    </div>
+                    <div>
+                        <i class="fas fa-map-marker"></i>
+                        <span class="u-bold">{{company}}, </span>
+                        <span>{{address}} </span>
+                        <span>{{city}} </span>
+                        <span>{{countryCode}} </span>
+                    </div>
+                </li>
+                {{/SelectedParcelShop}}
+                {{^SelectedParcelShop}}
+                <li>@Translate("No points found")</li>
+                {{/SelectedParcelShop}}
+            </ul>
+            <div class="{{hideShippingProvider}}">
+                <label for="ParcelShopsModalTrigger" class="btn btn--secondary btn--full dw-mod" onclick="Maps.Init('MapCanvas', {{toJSON ParcelShops}}, Cart.SelectParcelShop, Cart.SubmitCart, '@Translate("Select")')">@Translate("Change parcel shop")</label>
+            </div>
+        </div>
+        {{/.}}
+    </script>
+
+    <script id="ParcelShopsTemplate" type="text/x-template">
+        {{#.}}
+        {{#ParcelShops}}
+        <li data-number="{{number}}" data-lat="{{latitude}}" data-lng="{{longitude}}">
+            <input type="radio" name="{{fieldPrefix}}{{fieldPostfix}}" value="{{number}}" class="form__control" id="{{fieldPrefix}}ParcelShopNumber_{{number}}" {{selected}} onclick="Cart.SubmitCart()" />
+            <label for="{{fieldPrefix}}ParcelShopNumber_{{number}}" class="u-flex">
+                <span class="u-inline-block">
+                    <span class="u-bold">{{company}}, </span>
+                    <span class="u-block">{{address}}, {{city}}</span>
+                    <span class="u-block">{{countryCode}} </span>
+                </span>
+            </label>
+        </li>
+        <li class="list__seperator"></li>
+        {{/ParcelShops}}
+        {{/.}}
+    </script>
+
+
+    string mapsScriptUrl = "//maps.googleapis.com/maps/api/js";
+    mapsScriptUrl += !String.IsNullOrEmpty(Pageview.AreaSettings.GetItem("Settings").GetString("GoogleMapsAPIKey")) ? "?key=" + Pageview.AreaSettings.GetItem("Settings").GetString("GoogleMapsAPIKey") : "";
+
+    <script src="@mapsScriptUrl"></script>
+
+    if (Converter.ToBoolean(GetGlobalValue("Global:Extranet.UserName")) && GetLoop("UserManagement:User.UserAddresses").Count > 0)
+    {
+        <script>
+                document.addEventListener("DOMContentLoaded", function (event) {
+                    document.getElementById("DeliveryAddressFields").addEventListener('contentLoaded', function (e) {
+                        var target = getTarget(e);
+                        if (target.name == "EcomOrderDeliveryCountry") {
+                            target.value = target.getAttribute("data-countryCode");
+                        }
+                    }, false);
+                });
+        </script>
+    }
+}

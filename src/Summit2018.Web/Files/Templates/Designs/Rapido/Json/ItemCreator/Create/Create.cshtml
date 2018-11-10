@@ -1,0 +1,45 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+
+
+@functions {
+    public class ValidationErrors
+    {
+        public string field { get; set; }
+        public string message { get; set; }
+    }
+
+    public class Root
+    {
+        public string status { get; set; }
+        public string formBegin { get; set; }
+        public string formEnd { get; set; }
+        public List<ValidationErrors> ValidationErrors { get; set; }
+    }
+}
+
+@{
+    string jsonFeed = "";
+
+    List<Root> feedObject = new List<Root>();
+    Root feedRoot = new Root();
+
+    feedRoot.status = GetString("ItemCreator:Edit.Status");
+    feedRoot.formBegin = GetString("ItemCreator:Edit.Form.Begin");
+    feedRoot.formEnd = GetString("ItemCreator:Edit.Form.End");
+    feedRoot.ValidationErrors = new List<ValidationErrors>();
+
+    foreach (LoopItem errorField in GetLoop("ValidationErrors"))
+    {
+        ValidationErrors validationError = new ValidationErrors();
+        validationError.field = errorField.GetString("ItemCreator:Edit.Validation.FieldName");
+        validationError.message = errorField.GetString("ItemCreator:Edit.Validation.Error");
+        feedRoot.ValidationErrors.Add(validationError);
+    }
+
+    feedObject.Add(feedRoot);
+    jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(feedObject);
+
+}
+
+@jsonFeed

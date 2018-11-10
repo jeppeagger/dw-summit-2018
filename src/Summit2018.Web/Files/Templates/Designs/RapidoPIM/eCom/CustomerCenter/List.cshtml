@@ -1,0 +1,70 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Ecommerce
+@using System.Linq
+
+@{ 
+    var productIds = new System.Text.StringBuilder();
+    string exportPageId = GetPageIdByNavigationTag("ProductExportFeed").ToString();
+}
+
+@SnippetStart("PIMListTools")
+<input type="checkbox" class="panel-trigger js-remember-state" id="PIMListToolsTrigger" checked />
+<aside class="panel panel--right">
+    <label for="PIMListToolsTrigger" class="panel-trigger-btn grid--justify-center"></label>
+    <form action="/Default.aspx?ID=@exportPageId" method="post">
+        <div class="panel__content dw-mod">
+            <div class="panel__content__body panel__content__body--auto-height-250px dw-mod">
+
+                @foreach (LoopItem listitem in GetLoop("Lists"))
+                {
+                    <h6 class="panel__header u-margin-bottom dw-mod">@Translate("Product data") (@listitem.GetString("Ecom:CustomerCenter.List.ProductCount"))</h6>
+                    <ul class="panel-list">
+                        @foreach (LoopItem product in listitem.GetLoop("Ecom:CustomerCenter.List.ProductsList"))
+                        {
+                            productIds.AppendFormat("{0},", product.GetString("Ecom:Product.ID"));
+                            <li class="panel-list__item">
+                                <div class="panel-list__item-name">
+                                    <div class="u-truncate-text u-max-w210px">@product.GetString("Ecom:Product.Name")</div>
+                                    <small>@product.GetString("Ecom:Product.Number")</small>
+                                </div>
+                                <div class="panel-list__item-actions">
+                                    <a href="@product.GetString("Ecom:Product.RemoveFromList")" class="btn btn--clean btn--condensed u-no-margin"><i class="fas fa-times u-color-danger"></i></a>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+
+            <div class="panel__content__footer panel__content__footer--250px dw-mod">
+                <input name="ID" type="hidden" value="532" />
+                <input id="download" name="download" type="hidden" value="true" />
+                <input id="productIds" name="ProductIds" type="hidden" value="@productIds.ToString()" />
+                <div>
+                    <h6 class="panel__header panel__header--line dw-mod">@Translate("Export")</h6>
+
+                    <label for="exportLanguage">@Translate("Language")</label>
+                    <select id="exportLanguage" name="RequestLanguageId" class="u-full-width">
+                        @foreach (var lang in Services.Languages.GetLanguages().OrderBy(l => l.Name))
+                        {
+                            var selected = lang.IsDefault ? "selected" : "";
+                        <option value="@lang.LanguageId" @selected>@lang.Name</option>
+                        }
+                    </select>
+
+                    <label for="exportFormat">@Translate("Export format")</label>
+                    <select id="exportFormat" name="format" class="u-full-width">
+                        <option value="csv">Csv</option>
+                        <option value="json">Json</option>
+                        <option value="xml">Xml</option>
+                    </select>
+
+                </div>
+                <input type="submit" class="btn btn--full btn--primary dw-mod" value="@Translate("Submit")" />
+            </div>
+        </div>
+    </form>
+</aside>
+@SnippetEnd("PIMListTools")
+
+

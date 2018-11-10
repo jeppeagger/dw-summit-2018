@@ -1,0 +1,255 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+@using Dynamicweb.Core;
+
+@{ 
+    string areaId = GetGlobalValue("Global:Area.ID");
+    string autoCssLink = "/Files/Templates/Designs/Rapido/css/rapido/rapido_" + areaId + ".min.css";
+
+    bool useFontAwesomePro = !String.IsNullOrEmpty(Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetString("UseFontAwesomePro")) ? Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetBoolean("UseFontAwesomePro") : false;
+    string wireframeMode = !String.IsNullOrEmpty(Pageview.AreaSettings.GetItem("Settings").GetString("WireframeMode")) ? Pageview.AreaSettings.GetItem("Settings").GetString("WireframeMode") : "false";
+}
+
+<!-- Font awesome -->
+@if (useFontAwesomePro)
+{
+    <link rel="stylesheet" href="/Files/Templates/Designs/Rapido/css/fonts/FontAwesomePro/css/fontawesome-all.min.css" type="text/css">
+}
+else
+{
+    <link rel="stylesheet" href="/Files/Templates/Designs/Rapido/css/fonts/FontAwesomeFree/css/fontawesome-all.min.css" type="text/css">
+}
+
+<!-- Base (Default, wireframe) styles -->
+<link rel="stylesheet" href="/Files/Templates/Designs/Rapido/css/base/base.css" type="text/css">
+
+<!-- Rapido Css from Website Settings -->
+<link id="rapidoCss" rel="stylesheet" href="@autoCssLink" type="text/css">
+
+<!-- Ignite Css (Custom site specific styles) -->
+<link id="igniteCss" type="text/css" href="/Files/Templates/Designs/Rapido/css/ignite/ignite.min.css" rel="stylesheet">
+
+<style>
+    @@media print {
+        body {
+            font-family: sans-serif;
+        }
+    }
+</style>
+
+@{
+    var logoImage = "/Admin/Public/GetImage.ashx?width=200&amp;height=50&amp;crop=5&amp;Compression=75&amp;image=" + Pageview.AreaSettings.GetItem("Ecommerce").GetString("ReceiptLogoImage");
+    var imageClass = "";
+
+    if (!String.IsNullOrEmpty(HttpContext.Current.Request.QueryString.Get("PageID"))) {
+        logoImage = !String.IsNullOrEmpty(Pageview.AreaSettings.GetItem("Layout").GetString("LogoImage")) ? Pageview.AreaSettings.GetItem("Layout").GetString("LogoImage") : "";
+        imageClass = "u-w220px";
+    }
+}
+
+<div class="grid grid--border">
+    <div class="grid__col-7 receipt__header dw-mod">
+        <div class="u-margin receipt__logo">
+            <img src="@logoImage" alt="@Translate("Logo")" class="@imageClass"/>
+        </div>
+    </div>
+    <div class="grid__col-5 receipt__header dw-mod">
+        <table class="table table--clean table--compact">
+            <tr>
+                <td>@Translate("Quote number")</td>
+                <td>@GetString("Ecom:Order.ID")</td>
+            </tr>
+            <tr>
+                <td>@Translate("Quote date")</td>
+                <td>@GetDate("Ecom:Order.Date").ToString(Dynamicweb.Core.Helpers.DateHelper.DateFormatStringShort)</td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="grid__col-12 grid__col--bleed">
+        <table class="table table-responsive u-no-margin u-border-bottom">
+            <thead>
+                <tr>
+                    <th>&nbsp;</th>
+                    <th>@Translate("Product")</th>
+                    <th class="u-ta-right">@Translate("Qty")</th>
+                    <th class="u-ta-right">@Translate("Price")</th>
+                    <th class="u-ta-right">@Translate("Total")</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @foreach (LoopItem orderline in GetLoop("OrderLines"))
+                {
+                    var image = "/Admin/Public/GetImage.ashx?width=60&height=60&crop=5&image=" + orderline.GetString("Ecom:Product.ImageDefault.Default.Clean");
+                    <tr>
+                        <td width="60">
+                            @if (orderline.GetBoolean("Ecom:Order:OrderLine.IsProduct"))
+                            {
+                                <img src="@image" alt="@orderline.GetString("Ecom:Order:OrderLine.ProductName")" />
+                            }
+                        </td>
+                        <td>
+                            <div>@orderline.GetString("Ecom:Order:OrderLine.ProductName")</div>
+                            @if (orderline.GetBoolean("Ecom:Order:OrderLine.IsProduct"))
+                            {
+                                <div>#@orderline.GetString("Ecom:Order:OrderLine.ProductNumber")</div>
+                            }
+                            <div>@orderline.GetString("Ecom:Order:OrderLine.UnitName")</div>
+                            <div>@orderline.GetString("Ecom:Order:OrderLine.ProductVariantText")</div>
+                        </td>
+                        <td class="u-ta-right">
+                            @if (orderline.GetBoolean("Ecom:Order:OrderLine.IsProduct"))
+                            {
+                                @orderline.GetString("Ecom:Order:OrderLine.Quantity")
+                            }
+                        </td>
+                        <td class="u-ta-right">
+                            @if (orderline.GetBoolean("Ecom:Order:OrderLine.IsProduct"))
+                            {
+                                @orderline.GetString("Ecom:Order:OrderLine.UnitPrice.PriceFormatted").Replace(" ", "&nbsp;")
+                            }
+                        </td>
+                        <td class="u-ta-right">@orderline.GetString("Ecom:Order:OrderLine.Price.PriceFormatted").Replace(" ", "&nbsp;")</td>
+                    </tr>
+
+                    foreach (LoopItem bomitem in orderline.GetLoop("BOMItems"))
+                    {
+                        image = "/Admin/Public/GetImage.ashx?width=60&height=60&crop=0&image=" + bomitem.GetString("Ecom:Product.ImageDefault.Default.Clean");
+
+                        <tr class="active u-color-light-gray--bg">
+                            <td width="60">
+                                <img src="@image" alt="@bomitem.GetString("Ecom:Order:OrderLine.ProductName.Short")" />
+                            </td>
+                            <td>@bomitem.GetString("Ecom:Order:OrderLine.ProductName.Short")</td>
+                            <td class="u-ta-right">
+                                @if (bomitem.GetBoolean("Ecom:Order:OrderLine.IsProduct"))
+                                {
+                                    @bomitem.GetString("Ecom:Order:OrderLine.Quantity")
+                                }
+                            </td>
+                            <td class="u-ta-right">
+                                @if (bomitem.GetBoolean("Ecom:Order:OrderLine.IsProduct"))
+                                {
+                                    @bomitem.GetString("Ecom:Order:OrderLine.UnitPrice.PriceFormatted").Replace(" ", "&nbsp;")
+                                }
+                            </td>
+                            <td class="u-ta-right">@bomitem.GetString("Ecom:Order:OrderLine.Price.PriceFormatted").Replace(" ", "&nbsp;")</td>
+                        </tr>
+                    }
+                }
+
+                <tr>
+                    <td colspan="4" class="u-ta-right">@Translate("VAT")</td>
+                    <td class="u-ta-right">@GetString("Ecom:Order.Price.VATFormatted").Replace(" ", "&nbsp;")</td>
+                </tr>
+
+                @if (!string.IsNullOrWhiteSpace(GetString("Ecom:Order.PaymentMethod")))
+                {
+                    <tr>
+                        <td colspan="4" class="u-ta-right">
+                            @Translate("Payment method")
+                            (@GetString("Ecom:Order.PaymentMethod"))
+                        </td>
+                        <td class="u-ta-right">@GetString("Ecom:Order.PaymentFee.PriceFormatted").Replace(" ", "&nbsp;")</td>
+                    </tr>
+                }
+
+                <tr class="u-color-light-gray--bg">
+                    <th colspan="4" class="u-ta-right">@Translate("Total with VAT")</th>
+                    <th class="u-ta-right">@GetString("Ecom:Order.Price.PriceWithVATFormatted").Replace(" ", "&nbsp;")</th>
+                </tr>
+            </tbody>
+        </table>
+
+        @if (!string.IsNullOrWhiteSpace(GetString("Ecom:Order.Customer.Comment")))
+        {
+            <div class="grid__col-12">
+                <h2 class="u-no-margin">@Translate("Comment")</h2>
+                <div class="u-margin-bottom">@GetString("Ecom:Order.Customer.Comment")</div>
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(GetString("Ecom:Order.HasUsedGiftCards")))
+        {
+            <h2>@Translate("Order used gift cards")</h2>
+
+            <table class="table table-responsive">
+                <tr>
+                    <td>@Translate("Gift card name")</td>
+                    <td>@Translate("Gift card code")</td>
+                    <td>@Translate("Expiry date")</td>
+                    <td class="u-ta-right">@Translate("Initial amount")</td>
+                    <td class="u-ta-right">@Translate("Used amount")</td>
+                    <td class="u-ta-right">@Translate("Remaining balance")</td>
+                </tr>
+
+                @foreach (LoopItem usedgiftcards in GetLoop("UsedGiftCards"))
+                {
+                    <tr>
+                        <td>@usedgiftcards.GetString("Ecom:Order.UsedGiftCard.Name")</td>
+                        <td>@usedgiftcards.GetString("Ecom:Order.UsedGiftCard.Code")</td>
+                        <td>@usedgiftcards.GetString("Ecom:Order.UsedGiftCard.ExpiryDate")</td>
+                        <td class="u-ta-right" title="@usedgiftcards.GetString("Ecom:Order.UsedGiftCard.InitialAmount")">@usedgiftcards.GetString("Ecom:Order.UsedGiftCard.InitialAmount")</td>
+                        <td class="u-ta-right" title="@usedgiftcards.GetString("Ecom:Order.UsedGiftCard.UsedAmountForTheOrder")">@usedgiftcards.GetString("Ecom:Order.UsedGiftCard.UsedAmountForTheOrder")</td>
+                        <td class="u-ta-right" title="@usedgiftcards.GetString("Ecom:Order.UsedGiftCard.RemainingBalance")">@usedgiftcards.GetString("Ecom:Order.UsedGiftCard.RemainingBalance")</td>
+                    </tr>
+                }
+            </table>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(GetString("Ecom:Order.HasGiftCards")))
+        {
+            <h2>@Translate("Giftcards bought on this order")</h2>
+
+            <table class="table table-cart">
+                <tr>
+                    <td>@Translate("Gift card name")</td>
+                    <td>@Translate("Gift card code")</td>
+                    <td>@Translate("Expiry date")</td>
+                    <td class="u-ta-right">@Translate("Gift card amount")</td>
+                </tr>
+
+                @foreach (LoopItem giftcards in GetLoop("GiftCards"))
+                {
+                    <tr>
+                        <td>@giftcards.GetString("Ecom:Order.GiftCard.Name")</td>
+                        <td>@giftcards.GetString("Ecom:Order.GiftCard.Code")</td>
+                        <td>@giftcards.GetString("Ecom:Order.GiftCard.ExpiryDate")</td>
+                        <td class="u-ta-right" title="@giftcards.GetString("Ecom:Order.GiftCard.Amount")">@giftcards.GetString("Ecom:Order.GiftCard.Amount")</td>
+                    </tr>
+                }
+            </table>
+        }
+    </div>
+
+
+    <div class="grid__col-12 u-color-light-gray--bg">
+        <div class="grid">
+            <div class="grid__col-auto">
+                <h5 class="u-no-margin"><i class="fas fa-home"></i> @Translate("Billing address")</h5>
+                <div class="grid__cell">
+                    <div>@GetString("Ecom:Order.Customer.Company")</div>
+                    <div>@GetString("Ecom:Order.Customer.Name")</div>
+                    <div>@GetString("Ecom:Order.Customer.Address")</div>
+                    <div>@GetString("Ecom:Order.Customer.Address2")</div>
+                    <div>@GetString("Ecom:Order.Customer.Zip") @GetString("Ecom:Order.Customer.City"), @GetString("Ecom:Order.Customer.Country")</div>
+                    @if (!string.IsNullOrWhiteSpace(GetString("Ecom:Order.Customer.Email")))
+                    {
+                        <div>@Translate("Email"): @GetString("Ecom:Order.Customer.Email")</div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(GetString("Ecom:Order.Customer.Phone")))
+                    {
+                        <div>@Translate("Phone"): @GetString("Ecom:Order.Customer.Phone")</div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="/Files/Templates/Designs/Rapido/js/source/WireframeConfig.js"></script>
+<script src="/Files/Templates/Designs/Rapido/js/source/Wireframe.js"></script>
+<script>
+    Wireframe.Init(@wireframeMode.ToLower());
+</script>

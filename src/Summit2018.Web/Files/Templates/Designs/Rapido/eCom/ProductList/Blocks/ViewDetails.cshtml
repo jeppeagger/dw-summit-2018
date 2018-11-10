@@ -1,0 +1,212 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@{ 
+    bool detailsOnlyPreview = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("OnlyPreviewForAnonymous") && Pageview.User == null;
+    bool detailsPointShopOnly = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("PointShopOnly");
+    string detailsCartIcon = Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetString("CartIcon") != null ? Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("CartIcon").SelectedValue : "fas fa-shopping-cart";
+    bool detailsViewShowCartButton = Pageview.AreaSettings.GetItem("ProductList").GetItem("DetailsView").GetString("ShowAddToCartButton") != null ? Pageview.AreaSettings.GetItem("ProductList").GetItem("DetailsView").GetBoolean("ShowAddToCartButton") : true;
+    bool detailsViewShowViewButton = Pageview.AreaSettings.GetItem("ProductList").GetItem("DetailsView").GetString("ShowViewButton") != null ? Pageview.AreaSettings.GetItem("ProductList").GetItem("DetailsView").GetBoolean("ShowStockAndShipping") : true;
+    bool detailsViewShowStock = Pageview.AreaSettings.GetItem("ProductList").GetItem("DetailsView").GetString("ShowStockAndShipping") != null ? Pageview.AreaSettings.GetItem("ProductList").GetItem("DetailsView").GetBoolean("ShowStockAndShipping") : true;
+    bool detailsViewShowImage = Pageview.AreaSettings.GetItem("ProductList").GetItem("DetailsView").GetString("ShowImage") != null ? Pageview.AreaSettings.GetItem("ProductList").GetItem("DetailsView").GetBoolean("ShowImage") : true;
+    bool detailsViewShowNumber = Pageview.AreaSettings.GetItem("ProductList").GetItem("DetailsView").GetString("ShowProductNumber") != null ? Pageview.AreaSettings.GetItem("ProductList").GetItem("DetailsView").GetBoolean("ShowProductNumber") : true;
+    string detailsViewMoreText = Pageview.AreaSettings.GetItem("ProductList").GetItem("DetailsView").GetString("ViewMoreText") != null ? Pageview.AreaSettings.GetItem("ProductList").GetItem("DetailsView").GetString("ViewMoreText") : "View";
+    bool detailsUseGoogleTagManager = !string.IsNullOrEmpty(Pageview.AreaSettings.GetItem("Settings").GetString("GoogleTagManagerID"));
+
+    BlocksPage productListViewDetailsBlocksPage = BlocksPage.GetBlockPage("ProductList");
+
+    if (Pageview.AreaSettings.GetItem("ProductList").GetBoolean("EnableDetailsView"))
+    {
+        Block newView = new Block
+        {
+            Id = "ProductDetailsItemContainer",
+            Name = "list",
+            SortId = 30
+        };
+        productListViewDetailsBlocksPage.Add("Views", newView);
+    }
+}
+
+<script id="ProductDetailsItemContainer" type="text/x-template">
+    {{#.}}
+        <div id="Product{{id}}" data-template="ProductDetailsItem" data-preloader="overlay" class="grid__col-md-12 product-list__details-item grid--direction-row grid--justify-space-between u-no-padding-x dw-mod" style="z-index: {{zIndex}}">
+            {{#Product}}
+                {{>ProductDetailsItem}}
+            {{/Product}}
+        </div>
+    {{/.}}
+</script>
+
+<script id="ProductDetailsItem" type="text/x-template">
+    {{#.}}
+        @if (detailsUseGoogleTagManager)
+        {
+            <text>{{{googleEnchantImpression 'Product catalogue' currency googleImpression}}}</text>
+        }
+        <input type="hidden" name="ProductLoopCounter{{id}}" value="{{id}}" />
+        <input type="hidden" name="ProductID{{id}}" value="{{productId}}" />
+
+        <div class="product-list__details-item__left grid__cell dw-mod">
+            @if (detailsViewShowImage)
+            {
+                <div class="lightbox u-hidden-xxs">
+                    <a href="{{link}}" onclick="Scroll.SavePosition(event); {{googleImpressionClick}}" title="{{name}}">
+                        <img class="lightbox__image {{noImage}}" src="/Admin/Public/GetImage.ashx?width=220&amp;height=220&amp;crop=5&amp;Compression=75&amp;image={{image}}" alt="{{name}}" />
+                        <div class="u-margin-right {{noImage}}">
+                            <img src="/Admin/Public/GetImage.ashx?width=75&amp;height=55&amp;crop=5&FillCanvas=true&amp;Compression=75&amp;image={{image}}" alt="{{name}}" />
+                        </div>
+                    </a>
+                </div>
+            }
+            <div class="u-margin-left u-margin-right">
+                <a href="{{link}}" onclick="Scroll.SavePosition(event); {{googleImpressionClick}}" title="{{name}}">
+                    <h6 class="u-no-margin">{{name}}</h6>
+                </a>
+                <div class="item-number item-number--compressed dw-mod">
+                    @if (detailsViewShowNumber) {
+                        <div class="item-number dw-mod">{{number}}</div>
+                    }
+                    
+                    @if (!detailsOnlyPreview && detailsViewShowStock)
+                    {
+                        <span>
+                            <span class="stock-icon {{stockState}} u-no-margin dw-mod" title="{{stockText}}"></span> {{stockText}}{{deliveryText}}
+                        </span>
+                    }
+                    <div class="grid__cell-footer stickers-container stickers-container--block dw-mod">
+                        {{#Stickers}}
+                            {{>MiniSticker}}
+                        {{/Stickers}}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="product-list__details-item__right grid__cell dw-mod">
+            @if (!detailsOnlyPreview && Pageview.Device.ToString() == "Mobile")
+            {
+                <div class="u-full-width u-ta-right u-padding-right">
+                    @if (detailsPointShopOnly)
+                    {
+                        <text>
+                            {{#if havePointPrice}}
+                                <div class="price price--product-list price--micro dw-mod">{{points}} @Translate("points")</div>
+                            {{else}}
+                                @Translate("Not avaliable")
+                            {{/if}}
+                        </text>
+                    }
+                    else
+                    {
+                        <div class="before-price {{onSale}} before-price--micro dw-mod">{{discount}}</div>
+                        <div class="price price--product-list price--micro dw-mod">{{price}}</div>
+                    }
+                </div>
+            }
+            @if (!detailsOnlyPreview && detailsViewShowCartButton)
+            {
+                <div class="u-margin-right">
+                    <input type="checkbox" id="UnitOptions_{{id}}" class="dropdown-trigger" />
+                    <div class="dropdown u-w120px {{hasUnits}} dw-mod">
+                        <label class="dropdown__header dropdown__btn dw-mod" for="UnitOptions_{{id}}">{{unitName}}</label>
+                        <div id="unitOptions" class="dropdown__content dw-mod">
+                            {{#unitOptions}}
+                            {{>UnitOption}}
+                            {{/unitOptions}}
+                        </div>
+                        <label class="dropdown-trigger-off" for="UnitOptions_{{id}}"></label>
+                    </div>
+                    <input type="hidden" value="{{unitId}}" name="Unit{{id}}" id="Unit_{{id}}" />
+                    <input type="hidden" value="{{variantid}}" name="VariantID{{id}}" id="Variant_{{id}}" />
+                </div>
+            }
+            @if (!detailsOnlyPreview && Pageview.Device.ToString() != "Mobile")
+            {
+                <div class="u-min-w120px">
+                    <div class="u-full-width u-ta-right u-padding-right">
+                        @if (detailsPointShopOnly)
+                        {
+                            <text>
+                                {{#if havePointPrice}}
+                                <div class="price price--product-list price--micro dw-mod">{{points}} @Translate("points")</div>
+                                {{else}}
+                                @Translate("Not avaliable")
+                                {{/if}}
+                            </text>
+                        }
+                        else
+                        {
+                            <div class="before-price {{onSale}} before-price--micro dw-mod">{{discount}}</div>
+                            <div class="price price--product-list price--micro dw-mod">{{price}}</div>
+                        }
+                    </div>
+                </div>
+            }
+            @if (!detailsOnlyPreview && detailsViewShowCartButton)
+            {
+                if (!detailsPointShopOnly)
+                {
+                    <div class="{{hideBuyOptions}}">
+                        <input type="number" class="u-w80px u-no-margin u-margin-right" id="Quantity_{{id}}" name="Quantity{{id}}" value="1" min="1">
+                    </div>
+                }
+                <div class="{{hideBuyOptions}}">
+                    @if (detailsPointShopOnly)
+                    {
+                        <button type="button" id="CartButton_{{id}}" class="btn btn--primary btn--condensed u-no-margin dw-mod js-cart-btn {{disabledBuyButton}} {{#unless canBePurchasedWithPoints}}js-stay-disabled{{/unless}}" name="CartCmd" value="addWithPoints" 
+                                onclick="Cart.AddToCart(event, {
+                                    id: '{{productId}}', 
+                                    variantId: '{{variantId}}', 
+                                    unitId: '{{UnitId}}', 
+                                    quantity: 1, 
+                                    buyForPoints: true,
+                                    productInfo: {{productInfo}}
+                                }); {{facebookPixelAction}}" {{disabledBuyButton}}>
+                                <i class="@detailsCartIcon"></i><span class="u-hidden-xs u-hidden-xxs"> @Translate("Buy with points")</span>
+                        </button>
+                    }
+                    else
+                    {
+                        <button type="button" id="CartButton_{{id}}" class="js-cart-btn btn btn--primary btn--condensed u-pull--right u-no-margin dw-mod {{disabledBuyButton}}" name="submit" 
+                                onclick="Cart.AddToCart(event, {
+                                    id: '{{productId}}', 
+                                    variantId: '{{variantid}}', 
+                                    unitId: '{{unitId}}', 
+                                    quantity: document.getElementById('Quantity_{{id}}').value,
+                                    productInfo: {{productInfo}}
+                                }); {{facebookPixelAction}}" {{disabledBuyButton}}>
+                                <i class="@detailsCartIcon"></i>
+                        </button>
+                    }
+                </div>
+                if (detailsViewShowViewButton)
+                {
+                    <div class="{{hideViewMore}}">
+                        <a href="{{link}}" class="btn btn--secondary u-no-margin u-w133px dw-mod" onclick="Scroll.SavePosition(event); {{googleImpressionClick}}" title="@Translate(detailsViewMoreText)">@Translate(detailsViewMoreText)</a>
+                    </div>
+                }
+            }
+            else if (detailsViewShowViewButton)
+            {
+                <div>
+                    <a href="{{link}}" class="btn btn--secondary u-no-margin u-w133px dw-mod" onclick="Scroll.SavePosition(event); {{googleImpressionClick}}" title="@Translate(detailsViewMoreText)">@Translate(detailsViewMoreText)</a>
+                </div>
+            }
+
+            <div class="favorites u-margin {{hasVariants}} dw-mod" {{hasVariants}}>
+                {{#Favorite}}
+                    {{>FavoriteTemplate}}
+                {{/Favorite}}
+            </div>
+
+            <div class="favorites favorites--lg u-hidden {{hasVariants}} u-hidden-xs u-hidden-xxs dw-mod" {{hasVariants}}>
+                {{#Favorite}}
+                    {{>FavoriteListItem}}
+                {{/Favorite}}
+            </div>
+        </div>
+    {{/.}}
+</script>

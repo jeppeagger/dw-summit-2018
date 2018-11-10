@@ -1,0 +1,10 @@
+.pager__num {
+
+    &:hover:not(.pager__num--current):not(.pager__num--ellipsis) {
+        .border(1px, solid, @layout-pagination-active-color);
+    }
+
+    &.pager__num--current {
+        .background-color(@layout-pagination-active-color);
+    }
+}

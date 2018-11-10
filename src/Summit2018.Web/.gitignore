@@ -1,0 +1,19 @@
+# Dynamicweb files
+Files/updatelog.log
+Files/*.license
+*.parsed.*
+*.auto.*
+Less_*.config
+
+# Dynamicweb folders
+Files/Cache.net/
+Files/Papirkurv/
+Files/System/_search/
+Files/System/Deployment/
+Files/System/Diagnostics/
+Files/System/Email/
+Files/System/Indexes/
+Files/System/Log/
+
+# Local config files
+Files/*.local.config

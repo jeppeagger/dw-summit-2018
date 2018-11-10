@@ -1,0 +1,30 @@
+/**
+ * Basic style for collections of elements
+ */
+
+ .collection {
+    margin-bottom: @reflex-cell-spacing-lg;
+ }
+
+ .collection > * {
+    margin-right: @reflex-cell-spacing-md;
+    margin-bottom: 0;
+    display: inline-block;
+    vertical-align: middle;
+
+    &:last-child {
+        margin-right: 0;
+    }
+}
+
+.collection--right > * {
+    &:first-child {
+        margin-right: 0;
+    } 
+}
+
+.collection-header {
+    font-weight: bold;
+    margin-bottom: 1em;
+    margin-top: 2em;
+}

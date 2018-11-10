@@ -1,0 +1,594 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Frontend.Devices
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using System
+@using System.Web
+@using System.Text.RegularExpressions
+
+@{
+    string exportPageId = GetPageIdByNavigationTag("AssetExport").ToString();
+    int areaId = Int32.Parse(GetGlobalValue("Global:Area.ID"));
+    int feedPageId = GetPageIdByNavigationTag("FilesFeed");
+
+    string pageUrl = GetGlobalValue("Global:Pageview.Url.Raw");
+    string feedPageUrl = new Regex("([?&]ID)=[^?&]+").Replace(pageUrl, "?ID=" + feedPageId);
+    string feedFullUrl = feedPageUrl;
+
+    int filesPageId = GetPageIdByNavigationTag("FilesPage");
+    int filesFeedPageId = GetPageIdByNavigationTag("FilesFeed");
+    string filesFeedPageURL = Dynamicweb.Frontend.SearchEngineFriendlyURLs.GetFriendlyUrl(filesFeedPageId);
+    string filesSearchPageId = filesFeedPageId + "&LayoutTemplate=Json.cshtml&DisableStatistics=True";
+    int filesCartService = GetPageIdByNavigationTag("FileCartService");
+    string searchPlaceholder = Translate("Search files");
+    string searchValue = HttpContext.Current.Request.QueryString.Get("Search") != null ? HttpContext.Current.Request.QueryString.Get("Search") : "";
+
+    string listCookie = "";
+    if (HttpContext.Current.Request.Cookies["FilesContainerTemplate"] != null)
+    {
+        listCookie = HttpContext.Current.Request.Cookies["FilesContainerTemplate"].Value;
+    }
+    listCookie = !String.IsNullOrEmpty(listCookie) ? listCookie : "FileItemContainer";
+
+    string listViewSelected = listCookie == "FileItemContainer" ? "checked" : "";
+    string gridViewSelected = listCookie == "FileGridItemContainer" ? "checked" : "";
+    string detailsViewSelected = listCookie == "FileDetailsItemContainer" ? "checked" : "";
+}
+<input type="checkbox" class="panel-trigger js-remember-state" id="PIMAssetsToolsTrigger" checked/>
+
+<aside class="panel panel--right dw-mod">
+    <label for="PIMAssetsToolsTrigger" class="panel-trigger-btn grid--justify-center dw-mod"></label>
+
+    <form action="/Default.aspx?ID=@exportPageId" method="post">
+        <input id="siteUrl" name="siteUrl" type="hidden" value="@string.Format("{0}://{1}", GetGlobalValue("Global:Request.Scheme"), GetGlobalValue("Global:Request.Host"))" />
+
+        <div class="panel__content dw-mod">
+            <div class="panel__content__body panel__content__body--auto-height-180px dw-mod">
+                <div class="js-handlebars-root dw-mod" id="CartFilesContainer" data-template="CartFilesContainerTemplate" data-json-feed="/Default.aspx?ID=@filesCartService" data-preloader="minimal"></div>
+            </div>
+
+            <div class="panel__content__footer panel__content__footer--180px dw-mod">
+                <h6 class="panel__header panel__header--line dw-mod">@Translate("Export")</h6>
+
+                <label for="purpose">@Translate("Purpose")</label>
+                <select id="purpose" name="purpose" class="u-full-width">
+                    <option value="Office">@Translate("Office")</option>
+                    <option value="Original">@Translate("Original")</option>
+                    <option value="Print">@Translate("Print")</option>
+                    <option value="Web">@Translate("Web")</option>
+                </select>
+
+                <input type="submit" value="@Translate("Download")" class="btn btn--full btn--primary dw-mod" title="@Translate("Download")" />
+            </div>
+        </div>
+    </form>
+</aside>
+
+<div class="fit-to-panel-size panel--full-width">
+    <div class="grid">
+        <div class="grid__col-12 paragraph-container">
+            <div class="grid js-handlebars-root" id="FilesListContainer" data-template="FileContainer" data-pre-render-template="FilesPreRenderContainer" data-json-feed="@feedFullUrl" data-save-cookie="true" data-preloader="overlay"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Trigger for the gallery modal -->
+<input type="checkbox" id="PreviewModalTrigger" class="modal-trigger" />
+
+<!-- Gallery modal -->
+<div class="modal-container">
+    <label for="PreviewModalTrigger" id="PreviewModalOverlay" class="modal-overlay"></label>
+    <div class="modal modal--full" id="PreviewModal">
+        <div class="modal__body modal__body--file-preview">
+            <img id="PreviewImage" alt="" src="/Files/Images/placeholder.gif" class="modal--full__img js-gallery-image u-margin-bottom" />
+            <div id="ImageMetadataContainer"></div>
+            <label class="gallery-slider__close-btn" for="PreviewModalTrigger"></label>
+        </div>
+    </div>
+</div>
+
+<script id="FilesPreRenderContainer" type="text/x-template">
+    <div class="grid__col-3">
+        <div class="pre-render-element pre-render-element--xs"></div>
+        <div class="pre-render-element pre-render-element--md"></div>
+        <div class="pre-render-element pre-render-element--md"></div>
+        <div class="pre-render-element pre-render-element--md"></div>
+    </div>
+    <div class="grid__col-auto">
+        <div class="pre-render-element pre-render-element--xs"></div>
+        <div class="pre-render-element pre-render-element--xs"></div>
+        <div class="pre-render-element pre-render-element--lg"></div>
+        <div class="pre-render-element pre-render-element--lg"></div>
+        <div class="pre-render-element pre-render-element--lg"></div>
+        <div class="pre-render-element pre-render-element--lg"></div>
+    </div>
+</script>
+
+<script id="FileContainer" type="text/x-template">
+    {{#.}}
+        @if (Pageview.Area.Item["EcommerceFacetsViewMode"].ToString() == "top" || Pageview.Device.ToString() == "Mobile")
+        {
+            <div class="grid__col-12">
+                <input type="checkbox" id="CheckFacetGroups" class="js-remember-state u-hidden" data-expand="CheckFacetGroups" />
+			    <div class="grid grid--external-bleed-x dw-mod expandable--collapsed facets-container facets-container--top" data-trigger="CheckFacetGroups">
+                    {{#FacetGroups}}
+                    <div class="grid__col-lg-3 grid__col-md-3 grid__col-sm-4 grid__col-xs-12">
+                        <input type="checkbox" id="OptionsGroup_{{counter}}" class="dropdown-trigger" />
+                        <div class="dropdown dw-mod js-filter">
+                            <label class="dropdown__header dropdown__btn dw-mod" for="OptionsGroup_{{counter}}">{{name}}</label>
+                            <div id="FacetOptions" class="dropdown__content dropdown__content--padding dw-mod">
+                                <div class="u-margin-bottom {{showFilter}}">
+                                    <input type="text" class="u-full-width u-no-margin" onkeyup="Filter.FilterItems(event)" placeholder="@Translate("Search")" />
+                                </div>
+                                {{#FacetOptions}}
+						            {{#ifCond template "===" "Checkboxes"}}
+						                {{>Checkboxes}}
+						            {{/ifCond}}
+						        {{/FacetOptions}}
+                            </div>
+                            <label class="dropdown-trigger-off" for="OptionsGroup_{{counter}}"></label>
+                        </div>
+                    </div>
+                    {{/FacetGroups}}
+                </div>
+                <label for="CheckFacetGroups" class="btn btn--primary btn--full dw-mod js-expand-hide facets-container-trigger" data-trigger="CheckFacetGroups">@Translate("Select filters")</label>
+                <label for="CheckFacetGroups" class="btn btn--primary btn--full dw-mod expandable--collapsed facets-container-trigger" data-trigger="CheckFacetGroups">@Translate("Close filters")</label>
+            </div>
+        }
+
+        @if (Pageview.Area.Item["EcommerceFacetsViewMode"].ToString() == "left" && Pageview.Device.ToString() != "Mobile")
+        {
+            <div class="grid__col-3">
+                <h2>@Translate("Filters")</h2>
+                <input type="checkbox" id="CheckFacetGroups" class="js-remember-state u-hidden" data-expand="CheckFacetGroups" />
+                <div class="facets-container facets-container--left expandable--collapsed" data-trigger="CheckFacetGroups">
+                    {{#FacetGroups}}
+                    <input type="checkbox" id="OptionsGroup_{{counter}}" class="expand-trigger js-remember-state" {{defaultState}} />
+
+                    <div class="expand-container facets-container__box dw-mod js-filter">
+                        <label class="expand-container__btn facets-container__header dw-mod" for="OptionsGroup_{{counter}}">{{name}}</label>
+                        <div class="expand-container__content dw-mod">
+                            <div class="u-margin {{showFilter}}">
+                                <input type="text" class="u-full-width u-no-margin" onkeyup="Filter.FilterItems(event)" placeholder="@Translate("Search")" />
+                            </div>
+                            <div class="facets-container__list dw-mod">
+                                {{#FacetOptions}}
+                                {{#ifCond template "===" "Checkboxes"}}
+                                {{>Checkboxes}}
+                                {{/ifCond}}
+                                {{/FacetOptions}}
+                            </div>
+                        </div>
+                    </div>
+                    {{/FacetGroups}}
+                </div>
+                <label for="CheckFacetGroups" class="btn btn--primary btn--full dw-mod js-expand-hide facets-container-trigger" data-trigger="CheckFacetGroups">@Translate("Select filters")</label>
+                <label for="CheckFacetGroups" class="btn btn--primary btn--full dw-mod expandable--collapsed facets-container-trigger" data-trigger="CheckFacetGroups">@Translate("Close filters")</label>
+            </div>
+        }
+        <div class="grid__col-9">
+            <div class="grid--align-self-center grid__col--bleed grid__col-12 u-margin-bottom">
+                <div class="typeahead u-margin u-color-inherit js-typeahead" data-page-size="10" id="TopFilesSearch" data-search-feed-id="@filesSearchPageId" data-result-page-id="@filesPageId">
+                    <div class="typeahead-search-field">
+                        <input type="text" class="u-no-margin u-full-width js-typeahead-search-field" placeholder="@searchPlaceholder" value="@searchValue">
+                        <ul class="dropdown dropdown--absolute-position u-min-w220px u-full-width js-handlebars-root js-typeahead-search-content dw-mod" id="ProductSearchBarContent" data-template="SearchContentTemplate" data-json-feed="/Default.aspx?ID=@filesSearchPageId" data-init-onload="false" data-preloader="minimal"></ul>
+                    </div>
+                    <button type="button" class="btn btn--condensed btn--primary u-no-margin dw-mod js-typeahead-enter-btn"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+            <div class="grid__cell">
+                <div class="grid">
+                    <div class="grid__col--bleed-y grid__col-md-auto">
+                        <h2>@Translate("Files found"): {{filesCount}}</h2>
+                    </div>
+                    <div class="grid--align-end grid__col--bleed-y grid__col-md-8">
+                        <div class="collection u-no-margin">
+                            <input type="radio" class="tag-btn-trigger" id="ListViewBtnOne" name="ViewBtnGroup" @listViewSelected> 
+                            <label for="ListViewBtnOne" class="btn btn--tag btn--sm" onclick="HandlebarsBolt.UpdateTemplate('FilesContainer', 'FileItemContainer')"><i class="fas fa-th-list"></i></label>
+                            
+                            <input type="radio" class="tag-btn-trigger" id="ListViewBtnTwo" name="ViewBtnGroup" @gridViewSelected> 
+                            <label for="ListViewBtnTwo" class="btn btn--tag btn--sm" onclick="HandlebarsBolt.UpdateTemplate('FilesContainer', 'FileGridItemContainer')"><i class="fas fa-th"></i></label>
+                            
+                            <input type="radio" class="tag-btn-trigger" id="ListViewBtnThree" name="ViewBtnGroup" @detailsViewSelected> 
+                            <label for="ListViewBtnThree" class="btn btn--tag btn--sm" onclick="HandlebarsBolt.UpdateTemplate('FilesContainer', 'FileDetailsItemContainer')"><i class="fas fa-list"></i></label>
+                            <button class="btn btn--primary btn--sm dw-mod" data-feed-url="/Default.aspx?ID=@feedPageId" onclick="selectAllFiles()">@Translate("Select all")</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="grid">
+                    <div class="grid__col-md-12 grid__col--bleed-y">
+                        <div class="collection u-no-margin" id="selectedFacets">
+                            {{#FacetSelections}}
+						        {{#ifCond template "===" "SelectedFilter"}}
+						            {{>SelectedFilter}}
+						        {{/ifCond}}
+						        {{#ifCond template "===" "SelectedColorFilter"}}
+						            {{>SelectedColorFilter}}
+						        {{/ifCond}}
+						        {{#ifCond template "===" "ResetFilters"}}
+						            {{>ResetFilters}}
+						        {{/ifCond}}
+						    {{/FacetSelections}}
+                        </div>
+                    </div>
+                </div>
+
+                <div id="FilesContainer" class="grid product-list dw-mod" data-template="{{listTemplate}}" data-json-feed="{{containerUrl}}&feedType=productsOnly" data-preloader="minimal" data-save-cookie="true">
+                    {{#FilesContainer}}
+                        {{#ifCond template "===" "FileItemContainer"}}
+                            {{>FileItemContainer}}
+                        {{/ifCond}}
+                        {{#ifCond template "===" "FileGridItemContainer"}}
+                            {{>FileGridItemContainer}}
+                        {{/ifCond}}
+                        {{#ifCond template "===" "FileDetailsItemContainer"}}
+                            {{>FileDetailsItemContainer}}
+                        {{/ifCond}}
+                    {{/FilesContainer}}
+                </div>
+
+                <div class="grid">
+                    <div class="grid__col-md-12 grid__col--bleed-y">
+                        <button class="btn btn--primary btn--full  {{nextdisabled}} dw-mod" data-current="{{currentPage}}" data-page-size="{{pageSize}}" data-total="{{totalPages}}" data-container="FilesContainer" data-feed-url="/Default.aspx?ID=@feedPageId" onclick="LoadMore.Next(this)" {{nextdisabled}}>@Translate("Load") {{pageSize}} @Translate("more")</button>
+                        <button type="button" class="btn btn--clean" onclick="window.scroll(0, 0)">@Translate("Return to top")</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{/.}}
+
+    {{^.}}
+    <div class="grid__col-12">
+        <h2 class="u-ta-center">@Translate("No files found")</h2>
+    </div>
+    {{/.}}
+</script>
+
+@* Templates for Typeahead *@
+<script id="SearchGroupsTemplate" type="text/x-template">
+    {{#.}}
+        <li class="dropdown__item dw-mod" onclick="Search.UpdateGroupSelection(this)" data-group-id="{{id}}">{{name}}</li>
+    {{/.}}
+</script>
+
+<script id="SearchContentTemplate" type="text/x-template">
+    {{#.}}
+        {{#File}}
+            {{#ifCond template "!==" "SearchMore"}}
+                <li class="dropdown__item dw-mod">
+                    <div class="u-margin-right u-pull--left u-hidden-xs u-hidden-xxs">
+                        <img src="/Admin/Public/GetImage.ashx?width=45&height=38&crop=1&Compression=75&image={{path}}" alt="{{name}}">
+                    </div>
+                    <div class="u-pull--left">
+                        <div class="u-bold u-max-w220px u-truncate-text js-typeahead-name">{{name}}</div>
+                        <div class="item-number dw-mod">{{path}}</div>
+                    </div>
+                    <div class="u-margin-left u-pull--right">
+                        <button type="button" class="btn btn--primary btn--condensed u-pull--right dw-mod u-no-margin js-ignore-click-outside" 
+                                onclick="Cart.UpdateCart('CartFilesContainer', '/Default.aspx?ID=@filesCartService', '&{{buttonAction}}={{path}}');HandlebarsBolt.UpdateContent('ProductSearchBarContent', document.getElementById('ProductSearchBarContent').getAttribute('data-json-feed'));HandlebarsBolt.UpdateContent('FilesContainer', document.getElementById('FilesContainer').getAttribute('data-json-feed'));">
+                                <i class="fas {{listIcon}}"></i>
+                        </button>
+                    </div>
+                </li>
+            {{/ifCond}}
+            {{#ifCond template "===" "SearchMore"}}
+                {{>SearchMore}}
+            {{/ifCond}}    
+        {{/File}}
+    {{/.}}
+    {{^.}}
+        <li class="dropdown__item dropdown__item--seperator dw-mod">
+            @Translate("No files found")
+        </li>
+    {{/.}}
+</script>
+
+<script id="SearchMore" type="text/x-template">
+    <li class="dropdown__item dropdown__item--not-selectable dw-mod">
+        <a href="/Default.aspx?ID=@filesPageId&Search={{searchParameter}}" class="btn btn--primary btn--full u-no-margin dw-mod js-typeahead-link">
+            @Translate("View all")
+        </a>
+    </li>
+</script>
+
+<script id="SearchEmpty" type="text/x-template">
+    <li class="u-margin u-padding-left">
+        @Translate("Your search gave 0 results")
+    </li>
+</script>
+
+@* Facets templates *@
+
+<script id="FacetGroup" type="text/x-template">
+    <input type="checkbox" id="OptionsGroup_{{counter}}" class="expand-trigger js-remember-state" checked />
+
+    <div class="expand-box expand-container dw-mod">
+        <label class="expand-box__header expand-container__btn dw-mod" for="OptionsGroup_{{counter}}">{{name}}</label>
+        <div id="FacetOptions" class="expand-box__content expand-container__content expand-container__content--limit-height dw-mod"></div>
+    </div>
+</script>
+
+<script id="FacetTopGroup" type="text/x-template">
+    <div class="grid__col-3">
+        <input type="checkbox" id="OptionsGroup_{{counter}}" class="dropdown-trigger" />
+        <div class="dropdown dw-mod">
+            <label class="dropdown__header dropdown__btn dw-mod" for="OptionsGroup_{{counter}}">{{name}}</label>
+            <div id="FacetOptions" class="dropdown__content dropdown__content--padding dw-mod"></div>
+            <label class="dropdown-trigger-off" for="OptionsGroup_{{counter}}"></label>
+        </div>
+    </div>
+</script>
+
+@*Facets*@
+<script id="Checkboxes" type="text/x-template">
+    <input type="checkbox" class="{{selected}} checkbox-facet__checkbox dw-mod form__control" onclick="Facets.UpdateFacets(this);" name="{{queryParameter}}" id="{{queryParameter}}{{value}}" value="{{value}}" {{selected}} {{disabled}}>
+    <label class="{{disabled}} checkbox-facet dw-mod" data-filter-value="{{label}}" for="{{queryParameter}}{{value}}">
+        <span class="checkbox-facet__label dw-mod">{{label}}</span>
+        <span class="checkbox-facet__count dw-mod">({{count}})</span>
+    </label>
+</script>
+
+@*Facet selections*@
+<script id="SelectedFilter" type="text/x-template">
+    <button type="button" class="btn btn--tag" data-check="checked" onclick="Facets.UpdateFacets(this);" name="{{queryParameter}}" value="{{value}}" title="@Translate("Remove filter")">
+        {{group}}: {{value}} <i class="fas fa-times"></i>
+    </button>
+</script>
+
+<script id="ResetFilters" type="text/x-template">
+    <button type="button" class="btn btn--tag" onclick="Facets.ResetFacets();">
+        @Translate("Reset all filters") <i class="fas fa-redo"></i>
+    </button>
+</script>
+
+@* Product list templates *@
+
+@* List view *@
+
+<script id="FileItemContainer" type="text/x-template">
+    {{#.}}
+        <div id="File{{id}}" data-template="FileItem" data-save-cookie="true" data-preloader="overlay" class="grid__col-12">
+            {{#File}}
+                {{>FileItem}}
+            {{/File}}
+        </div>
+    {{/.}}
+</script>
+
+<script id="FileItem" type="text/x-template">
+    {{#.}}
+        <div class="grid product-list__list-item dw-mod">
+            <div class="grid__col-md-4 product-list__list-item__left dw-mod">
+                <div class="grid__cell">
+                    <label for="PreviewModalTrigger" onclick="getPreview(this)" data-id="{{id}}" data-file-name="{{name}}" data-image="{{path}}">
+                        <img class="grid__cell-img grid__cell-img--centered" src="/Admin/Public/GetImage.ashx?width=300&amp;height=300&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;image={{path}}" alt="{{name}}" />
+                    </label>
+                    <div class="u-hidden" id="ImageData_{{id}}">
+                        {{>FileInformationTemplate}}
+                    </div>
+                </div>
+            </div>
+            <div class="grid__col-md-auto product-list__list-item__right dw-mod">
+                <div>
+                    <h2 class="u-no-margin">{{name}}</h2>
+                    <div class="item-number dw-mod">{{path}}</div>
+                </div>
+
+                <div class="grid__cell">
+                    <ul class="list list--clean u-margin-top dw-mod">
+                        <li><strong>@Translate("Last time modified"):</strong> {{lastWriteTime}}</li>
+                        <li><strong>@Translate("File size"):</strong> {{size}} KB</li>
+                    </ul>
+                </div>
+
+                <div class="grid__cell-footer product-list-item__footer dw-mod">
+                    <div class="grid__cell">
+                        <div class="u-pull--right">
+                            <div class="buttons-collection buttons-collection--right">
+                                <button type="button" class="btn btn--primary btn--condensed u-pull--right dw-mod" onclick="Cart.UpdateCart('CartFilesContainer', '/Default.aspx?ID=@filesCartService', '&{{buttonAction}}={{path}}'); HandlebarsBolt.UpdateContent('FilesContainer', document.getElementById('FilesContainer').getAttribute('data-json-feed'));"><i class="fas {{listIcon}}"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div> 
+    {{/.}}
+</script>
+
+@* Grid view *@
+
+<script id="FileGridItemContainer" type="text/x-template">
+    {{#.}}
+        <div id="File{{id}}" data-template="FileGridItem" data-save-cookie="true" data-preloader="overlay" class="grid__col-lg-4 grid__col-md-4 grid__col-sm-4 grid__col-xs-6 product-list__grid-item dw-mod">
+            {{#File}}
+                {{>FileGridItem}}
+            {{/File}}
+        </div>
+    {{/.}}
+</script>
+
+<script id="FileGridItem" type="text/x-template">      
+    {{#.}}
+        <div class="grid__cell product-list__grid-item__image dw-mod">
+            <label for="PreviewModalTrigger" onclick="getPreview(this)" data-id="{{id}}" data-image="{{path}}" data-file-name="{{name}}">
+                <img class="grid__cell-img grid__cell-img--centered" src="/Admin/Public/GetImage.ashx?width=300&amp;height=300&amp;crop=5&amp;fillcanvas=true&amp;Compression=75&amp;image={{path}}" alt="{{name}}" />
+            </label>
+            <div class="u-hidden" id="ImageData_{{id}}">
+                {{>FileInformationTemplate}}
+            </div>
+        </div>
+        <div class="grid__cell product-list__grid-item__price-info product-list__grid-item__price-info--short dw-mod">
+            <h6 class="u-condensed-text">{{name}}</h6>
+            <div class="item-number u-margin-bottom dw-mod">{{path}}</div>
+        </div>
+        <div class="product-list__grid-item__footer dw-mod">
+            <div class="u-pull--right">
+                <button type="button" class="btn btn--primary btn--condensed u-pull--right dw-mod u-no-margin" onclick="Cart.UpdateCart('CartFilesContainer', '/Default.aspx?ID=@filesCartService', '&{{buttonAction}}={{path}}'); HandlebarsBolt.UpdateContent('FilesContainer', document.getElementById('FilesContainer').getAttribute('data-json-feed'));"><i class="fas {{listIcon}}"></i></button>
+            </div>
+        </div>
+    {{/.}}
+</script>
+
+@* Details view *@
+
+<script id="FileDetailsItemContainer" type="text/x-template">
+    {{#.}}
+        <div id="File{{id}}" data-template="FileDetailsItem" data-save-cookie="true" data-preloader="overlay" class="grid__col-md-12 product-list__details-item dw-mod">
+            {{#File}}
+                {{>FileDetailsItem}}
+            {{/File}}
+        </div>
+    {{/.}}
+</script>
+
+
+<script id="FileDetailsItem" type="text/x-template">
+    {{#.}}
+        <div class="grid__cell">
+            <div class="product-list__details-item__left dw-mod">
+                <div class="lightbox">
+                    <label for="PreviewModalTrigger" onclick="getPreview(this)" data-id="{{id}}" data-image="{{path}}" data-file-name="{{name}}">
+                        <img class="lightbox__image" src="/Admin/Public/GetImage.ashx?width=220&amp;height=220&amp;crop=5&amp;fillcanvas=true&amp;Compression=75&amp;image={{path}}" alt="{{name}}" />
+                        <img class="grid__cell-img u-margin-right" src="/Admin/Public/GetImage.ashx?width=50&amp;height=50&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;image={{path}}" alt="{{name}}" />
+                    </label>
+                    <div class="u-hidden" id="ImageData_{{id}}">
+                        {{>FileInformationTemplate}}
+                    </div>
+                </div>
+                <div class="u-margin-right">
+                    <h6 class="u-no-margin">{{name}}</h6>
+                    <div class="item-number dw-mod">{{path}}</div>
+                </div>
+            </div>
+            <div class="product-list__details-item__right dw-mod">
+                <div class="u-pull--right">
+                    <button type="button" class="btn btn--primary btn--condensed u-no-margin u-pull--right dw-mod" onclick="Cart.UpdateCart('CartFilesContainer', '/Default.aspx?ID=@filesCartService', '&{{buttonAction}}={{path}}'); HandlebarsBolt.UpdateContent('FilesContainer', document.getElementById('FilesContainer').getAttribute('data-json-feed'));"><i class="fas {{listIcon}}"></i></button>
+                </div>
+            </div>
+        </div>
+    {{/.}}
+</script>
+
+<script id="CartFilesContainerTemplate" type="text/x-template">
+    {{#.}}
+        <h6 class="panel__header dw-mod u-margin-bottom">
+            @Translate("Digital assets") ({{filesCount}}) 
+            <button type="button" class="btn btn--clean panel__header-action" onclick="deselectAllFiles()"><i class="fas fa-times u-color-danger"></i></button>
+        </h6>
+        <ul id="CartFiles" class="panel-list" data-template="AssetItemTemplate">
+            {{#CartFiles}}
+                <li class="panel-list__item">
+                    <img src="/Admin/Public/GetImage.ashx?width=40&amp;height=40&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;image={{path}}" class="panel-list__item-image" alt="{{name}}" />
+                    <div class="panel-list__item-name u-truncate-text u-max-w210px">{{name}}</div>
+                    <div class="panel-list__item-actions">
+                        <button type="button" class="btn btn--clean btn--condensed u-no-margin" onclick="Cart.UpdateCart('CartFilesContainer', '/Default.aspx?ID=@filesCartService', '&RemoveFilePath={{path}}');  HandlebarsBolt.UpdateContent('FilesContainer', document.getElementById('FilesContainer').getAttribute('data-json-feed'));"><i class="fas fa-times u-color-danger"></i></button>
+                    </div>
+                    <input type="hidden" name="Asset_{{path}}" class="u-no-margin" />
+                </li>
+            {{/CartFiles}}
+        </ul>
+    {{/.}}
+
+    {{^.}}
+        <div>@Translate("No files added")</div>
+    {{/.}}
+</script>
+
+<script id="ImageMetadataItemTemplate" type="text/x-template">
+    {{#.}}
+    <tr>
+        <th width="160">{{Key}}:</th>
+        <td class="u-ta-left"><span id="Value">{{Value}}</span></td>
+    </tr>
+    {{/.}}
+</script>
+
+<script id="FileInformationTemplate" type="text/x-template">
+        <h2>File information</h2>
+        <table class="table table--clean table--compact">
+            {{#ImageData}}
+            {{>ImageMetadataItemTemplate}}
+            {{/ImageData}}
+        </table>
+
+        {{#if DynamicwebMetadata.length}}
+        <h2>Custom metadata (Dynamicweb metadata)</h2>
+        {{/if}}
+        <table class="table table--clean table--compact">
+            {{#DynamicwebMetadata}}
+            {{>ImageMetadataItemTemplate}}
+            {{/DynamicwebMetadata}}
+        </table>
+
+        {{#if IPTC.length}}
+        <h2>IPTC</h2>
+        {{/if}}
+        <table class="table table--clean table--compact">
+            {{#IPTC}}
+            {{>ImageMetadataItemTemplate}}
+            {{/IPTC}}
+        </table>
+
+        {{#if XMP.length}}
+        <h2>XMP</h2>
+        {{/if}}
+        <table class="table table--clean table--compact">
+            {{#XMP}}
+            {{>ImageMetadataItemTemplate}}
+            {{/XMP}}
+        </table>
+
+        {{#if EXIF.length}}
+        <h2>EXIF</h2>
+        {{/if}}
+        <table class="table table--clean table--compact">
+            {{#EXIF}}
+            {{>ImageMetadataItemTemplate}}
+            {{/EXIF}}
+        </table>
+</script>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function (event) {
+
+        document.getElementById("FilesListContainer").addEventListener('contentLoaded', function (e) {
+            if (getTarget(e).id === "FilesListContainer") {
+                Search.Init();
+                Facets.Init("selectedFacets", "FilesListContainer");
+            }
+        }, false);
+    });
+</script>
+
+<script>
+    function selectAllFiles() {
+        var filesContainerFeed = document.getElementById('FilesContainer').getAttribute('data-json-feed');
+        var queryParams = new QueryArray(filesContainerFeed);
+        queryParams.setValue('ID', '@filesCartService');
+        queryParams.setValue('AddAll', true);
+        queryParams.setValue('AddAllFeedId', '@filesFeedPageId');
+        queryParams.setValue('AddAllMaxItems', '99999');
+
+        Cart.UpdateCart('CartFilesContainer', queryParams.getFullUrl());
+        HandlebarsBolt.UpdateContent('FilesContainer', filesContainerFeed);
+    }
+
+    function deselectAllFiles() {
+        var filesContainerFeed = document.getElementById('FilesContainer').getAttribute('data-json-feed');
+        var queryParams = new QueryArray(filesContainerFeed);
+        queryParams.setValue('ID', '@filesCartService');
+        queryParams.setValue('Reset', true);
+
+        Cart.UpdateCart('CartFilesContainer', queryParams.getFullUrl());
+        HandlebarsBolt.UpdateContent('FilesContainer', filesContainerFeed);
+    }
+
+    function getPreview(imageData) {
+        document.getElementById("ImageMetadataContainer").innerHTML = document.getElementById("ImageData_" + imageData.getAttribute("data-id")).innerHTML;
+
+        var previewImage = document.getElementById("PreviewImage");
+        previewImage.src = "/" + imageData.getAttribute("data-image");
+        previewImage.alt = imageData.getAttribute("data-file-name");
+    }
+</script>

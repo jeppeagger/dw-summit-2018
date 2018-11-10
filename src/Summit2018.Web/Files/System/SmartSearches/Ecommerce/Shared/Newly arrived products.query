@@ -1,0 +1,44 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="0466426c-b412-44e9-9800-26b7ac909891" Name="Newly arrived products">
+  <Settings />
+  <Source Repository="Products" Item="Products.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="LanguageID" />
+        </Left>
+        <Right>
+          <TermExpression Value="LANG1" DisplayValue="English" Type="System.String" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="ShopIDs" />
+        </Left>
+        <Right>
+          <TermExpression Value="SHOP4" DisplayValue="SHOP4" Type="System.String[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="WorkflowState" />
+        </Left>
+        <Right>
+          <TermExpression Value="1,8" DisplayValue="Newly arrived Products (from ERP),Newly arrived Products (from ERP)" Type="System.Int32[]" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields>
+    <Field Name="Active" SystemName="" Source="ProductActive" Sort="0" />
+    <Field Name="Product name" SystemName="" Source="ProductName" Sort="1" />
+    <Field Name="Product number" SystemName="" Source="ProductNumber" Sort="2" />
+    <Field Name="Workflow state" SystemName="" Source="ProductWorkflowStateId" Sort="3" />
+  </ViewFields>
+  <ViewLanguages />
+  <SortOrder>
+    <Sort Field="Created" Direction="Descending" />
+  </SortOrder>
+  <Meta />
+</Query>

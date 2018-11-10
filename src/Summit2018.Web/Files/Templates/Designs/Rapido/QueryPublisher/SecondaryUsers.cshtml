@@ -1,0 +1,105 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Modules.UserManagement;
+
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using System
+
+@{
+    string siteurl = GetGlobalValue("Global:Request.Url").ToString();
+    int ImpersonationFeed = GetPageIdByNavigationTag("UsersFeed");
+    Pageview.Meta.Title = Translate("Manage Accounts");
+}
+<div class="paragraph-container grid__col-12">
+    @if (string.IsNullOrWhiteSpace(GetGlobalValue("Global:Extranet.SecondaryUser.UserID")))
+    {
+        <div class="grid__cell">
+            <h2 class="u-pull--left">@Translate("Select the customer you want to manage")</h2>
+            <div class="u-pull--right">
+                <input type="text" placeholder="@Translate("Search user")" name="q" onkeyup="HandlebarsBolt.UpdateContent('searchUsersResultsHeader', '/Default.aspx?ID=@ImpersonationFeed&q=' + this.value);">
+            </div>
+        </div>
+
+        <div id="searchUsersResultsHeader" class="js-handlebars-root" data-template="SearchUsersResult" data-json-feed="/Default.aspx?ID=@ImpersonationFeed" data-preloader="minimal"></div>
+
+        <script id="SearchUsersResult" type="text/x-template">
+            {{#.}}
+                <div id="usersCounter" class="u-margin-bottom u-color-gray">{{totalUsers}} @Translate("customer(s) found")</div>
+
+                {{#Users}}
+                    <form method="post" class="grid__col-12 u-border-bottom u-no-margin" name="account{{id}}">
+                        <input type="hidden" id="DWExtranetSecondaryUserSelector" name="DWExtranetSecondaryUserSelector" value="{{id}}" />
+                        <div class="grid__cell">
+                            <div class="u-pull--left">
+                                <div><b>{{userName}}{{company}}</b></div>
+                                <div>{{email}}{{customerNumber}}{{address}}{{zip}}</div>
+                            </div>
+                            <input type="submit" class="btn btn--secondary dw-mod u-pull--right u-no-margin" tabindex="3" value="@Translate("Sign in as")" />
+                        </div>
+                    </form>
+                {{/Users}}
+            
+                <div id="Paginations" data-template="Pagination"></div>
+                {{#Paginations}}
+                   <div class="pager u-margin-top {{hidePagination}}">
+                        <div class="pager__info">
+                            @Translate("Page") {{current}} @Translate("of") {{total}} 
+                        </div>
+                        <ul class="pager__list" id="Buttons">                                
+                            {{#Buttons}}
+                                {{#ifCond template "===" "PaginationBtn"}}
+                                    {{>PaginationBtn}}
+                                {{/ifCond}}
+                                {{#ifCond template "===" "PaginationEllipsis"}}
+                                    {{>PaginationEllipsis}}
+                                {{/ifCond}}
+                                {{#ifCond template "===" "PaginationCurrentPage"}}
+                                    {{>PaginationCurrentPage}}
+                                {{/ifCond}}
+                                {{#ifCond template "===" "PaginationLink"}}
+                                    {{>PaginationLink}}
+                                {{/ifCond}}
+                            {{/Buttons}}
+                        </ul>
+                    </div>
+                {{/Paginations}}
+            {{/.}}
+        </script>
+
+        <script id="PaginationBtn" type="text/x-template">
+            <li class="pager__btn" onclick="HandlebarsBolt.UpdateContent('searchUsersResultsHeader', '{{link}}' )">
+                <span class="pager__num dw-mod link"><i class="fas fa-angle-{{text}}"></i></span>
+            </li>
+        </script>
+
+        <script id="PaginationEllipsis" type="text/x-template">
+            <li class="pager__btn">
+                <span class="pager__num--ellipsis dw-mod">…</span>
+            </li>
+        </script>
+
+        <script id="PaginationCurrentPage" type="text/x-template">
+            <li class="pager__btn">
+                <span class="pager__num pager__num--current dw-mod">{{text}}</span>
+            </li>
+        </script>
+
+        <script id="PaginationLink" type="text/x-template">
+            <li class="pager__btn" onclick="HandlebarsBolt.UpdateContent('searchUsersResultsHeader', '{{link}}' )">
+                <span class="pager__num dw-mod link">{{text}}</span>
+            </li>
+        </script>
+    }
+    else
+    {
+        string stopImpersonateTranslation = Translate("Stop impersonation", "Stop impersonation");
+        <div class="grid__col-12 paragraph-container">
+            <div class="grid__cell">
+                <div class="u-pull--left">@Translate("Stop impersonation if you want to login as another user.", "Stop impersonation if you want to login as another user.")</div>
+                <form method="post" class="u-pull--right u-no-margin">
+                    <input type="submit" class="btn btn--secondary dw-mod u-no-margin" name="DwExtranetRemoveSecondaryUser" value="@stopImpersonateTranslation">
+                </form>
+            </div>
+        </div>
+    }
+</div>

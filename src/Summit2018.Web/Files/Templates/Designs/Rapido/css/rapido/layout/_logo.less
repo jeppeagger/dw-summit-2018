@@ -1,0 +1,19 @@
+﻿// -----------------------------------------------------------------------------
+// Contains all styles related to the Wbsite settings Logo section
+// -----------------------------------------------------------------------------
+
+.logo__img-mixin() when not (@layout-logo-height = 0) {
+    height: unit(@layout-logo-height, px);
+}
+
+.logo__img-mixin() when (@layout-logo-height = 0) {
+    height: 40px;
+}
+
+.logo.dw-mod {
+    .background-color(@layout-logo-background-color);
+}
+
+.logo__img.dw-mod:not(.logo__img--mobile) {
+    .logo__img-mixin();
+}

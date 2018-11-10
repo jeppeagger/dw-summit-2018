@@ -1,0 +1,104 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@{ 
+    BlocksPage recurringCheckoutPage = BlocksPage.GetBlockPage("CheckoutPage");
+
+    if (!string.IsNullOrWhiteSpace(GetString("Ecom:Order.PaymentMethod.RecurringSupport")) && !Pageview.AreaSettings.GetItem("Ecommerce").GetItem("Checkout").GetBoolean("HideRecurringOrder"))
+    {
+        Block recurringOrderBlock = new Block()
+        {
+            Id = "RecurringOrder",
+            SortId = 40,
+            Template = RenderRecurringOrder(),
+            Design = new Design
+            {
+                RenderType = RenderType.Column,
+                Size = "12"
+            }
+        };
+        recurringCheckoutPage.Add("OrderContainerRow", recurringOrderBlock);
+    }
+}
+
+@helper RenderRecurringOrder() {
+    string cardHeightClass = Pageview.Device.ToString() != "Tablet" ? "u-full-height" : "";
+    string dateFormat = System.Globalization.CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern;
+
+    <div class="card-header u-color-light--bg dw-mod">
+        <h3><i class="fas fa-calendar"></i> @Translate("Recurring order")</h3>
+    </div>
+
+    <div class="card u-color-light--bg @cardHeightClass dw-mod">
+        <div class="form__field-group u-margin-bottom">
+            <input type="checkbox" class="js-remember-state form__control" checked="@GetBoolean("Ecom:Order.Recurring.Enabled")" name="EcomRecurringOrderCreate" data-expand="EcomRecurringOrderCreate" id="EcomRecurringOrderCreate">
+            <label for="EcomRecurringOrderCreate">@Translate("Create recurring order")</label>
+        </div>
+        <div class="expandable--collapsed" data-trigger="EcomRecurringOrderCreate">
+            <div class="form__field-group dw-mod">
+                <label for="Country">@Translate("I want my order every")</label>
+                <div class="grid grid--external-bleed-x">
+                    <div class="grid__col-6 grid__col--bleed-y">
+                        <select class="u-full-width" name="EcomOrderRecurringInterval" id="EcomOrderRecurringInterval">
+                            @*interval*@
+                            @for (var i = 1; i <= 12; i++)
+                            {
+                                <option value="@i" @(GetInteger("Ecom:Order.Recurring.Interval") == i ? "selected" : "")> @i</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="grid__col-6 grid__col--bleed-y">
+                        <select class="u-full-width" name="EcomOrderRecurringIntervalUnit" id="EcomOrderRecurringIntervalUnit">
+                            @{ var units = new[] { "Days", "Weeks", "Months" }; }
+                            @for (int i = 0; i < units.Length; i++)
+                            {
+                                <option value="@i" @(GetInteger("Ecom:Order.Recurring.IntervalUnit") == i ? "selected" : "")>@Translate(units[i])</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="grid grid--external-bleed-x">
+                <div class="grid__col-6 grid__col--bleed-y">
+                    <div class="form__field-group dw-mod">
+                        <label for="EcomOrderRecurringStartDate">@Translate("Start date")</label>
+                        @{string startDate = !string.IsNullOrEmpty(GetString("Ecom:Order.Recurring.StartDate.Clean")) ? GetDate("Ecom:Order.Recurring.StartDate.Clean").ToString(dateFormat) : "";}
+                        <input type="text" class="u-full-width" id="EcomOrderRecurringStartDate" name="EcomOrderRecurringStartDate" placeholder="@Translate("Never")" value="@startDate" />
+                    </div>
+                </div>
+                <div class="grid__col-6 grid__col--bleed-y">
+                    <div class="form__field-group dw-mod">
+                        <label for="EcomOrderRecurringEndDate">@Translate("And it should end on")</label>
+                        @{string endDate = !string.IsNullOrEmpty(GetString("Ecom:Order.Recurring.EndDate.Clean")) ? GetDate("Ecom:Order.Recurring.EndDate.Clean").ToString(dateFormat) : "";}
+                        <input type="text" class="u-full-width" id="EcomOrderRecurringEndDate" name="EcomOrderRecurringEndDate" placeholder="@Translate("Never")" value="@endDate">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    //* *//
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
+    <style>
+        .flatpickr-months .flatpickr-month {
+            height: 40px;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+    <script>
+        @{
+            dateFormat = dateFormat.Replace("dd", "d");
+            dateFormat = dateFormat.Replace("MM", "m");
+            dateFormat = dateFormat.Replace("yyyy", "Y");
+        }
+
+        flatpickr("#EcomOrderRecurringStartDate, #EcomOrderRecurringEndDate", {
+            dateFormat: "@dateFormat",
+            minDate: "today"
+        });
+    </script>
+}

@@ -1,0 +1,218 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+@using System.Collections;
+
+@functions {
+    public class User
+    {
+        public string id { get; set; }
+        public string customerNumber { get; set; }
+        public string email { get; set; }
+        public string address { get; set; }
+        public string zip { get; set; }
+        public string company { get; set; }
+        public string userName { get; set; }
+    }
+
+    public class PaginationButton
+    {
+        public string link { get; set; }
+        public string text { get; set; }
+        public string template { get; set; }
+    }
+
+    public class Pagination
+    {
+        public int current { get; set; }
+        public int total { get; set; }
+        public string prevPage { get; set; }
+        public string nextPage { get; set; }
+        public string hidePagination { get; set; }
+
+        public List<PaginationButton> Buttons { get; set; }
+    }
+
+    public class Root
+    {
+        public Root()
+        {
+            Users = new List<User>();
+            Paginations = new List<Pagination>();
+        }
+
+        public List<User> Users { get; set; }
+        public List<Pagination> Paginations { get; set; }
+        public int totalUsers { get; set; }
+    }
+}
+
+@{
+    List<Root> feedObject = new List<Root>();
+
+    Root feedRoot = new Root();
+
+    foreach (var result in GetLoop("QueryResultItem"))
+    {
+        var resultProperties = result.GetLoop("Properties").ToDictionary(x => x.GetString("Name"), y => y.GetString("Value"));
+
+        User userObject = new User();
+        userObject.id = resultProperties.ContainsKey("UserID") ? resultProperties["UserID"] : "";
+        userObject.email = resultProperties.ContainsKey("UserEmail") ? resultProperties["UserEmail"] : "";
+        userObject.customerNumber = resultProperties.ContainsKey("CustomerNumber") ? (!string.IsNullOrEmpty(userObject.email) ? ", " : "" ) + "#" + resultProperties["CustomerNumber"] : "";
+        userObject.address = resultProperties.ContainsKey("Address") ? ", " + resultProperties["Address"] : "";
+        userObject.zip = resultProperties.ContainsKey("Zip") ? ", " + resultProperties["Zip"] : "";
+        userObject.company = resultProperties.ContainsKey("Company") ? " - " + resultProperties["Company"] : "";
+
+        if (resultProperties.ContainsKey("FirstName") && resultProperties.ContainsKey("LastName"))
+        {
+            userObject.userName = resultProperties["FirstName"] + " " + resultProperties["LastName"];
+        }
+        else if (resultProperties.ContainsKey("Name"))
+        {
+            userObject.userName = resultProperties["Name"];
+        }
+        else if (resultProperties.ContainsKey("UserEmail"))
+        {
+            userObject.userName = resultProperties["UserEmail"];
+        }
+        else
+        {
+            userObject.userName = resultProperties["UserName"];
+        }
+
+        feedRoot.Users.Add(userObject);
+    }
+    feedRoot.totalUsers = GetInteger("DwPaging.TotalItems");
+
+    /** pagination */
+
+    Pagination pagination = new Pagination();
+    int total = GetInteger("DwPaging.PageCount");
+    int current = GetInteger("DwPaging.CurrentPage");
+    pagination.total = total;
+    pagination.current = current;
+    pagination.Buttons = new List<PaginationButton>();
+
+    ArrayList links = new ArrayList();
+
+    /** Add current page to the array */
+    if (current >= 1)
+    {
+        links.Add(current);
+    }
+
+    /** Add the pages around the current page to the array */
+    if (current >= 3)
+    {
+        links.Add(current - 1);
+        links.Add(current - 2);
+    }
+
+    if ((current + 2) <= total)
+    {
+        links.Add(current + 1);
+        links.Add(current + 2);
+    }
+
+    if (total <= 0)
+    {
+        pagination.hidePagination = "u-hidden";
+    }
+
+    if (total > 1)
+    {
+        PaginationButton prevBtn = new PaginationButton();
+
+        if (!string.IsNullOrWhiteSpace(GetString("DwPaging.PreviousPageLink")))
+        {
+            prevBtn.text = "left";
+            prevBtn.link = GetString("DwPaging.PreviousPageLink");
+            prevBtn.template = "PaginationBtn";
+        }
+
+        pagination.Buttons.Add(prevBtn);
+
+        foreach (LoopItem page in GetLoop("DwPaging.LoopPageGroup"))
+        {
+            bool isCurrent = page.GetBoolean("PageGroup.ActivePage");
+            string link = page.GetString("PageGroup.PageLink");
+            int num = page.GetInteger("PageGroup.PageNumber");
+
+            PaginationButton pagButton = new PaginationButton();
+            pagButton.text = num.ToString();
+            pagButton.link = link;
+
+            if (num == 1 && links.IndexOf(1) == -1)
+            {
+                if (isCurrent)
+                {
+                    pagButton.template = "PaginationCurrentPage";
+                }
+                else
+                {
+                    pagButton.template = "PaginationLink";
+                }
+                pagination.Buttons.Add(pagButton);
+
+                if (links.IndexOf(2) == -1)
+                {
+                    PaginationButton ellipsisButton = new PaginationButton();
+                    ellipsisButton.template = "PaginationEllipsis";
+                    pagination.Buttons.Add(ellipsisButton);
+                }
+            }
+
+            if (links.IndexOf(num) != -1)
+            {
+                if (isCurrent)
+                {
+                    pagButton.template = "PaginationCurrentPage";
+                }
+                else
+                {
+                    pagButton.template = "PaginationLink";
+                }
+                pagination.Buttons.Add(pagButton);
+            }
+
+            if (num == total && links.IndexOf(total) == -1)
+            {
+                if (links.IndexOf(total - 1) == -1)
+                {
+                    PaginationButton ellipsisButton = new PaginationButton();
+                    ellipsisButton.template = "PaginationEllipsis";
+                    pagination.Buttons.Add(ellipsisButton);
+                }
+
+                if (isCurrent)
+                {
+                    pagButton.template = "PaginationCurrentPage";
+                }
+                else
+                {
+                    pagButton.template = "PaginationLink";
+                }
+                pagination.Buttons.Add(pagButton);
+            }
+        }
+
+        PaginationButton nextBtn = new PaginationButton();
+
+        if (!string.IsNullOrWhiteSpace(GetString("DwPaging.NextPageLink")))
+        {
+            nextBtn.text = "right";
+            nextBtn.link = GetString("DwPaging.NextPageLink");
+            nextBtn.template = "PaginationBtn";
+        }
+
+        pagination.Buttons.Add(nextBtn);
+    }
+
+    feedRoot.Paginations.Add(pagination);
+
+    feedObject.Add(feedRoot);
+
+    string jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(feedObject);
+}
+
+@jsonFeed

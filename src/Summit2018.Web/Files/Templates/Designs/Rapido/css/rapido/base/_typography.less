@@ -1,0 +1,67 @@
+/**
+ * Basic typography style for text
+ * Warning: These styles overrides without the default .dw-mod class, as they all target the most basic required elements
+ */
+
+//Header styles
+h1 {
+    .font-mixin(
+        @layout-header-font-font-family-family,
+        @layout-header-font-font-family-style,
+        @layout-header-font-font-size,
+        @layout-header-font-font-family-weight,
+        @layout-header-font-line-height,
+        @layout-header-font-font-color,
+        @layout-header-font-casing
+    );
+}
+
+//Sub header styles
+h2 {
+    .font-mixin(
+        @layout-subheader-font-font-family-family,
+        @layout-subheader-font-font-family-style,
+        @layout-subheader-font-font-size,
+        @layout-subheader-font-font-family-weight,
+        @layout-subheader-font-line-height,
+        @layout-subheader-font-font-color,
+        @layout-subheader-font-casing
+    );
+}
+
+//Tertiary header styles
+h3 {
+    .font-mixin(
+        @layout-tertiary-header-font-font-family-family,
+        @layout-tertiary-header-font-font-family-style,
+        @layout-tertiary-header-font-font-size,
+        @layout-tertiary-header-font-font-family-weight,
+        @layout-tertiary-header-font-line-height,
+        @layout-tertiary-header-font-font-color,
+        @layout-tertiary-header-font-casing
+    );
+}
+
+//Body styles
+body {
+    .font-mixin(
+        @layout-body-text-font-family-family,
+        @layout-body-text-font-family-style,
+        @layout-body-text-font-size,
+        @layout-body-text-font-family-weight,
+        @layout-body-text-line-height,
+        @layout-body-text-font-color,
+        @layout-body-text-casing
+    );
+}
+
+//link styles
+a, .link {
+    .color(@layout-links-color);
+    
+    &:hover, 
+    &:active, 
+    &:focus {
+        .color(@layout-links-hover-color);
+    }
+}

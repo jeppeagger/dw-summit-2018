@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="1f334c39-a668-4f43-ada2-5905db8d2873" Name="Content search.query">
+  <Settings />
+  <Source Repository="Content" Item="Content builder.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <Parameters>
+    <Parameter Name="Search" Type="System.String" DefaultValue="" />
+    <Parameter Name="Areaid" Type="System.Int32" DefaultValue="" />
+    <Parameter Name="Pagetype" Type="System.String[]" DefaultValue="" />
+  </Parameters>
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="Contains">
+        <Left>
+          <FieldExpression Field="Free text" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="Search" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="PageAllowsearch" />
+        </Left>
+        <Right>
+          <TermExpression Value="True" DisplayValue="True" Type="System.Boolean" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="PageAllowClick" />
+        </Left>
+        <Right>
+          <TermExpression Value="True" DisplayValue="True" Type="System.Boolean" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="PageAreaId" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="Areaid" />
+        </Right>
+      </BinaryExpression>
+      <GroupExpression Operator="And">
+        <GroupExpression Operator="Or" Negate="True">
+          <BinaryExpression Operator="Equal">
+            <Left>
+              <FieldExpression Field="PageItemType" />
+            </Left>
+            <Right>
+              <ConstantExpression Value="Page" Type="System.String" />
+            </Right>
+          </BinaryExpression>
+        </GroupExpression>
+        <GroupExpression Operator="Or">
+          <BinaryExpression Operator="Equal">
+            <Left>
+              <FieldExpression Field="PageHidden" />
+            </Left>
+            <Right>
+              <ConstantExpression Value="False" Type="System.Boolean" />
+            </Right>
+          </BinaryExpression>
+        </GroupExpression>
+      </GroupExpression>
+      <GroupExpression Operator="And" Negate="True">
+        <BinaryExpression Operator="Equal">
+          <Left>
+            <FieldExpression Field="PageItemType" />
+          </Left>
+          <Right>
+            <ConstantExpression Value="Newsletter" Type="System.String" />
+          </Right>
+        </BinaryExpression>
+      </GroupExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="PageItemType" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="Pagetype" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields />
+  <ViewLanguages />
+  <Meta />
+</Query>

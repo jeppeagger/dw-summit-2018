@@ -1,0 +1,66 @@
+@using System.Text.RegularExpressions
+@using System.IO
+    
+<div class="grid">
+    @foreach (LoopItem folder in GetLoop("FoldersLoop"))
+    {
+        if (!string.IsNullOrEmpty(folder.GetString("FilepublishFileDatemodified")))
+        {
+            Match match = Regex.Match(folder.GetString("FilepublishFileIcon"), "src=\\\"(.*?)\\\"");
+            <div class="grid__col-md-2 grid__col-sm-3 grid__col-xs-4 grid__col-6 grid--justify-space-between">
+                <a href="@folder.GetString("FilepublishFileLink")" class="filepublish__image-wrap">
+                    <img src="@match.Groups[1]" class="filepublish__image grid--align-self-center" title="@folder.GetString("FilepublishFileName")" alt="@folder.GetString("FilepublishFileName")" />
+                </a>
+                <div class="grid--justify-center filepublish__info">
+                    <a href="@folder.GetString("FilepublishFileLink")" class="filepublish__name u-color-inherit" title="@folder.GetString("FilepublishFileName")">@folder.GetString("FilepublishFileName")</a>
+                    <span class="filepublish__date">@folder.GetString("FilepublishFileDatemodified")</span>
+                    <span class="filepublish__filesize"></span>
+                </div>
+            </div>
+        }
+        else
+        {
+            <div class="grid__col-12">
+                <div class="grid__cell u-border-bottom u-border-top">
+                    <a href="@folder.GetString("FilepublishFileLink")" title="@folder.GetString("FilepublishFileName")" class="btn btn--link btn--condensed dw-mod filepublish__back-btn u-no-margin">
+                        <i class="fas fa-arrow-left"></i> @folder.GetString("FilepublishFileName")
+                    </a>
+                </div>
+            </div>
+        }
+    }
+    @foreach (LoopItem file in GetLoop("FilesLoop"))
+    {
+        Match match = Regex.Match(file.GetString("FilepublishFileIcon"), "src=\\\"(.*?)\\\"");
+        <div class="grid__col-md-2 grid__col-sm-3 grid__col-xs-4 grid__col-6 grid--justify-space-between ">
+            <a href="@file.GetString("FilepublishFileLink")" class="filepublish__image-wrap">
+                <img src="@GetIcon(file.GetString("FilepublishFileLinkClean"), match.Groups[1].ToString())" class="filepublish__image grid--align-self-center" title="@file.GetString("FilepublishFileName")" alt="@file.GetString("FilepublishFileName")" />
+            </a>
+            <div class="grid--justify-center">
+                <a href="@file.GetString("FilepublishFileLink")" class="filepublish__name u-color-inherit" title="@file.GetString("FilepublishFileName")">@file.GetString("FilepublishFileName")</a>
+                <span class="filepublish__date">@file.GetString("FilepublishFileDatemodified")</span>
+                <span class="filepublish__filesize">@file.GetString("FilepublishFileSizeKB")</span>
+            </div>
+        </div>
+    }
+</div>
+<div class="u-margin-top--lg">
+    @GetValue("FilepublishUpload")
+</div>
+@functions {
+    string GetIcon(string fileName, string defaultIcon)
+    {
+        string ext = Path.GetExtension(fileName);
+        switch (ext.ToLower())
+        {
+            case ".jpg":
+            case ".jpeg":
+            case ".png":
+            case ".gif":
+            case ".pdf":
+                return "/Admin/Public/GetImage.ashx?crop=5&height=130&width=140&Compression=75&DoNotUpscale=true&image=" + fileName;
+            default:
+                return defaultIcon;
+        }
+    }
+}

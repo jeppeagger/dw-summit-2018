@@ -1,0 +1,27 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web
+
+<div class="grid grid--justify-center">
+    <div class="grid__col-md-6 grid__col--bleed">
+        <h2 class="u-no-margin u-margin-bottom">@Translate("You are now signed up")</h2>
+
+        @if (!String.IsNullOrEmpty(GetString("Submit.ReceiptTemplateText")))
+        {
+            @GetString("Submit.ReceiptTemplateText")
+        }
+        <table>
+            @foreach (LoopItem field in GetLoop("FieldValues"))
+            {
+                string fieldType = field.GetString("Field.Type");
+                    
+                if (fieldType == "TextInput" || fieldType == "Textarea" || fieldType == "Email")
+                {
+                    <tr>
+                        <th>@Translate(field.GetString("SubmitData.Fieldname"))</th>
+                        <td>@field.GetString("SubmitData.Value")</td>
+                    </tr>
+                }
+            }
+        </table>
+    </div>
+</div>

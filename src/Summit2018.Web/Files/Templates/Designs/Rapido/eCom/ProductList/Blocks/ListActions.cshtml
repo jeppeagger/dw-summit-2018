@@ -1,0 +1,89 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@{ 
+
+    bool showSorting = Pageview.AreaSettings.GetItem("ProductList").GetString("EnableSorting") != null ? Pageview.AreaSettings.GetItem("ProductList").GetBoolean("EnableSorting") : true;
+    bool listActionsOnlyPreview = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("OnlyPreviewForAnonymous") && Pageview.User == null;
+    string listActionsListId = HttpContext.Current.Request.QueryString.Get("ListID");
+    bool listActionsIsFavoriteList = !String.IsNullOrEmpty(listActionsListId) ? true : false;
+    string listActionsCartIcon = Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetString("CartIcon") != null ? Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("CartIcon").SelectedValue : "fas fa-shopping-cart";
+
+    BlocksPage productListActionsBlocksPage = BlocksPage.GetBlockPage("ProductList");
+
+    Block listActions = new Block
+    {
+        Id = "Actions",
+        SortId = 10,
+        Template = RenderListActions()
+    };
+
+    productListActionsBlocksPage.Add("ProductList", listActions);
+}
+
+@helper RenderListActions() {
+   @*This is part of a script template *@
+
+   <text>{{>ListActions}}</text> 
+}
+
+<script id="ListActions" type="text/x-template">
+    @*This is part of a script template *@
+
+    @{ 
+        List<Block> subBlocks = productListActionsBlocksPage.GetBlockListById("Views").OrderBy(item => item.SortId).ToList();
+
+        string listCookie = "";
+        if (HttpContext.Current.Request.Cookies["ProductsContainerTemplate"] != null)
+        {
+            listCookie = HttpContext.Current.Request.Cookies["ProductsContainerTemplate"].Value;
+        }
+
+        listCookie = !String.IsNullOrEmpty(listCookie) ? listCookie : Pageview.AreaSettings.GetItem("ProductList").GetString("DefaultListView");
+    }
+
+    <div class="grid">
+        <div class="grid__col--bleed-y grid__col-md-auto u-no-padding-x">
+            <h2><i class="{{headerIcon}}"></i>{{header}}</h2>
+        </div>
+        <div class="grid--align-end grid__col--bleed-y grid__col-md-8 u-no-padding-x">
+            <div class="collection u-no-margin">
+                @if (showSorting)
+                {
+                    <h5 class="u-inline-block u-margin-right">@Translate("Sort by")</h5>
+                    <input type="checkbox" id="ProductSort" class="dropdown-trigger" />
+                    <div class="dropdown u-w150px u-w125px--xs u-margin-right u-inline-block dw-mod">
+                        <label class="dropdown__header dropdown__btn dropdown__btn--small dw-mod" for="ProductSort">{{selectedSort}}</label>
+                        <div class="dropdown__content dw-mod">
+                            <div class="dropdown__item" onclick="HandlebarsBolt.UpdateQueryParameters('productList', { SortBy: '', SortOrder: '' }, true);">@Translate("Default")</div>
+                            <div class="dropdown__item" onclick="HandlebarsBolt.UpdateQueryParameters('productList', { SortBy: 'Created', SortOrder: 'DESC'}, true);">@Translate("Newest")</div>
+                            @if (!listActionsOnlyPreview)
+                            {
+                            <div class="dropdown__item" onclick="HandlebarsBolt.UpdateQueryParameters('productList', { SortBy: 'Price', SortOrder: 'ASC' }, true);">@Translate("Price low - high")</div>
+                            <div class="dropdown__item" onclick="HandlebarsBolt.UpdateQueryParameters('productList', { SortBy: 'Price', SortOrder: 'DESC' }, true);">@Translate("Price high - low")</div>
+                            }
+                        </div>
+                        <label class="dropdown-trigger-off" for="ProductSort"></label>
+                    </div>
+                }
+
+                @foreach (Block item in subBlocks)
+                {
+                    string viewSelected = listCookie == item.Id ? "checked" : "";
+
+                    <input type="radio" class="tag-btn-trigger" id="ListViewBtn_@item.Id" name="ViewBtnGroup" @viewSelected>
+                    <label for="ListViewBtn_@item.Id" class="btn btn--tag" onclick="HandlebarsBolt.UpdateTemplate('ProductsContainer', '@item.Id')"><i class="fas fa-@item.Name"></i></label>
+                }
+
+                @if (listActionsIsFavoriteList)
+                {
+                    <button type="submit" class="btn btn--primary btn--sm dw-mod">@Translate("Buy all") <i class="@listActionsCartIcon"></i></button>
+                }
+            </div>
+        </div>
+    </div>
+</script>

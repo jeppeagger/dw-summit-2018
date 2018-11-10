@@ -1,0 +1,927 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using System
+@using System.IO
+@using System.Linq
+@using System.Text.RegularExpressions
+@using System.Globalization;
+@using Dynamicweb.Ecommerce
+
+@functions {
+    int documentsCount = 0;
+}
+
+@{
+    string pageId = GetGlobalValue("Global:Page.ID").ToString();
+    string exportPageId = GetPageIdByNavigationTag("ProductExportFeed").ToString();
+    int pdfFolderId = GetPageIdByNavigationTag("PdfFolder");
+    string productId = GetString("Ecom:Product.ID");
+    string uniqueId = GetString("Ecom:Product.ID") + GetString("Ecom:Product.VariantID");
+    //string variantId = HttpContext.Current.Request.QueryString.Get("variantId");
+    string onSale = GetString("Ecom:Product.Discount.Price.PriceFormatted") == GetString("Ecom:Product.Price.PriceFormatted") ? "u-hidden" : "";
+    string hideHelpText = "";
+    string feedId = pageId + "&Feed=True&ProductID=" + productId;
+    string feedUrl = "/Default.aspx?ID=" + feedId + "&feedType=productCatalog";
+    int featuresCount = 0;
+
+    foreach (LoopItem customField in GetLoop("CustomFieldValues"))
+    {
+        if (!String.IsNullOrEmpty(customField.GetString("Product.CustomField.Value.Clean")))
+        {
+            featuresCount++;
+        }
+    }
+
+    foreach (LoopItem customField in GetLoop("ProductCategories"))
+    {
+        foreach (LoopItem field in customField.GetLoop("ProductCategoryFields"))
+        {
+            if (!String.IsNullOrEmpty(field.GetString("Ecom:Product.CategoryField.Value")))
+            {
+                featuresCount++;
+            }
+        }
+    }
+
+    foreach (LoopItem variantgroup in GetLoop("VariantGroups"))
+    {
+        foreach (LoopItem variantoption in variantgroup.GetLoop("VariantAvailableOptions"))
+        {
+            if (variantoption.GetBoolean("Ecom:VariantOption.Selected"))
+            {
+                hideHelpText = "u-hidden";
+            }
+        }
+    }
+
+    int relatedProductsPageSize = 4;
+    int relatedProductsColumnWidth = 3;
+
+    if (Pageview.Device.ToString() == "Mobile")
+    {
+        relatedProductsPageSize = 1;
+        relatedProductsColumnWidth = 12;
+    }
+
+    if (Pageview.Device.ToString() == "Tablet")
+    {
+        relatedProductsPageSize = 3;
+        relatedProductsColumnWidth = 4;
+    }
+
+    string feedPageUrl = "/Default.aspx?ID=" + GetPageIdByNavigationTag("ProductsPage");
+    string feedFullUrl = feedPageUrl + "&PageSize=" + relatedProductsPageSize + "&ProdID=" + productId + "&feed=true";
+    string productContainerId = "Product" + productId;
+
+    //gallery
+    string imagePrefix = "/Admin/Public/GetImage.ashx?width=550&amp;height=550&amp;crop=5&FillCanvas=True&DoNotUpscale=true&amp;Compression=75&amp;image=";
+    string thumbPrefix = "/Admin/Public/GetImage.ashx?width=100&amp;height=100&amp;crop=5&FillCanvas=True&DoNotUpscale=true&amp;Compression=75&amp;image=";
+    string image = "";
+    string thumb = "";
+    int imagesCount = 0;
+}
+
+<!-- Trigger for the image modal -->
+<input type="checkbox" id="GalleryModalTrigger" class="modal-trigger" />
+
+@if (!String.IsNullOrEmpty(GetString("Ecom:Product.ImageDefault.Default.Clean")))
+{
+    <!-- Gallery modal -->
+    <div class="modal-container">
+        <label for="GalleryModalTrigger" id="GalleryModalOverlay" class="modal-overlay"></label>
+        <div class="modal modal--full" id="GalleryModal">
+            <div class="modal__body modal__body--full">
+                <div class="gallery-slider">
+                    <div class="gallery-slider__image">
+                        <img id="FullImage" src="@imagePrefix@GetString("Ecom:Product.ImageDefault.Default.Clean")" class="modal--full__img js-gallery-image" alt="@GetString("Ecom:Product.Name")" />
+                    </div>
+                    <div class="gallery-slider__image-counter" id="FullImage_counter"></div>
+                    <label class="gallery-slider__close-btn" for="GalleryModalTrigger"></label>
+                    <button class="gallery-slider__previous-btn" id="FullImage_prev" onclick="Gallery.prevImage('FullImage')"></button>
+                    <button class="gallery-slider__next-btn" id="FullImage_next" onclick="Gallery.nextImage('FullImage')"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<input type="checkbox" class="panel-trigger js-remember-state" id="PIMProductToolsTrigger" checked />
+<div class="fit-to-panel-size">
+    @*Please be aware that the below html must be implemented twice (Static HTML and dynamic Script template) to make it update when shifting units *@
+
+    <div class="js-handlebars-root" id="@productContainerId" data-template="productUpdateableContentTemplate" data-json-feed="@feedUrl" data-preloader="false" data-init-onload="false">
+        <div class="grid grid--external-bleed product" id="productGrid">
+            @* Image block with optional thumbs *@
+            @if (!String.IsNullOrEmpty(GetString("Ecom:Product.ImageDefault.Default.Clean")))
+            {
+                <div class="grid__col-md-6 grid__col-sm-6">
+                    <div class="grid grid--bleed">
+                        <div class="grid__col-2 u-hidden-xxs">
+                            <div class="product__thumbs dw-mod">
+                                <i class="fas fa-circle-notch fa-spin preloader js-remove-after-load"></i> <!--preloader-->
+                                <div class="carousel js-carousel-container carousel--hidden dw-mod" id="leftCarousel">
+                                    <div class="thumb-list carousel__container dw-mod">
+                                        @*Main image thumb*@
+                                        @{
+                                            image = imagePrefix + GetString("Ecom:Product.ImageDefault.Default.Clean");
+                                            thumb = thumbPrefix + GetString("Ecom:Product.ImageDefault.Default.Clean");
+                                            imagesCount++;
+                                        }
+                                        <div class="carousel__slide carousel__slide--vertical dw-mod">
+                                            <div class="thumb-list__item thumb-list__item--active dw-mod js-thumb js-gallery" data-for="Image_@productId" data-image="@image" onmouseover="Gallery.openImage(this)">
+                                                <label for="GalleryModalTrigger">
+                                                    <img src="@thumb" alt="@GetString("Ecom:Product.Name")" class="js-gallery" data-for="FullImage" data-image="@image" onclick="Gallery.openImage(this)">
+                                                </label>
+                                            </div>
+                                        </div>
+
+                                        @foreach (LoopItem alternativeImage in GetLoop("Ecom:Product.AlternativeImages"))
+                                        {
+                                            if (!String.IsNullOrEmpty(alternativeImage.GetString("Ecom:Product.AlternativeImages.Image")))
+                                            {
+                                                image = imagePrefix + alternativeImage.GetString("Ecom:Product.AlternativeImages.Image");
+                                                thumb = thumbPrefix + alternativeImage.GetString("Ecom:Product.AlternativeImages.Image");
+                                                imagesCount++;
+
+                                                <div class="carousel__slide carousel__slide--vertical dw-mod">
+                                                    <div class="thumb-list__item dw-mod js-thumb js-gallery" data-for="Image_@productId" data-image="@image" onmouseover="Gallery.openImage(this)">
+                                                        <label for="GalleryModalTrigger">
+                                                            <img src="@thumb" alt="@GetString("Ecom:Product.Name")" class="js-gallery" data-for="FullImage" data-image="@image" onclick="Gallery.openImage(this)">
+                                                        </label>
+                                                    </div>
+                                                </div>
+                                            }
+                                        }
+
+                                        @foreach (LoopItem detail in GetLoop("Details"))
+                                        {
+                                            if (!String.IsNullOrEmpty(detail.GetString("Ecom:Product:Detail.Image.Clean")))
+                                            {
+                                                string ext = Path.GetExtension(detail.GetString("Ecom:Product:Detail.Image.Clean")).ToLower();
+                                                if (ext == ".jpg" || ext == ".jpeg" || ext == ".gif" || ext == ".png")
+                                                {
+                                                    image = imagePrefix + detail.GetString("Ecom:Product:Detail.Image.Clean");
+                                                    thumb = thumbPrefix + detail.GetString("Ecom:Product:Detail.Image.Clean");
+
+                                                    <div class="carousel__slide carousel__slide--vertical dw-mod">
+                                                        <div class="thumb-list__item dw-mod js-thumb js-gallery" data-for="Image_@productId" data-image="@image" onmouseover="Gallery.openImage(this)">
+                                                            <label for="GalleryModalTrigger">
+                                                                <img src="@thumb" alt="@GetString("Ecom:Product.Name")" class="js-gallery" data-for="FullImage" data-image="@image" onclick="Gallery.openImage(this)">
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                }
+                                            }
+                                        }
+                                    </div>
+                                    <div class="js-carousel-data" data-carousel-slide-time="0" data-direction="vertical" data-sliding-type="items" data-slides-in-view="5">
+                                        <div class="carousel-prev-btn carousel-prev-btn--vertical dw-mod" onclick="Carousel.GetPreviousSlide('leftCarousel')"></div>
+                                        <div class="carousel-next-btn carousel-next-btn--vertical dw-mod" onclick="Carousel.GetNextSlide('leftCarousel')"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="grid__col-auto">
+                            <label for="GalleryModalTrigger" class="product__image-container">
+                                <img class="thumb-image-view product__image-container__image dw-mod b-lazy" src="/Files/Images/placeholder.gif" data-src="@imagePrefix@GetString("Ecom:Product.ImageDefault.Default.Clean")" alt="@GetString("Ecom:Product.Name")" id="Image_@productId" data-for="FullImage" data-number="0" onclick="Gallery.openImageByNum(this)" />
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @* Primary product informations *@
+            <div class="grid__col-md-5">
+                <div class="grid__cell">
+                    <div class="product__title dw-mod">
+                        <h1 class="u-no-margin">@GetString("Ecom:Product.Name") @GetString("Ecom:Product.SelectedVariantComboName")</h1>
+                        <div class="item-number">@GetString("Ecom:Product.Number")</div>
+                    </div>
+                    <div>
+                        @* Short description *@
+                        <div class="introduction-text">
+                            @GetString("Ecom:Product.ShortDescription")
+                        </div>
+
+                        @* Variants *@
+                        @if (GetLoop("VariantGroups").Count > 0)
+                        {
+                            string containerId = "Variants" + productId;
+                            <div>
+                                <div id="@containerId" data-product-id="@productId">
+                                    @foreach (LoopItem variantGoup in GetLoop("VariantGroups"))
+                                    {
+                                    <div>
+                                        <div class="u-bold">@variantGoup.GetString("Ecom:VariantGroup.Name")</div>
+                                        <div>
+                                            @foreach (LoopItem variantOption in variantGoup.GetLoop("VariantAvailableOptions"))
+                                            {
+                                                string selected = variantOption.GetBoolean("Ecom:VariantOption.Selected") ? "checked" : "";
+
+                                                if (!string.IsNullOrEmpty(variantOption.GetString("Ecom:VariantOption.ImgSmall.Clean")))
+                                                {
+                                                    <img src="/Admin/Public/GetImage.ashx?width=100&amp;height=50&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;image=/Images/@variantOption.GetString("Ecom:VariantOption.ImgSmall.Clean")" alt="@variantOption.GetString("Ecom:VariantOption.Name")" title="@variantOption.GetString("Ecom:VariantOption.Name")" id="@productId@variantOption.GetString("Ecom:VariantOption.ID")" data-variant-id="@variantOption.GetString("Ecom:VariantOption.ID")" data-product-id="@productId" onclick="Variants.UpdateVariants(this, false, true)" class="btn btn--tag @selected" data-check="@selected" />
+                                                }
+                                                else
+                                                {
+                                                    <button type="button" data-id="@uniqueId" id="@productId@variantOption.GetString("Ecom:VariantOption.ID")" data-variant-id="@variantOption.GetString("Ecom:VariantOption.ID")" data-product-id="@productId" onclick="Variants.UpdateVariants(this, false, true)" class="btn btn--tag @selected" data-check="@selected">@variantOption.GetString("Ecom:VariantOption.Name")</button>
+                                                }
+                                            }
+                                        </div>
+                                    </div>
+                                    }
+                                </div>
+                                <small id="helpText_@productId" class="help-text @hideHelpText">@Translate("Please select variant!")</small>
+                            </div>
+                        }
+
+                        @* BOMProducts *@
+                        @if (GetLoop("BOMProducts").Count > 0)
+                        {
+                            <h2 class="section-title">@Translate("Including products")</h2>
+                            foreach (LoopItem BOMProductItem in GetLoop("BOMProducts"))
+                            {
+                                string link = "/" + BOMProductItem.GetString("Ecom:Product.LinkGroup.Clean") + (!String.IsNullOrEmpty(BOMProductItem.GetString("Ecom:Product.VariantID")) ? "&VariantID=" + BOMProductItem.GetString("Ecom:Product.VariantID") : "");
+                                <div class="grid__col--border grid">
+                                    <div class="grid__cell grid__cell--align-middle-left">
+                                        <a href="@link" class="u-pull--left u-margin-right">
+                                            <img src="/Admin/Public/GetImage.ashx?width=50&image=@BOMProductItem.GetString("Ecom:Product.ImageDefault.Default.Clean")&Compression=99" alt="@BOMProductItem.GetString("Ecom:Product.Name")" />
+                                        </a>
+                                        <a href="@link">@BOMProductItem.GetString("Ecom:Product.Name")</a>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+
+                    <input type="hidden" id="CartButton_@GetString("Ecom:Product.ID")" name="submit" />
+                    <input type="hidden" value="@GetString("Ecom:Product.VariantID.Extented")" name="Variant" id="Variant_@GetString("Ecom:Product.ID")" />
+                </div>
+            </div>
+
+            <div class="grid__col-3"></div>
+        </div>
+    </div>
+
+    <div class="grid">
+        @* Long description *@
+        @if (!String.IsNullOrEmpty(GetString("Ecom:Product.LongDescription")))
+        {
+            <div class="grid__col-12">
+                <h2 class="section-title">@Translate("Description")</h2>
+
+                @GetString("Ecom:Product.LongDescription")
+            </div>
+        }
+
+        @* Features lists *@
+        @if (featuresCount > 0 && featuresCount < 10)
+        {
+            <div class="grid__col-12 grid__col--bleed-y">
+                <h2 class="section-title">@Translate("Product information")</h2>
+                @ProductProperties()
+            </div>
+        }
+
+        @if (featuresCount >= 10)
+        {
+            <div class="grid__col-12 grid__col--bleed-y">
+                <input type="checkbox" id="expandable-text-trigger" class="expandable-text-trigger" />
+                <div class="expandable-text-container">
+                    <div class="expandable-text-container__content dw-mod">
+                        <h2 class="section-title">@Translate("Product information")</h2>
+                        @ProductProperties()
+                    </div>
+
+                    <div class="u-ta-center">
+                        <label for="expandable-text-trigger" class="btn btn--secondary expandable-text-container__btn more dw-mod">@Translate("Show more")</label>
+                        <label for="expandable-text-trigger" class="btn btn--secondary expandable-text-container__btn less dw-mod">@Translate("Show less")</label>
+                    </div>
+                </div>
+            </div>
+        }
+
+        @* Related products *@
+        @foreach (LoopItem relatedGroup in GetLoop("ProductRelatedGroups"))
+        {
+            string groupId = ToPascalCase(relatedGroup.GetString("Ecom:Product:RelatedGroup.Name"));
+            string relatedFeedUrl = feedFullUrl + "&" + groupId + "=" + productId + "&GroupName=" + groupId;
+
+            <div class="grid">
+                <div class="grid__col-12">
+                    <h2 class="section-title section-title--condensed">@relatedGroup.GetString("Ecom:Product:RelatedGroup.Name")</h2>
+                </div>
+            </div>
+
+            <div class="js-handlebars-root" id="ProductList_@groupId" data-template="ProductContainer" data-pre-render-template="ProductPreRenderContainer" data-json-feed="@relatedFeedUrl" data-preloader="overlay"></div>
+        }
+    </div>
+</div>
+<aside class="panel panel--right dw-mod">
+    <label for="PIMProductToolsTrigger" class="panel-trigger-btn grid--justify-center dw-mod"></label>
+
+    <div class="panel__content dw-mod">
+        <form action="/Default.aspx?ID=@exportPageId&ProductID=@System.Web.HttpContext.Current.Request.QueryString.Get("ProductID")&VariantID=@System.Web.HttpContext.Current.Request.QueryString.Get("VariantID")" method="post" class="u-no-margin">
+            <div class="panel__content__body panel__content__body--auto-height-570px dw-mod">
+                <h6 class="panel__header dw-mod u-margin-bottom">
+                    <input type="checkbox" class="u-no-margin form__control" id="allImages" onchange="selectAll(this)" />
+                    <label for="allImages" class="u-inline-block"></label>
+                    @Translate("Images") (@(imagesCount))
+                </h6>
+
+                <ul class="panel-list">
+                    <li class="panel-list__item">
+                        <div class="panel-list__item-check">
+                            <input type="checkbox" name="Image_@GetString("Ecom:Product.ImageDefault.Default.Clean")" class="u-no-margin form__control" id="Image_@GetString("Ecom:Product.ImageDefault.Default.Clean")" />
+                            <label for="Image_@GetString("Ecom:Product.ImageDefault.Default.Clean")"></label>
+                        </div>
+                        <div class="panel-list__item-image">
+                            <label for="Image_@GetString("Ecom:Product.ImageDefault.Default.Clean")">
+                                <img src="/Admin/Public/GetImage.ashx?width=55&amp;height=55&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;image=@GetString("Ecom:Product.ImageDefault.Default.Clean")" alt="@Path.GetFileName(GetString("Ecom:Product.ImageDefault.Default.Clean"))" class="flex-img">
+                            </label>
+                        </div>
+                        <div class="panel-list__item-name u-truncate-text u-w170px">
+                            <label for="Image_@GetString("Ecom:Product.ImageDefault.Default.Clean")">
+                                @Path.GetFileName(GetString("Ecom:Product.ImageDefault.Default.Clean"))
+                            </label>
+                        </div>
+                    </li>
+
+                    @foreach (LoopItem alternativeImage in GetLoop("Ecom:Product.AlternativeImages"))
+                    {
+                        string alt_image = alternativeImage.GetString("Ecom:Product.AlternativeImages.Image");
+                        if (!String.IsNullOrEmpty(alt_image))
+                        {
+                            string alt_thumb = "/Admin/Public/GetImage.ashx?width=55&amp;height=55&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;image=" + alt_image;
+
+                            <li class="panel-list__item">
+                                <div class="panel-list__item-check">
+                                    <input type="checkbox" name="Image_@alt_image" class="u-no-margin form__control" id="Image_@alt_image" />
+                                    <label for="Image_@alt_image"></label>
+                                </div>
+                                <div class="panel-list__item-image">
+                                    <label for="Image_@alt_image">
+                                        <img src="@alt_thumb" alt="@Path.GetFileName(alt_image)">
+                                    </label>
+                                </div>
+                                <div class="panel-list__item-name u-truncate-text u-w170px">
+                                    <label for="Image_@alt_image">
+                                        @Path.GetFileName(alt_image)
+                                    </label>
+                                </div>
+                            </li>
+                        }
+                    }
+
+                    @foreach (LoopItem detail in GetLoop("Details"))
+                    {
+                        string detail_image = detail.GetString("Ecom:Product:Detail.Image.Clean");
+                        if (!String.IsNullOrEmpty(detail_image))
+                        {
+                            string detail_thumb = "/Admin/Public/GetImage.ashx?width=55&amp;height=55&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;image=" + detail_image;
+
+                            <li class="panel-list__item">
+                                <div class="panel-list__item-check">
+                                    <input type="checkbox" name="Image_@detail_image" class="u-no-margin form__control" id="Image_@detail_image" />
+                                    <label for="Image_@detail_image"></label>
+                                </div>
+                                <div class="panel-list__item-image">
+                                    <label for="Image_@detail_image">
+                                        <img src="@detail_thumb" alt="@Path.GetFileName(detail_image)" class="flex-img">
+                                    </label>
+                                </div>
+                                <div class="panel-list__item-name u-truncate-text u-w170px">
+                                    <label for="Image_@detail_image">
+                                        @Path.GetFileName(detail_image)
+                                    </label>
+                                </div>
+                            </li>
+                        }
+                    }
+                </ul>
+
+                @if (documentsCount > 0)
+                {
+                    <h6 class="panel__header panel__header--line dw-mod u-margin-bottom">
+                        <input type="checkbox" class="u-no-margin form__control" id="allDocuments" onchange="selectAll(this)" />
+                        <label for="allDocuments" class="u-inline-block"></label>
+                        @Translate("Documents") (@documentsCount)
+                    </h6>
+
+                    <ul class="panel-list">
+                        @foreach (LoopItem customField in GetLoop("CustomFieldValues"))
+                        {
+                            if (!String.IsNullOrEmpty(customField.GetString("Document.FullPath")))
+                            {
+                                <li class="panel-list__item">
+                                    <div class="panel-list__item-check">
+                                        <input type="checkbox" name="Document_@customField.GetString("Document.FullPath")" class="u-no-margin form__control" id="Document_@customField.GetString("Document.FullPath")" />
+                                        <label for="Document_@customField.GetString("Document.FullPath")"></label>
+                                    </div>
+                                    <div class="panel-list__item-name u-truncate-text u-max-w220px">
+                                        <label for="Document_@customField.GetString("Document.FullPath")">
+                                            @Path.GetFileName(customField.GetString("Document.FullPath"))
+                                        </label>
+                                    </div>
+                                </li>
+                            }
+                        }
+
+                        @foreach (LoopItem categoryGroup in GetLoop("ProductCategories"))
+                        {
+                            foreach (LoopItem categoryField in categoryGroup.GetLoop("ProductCategoryFields"))
+                            {
+                                string fieldValue = categoryField.GetString("Ecom:Product.CategoryField.Value");
+
+                                if (!String.IsNullOrEmpty(fieldValue))
+                                {
+                                    if (categoryField.GetString("Ecom:Product.CategoryField.TypeID") == "9")
+                                    {
+                                        <li class="panel-list__item">
+                                            <div class="panel-list__item-check">
+                                                <input type="checkbox" name="Document_@fieldValue" class="u-no-margin form__control" id="Document_@fieldValue" />
+                                                <label for="Document_@fieldValue"></label>
+                                            </div>
+                                            <div class="panel-list__item-name u-truncate-text u-max-w220px">
+                                                <label for="Document_@fieldValue">
+                                                    @Path.GetFileName(fieldValue)
+                                                </label>
+                                            </div>
+                                        </li>
+                                    }
+                                }
+                            }
+                        }
+                    </ul>
+                }
+            </div>
+
+            <div class="panel__content__footer panel__content__footer--320px dw-mod">
+                <input id="ID" name="ID" type="hidden" value="532" />
+                <input id="download" name="download" type="hidden" value="true" />
+                <input name="siteUrl" type="hidden" value="@string.Format("{0}://{1}", GetGlobalValue("Global:Request.Scheme"), GetGlobalValue("Global:Request.Host"))" />
+
+                <h6 class="panel__header panel__header--line dw-mod">@Translate("Export")</h6>
+
+                <label for="exportLanguage">@Translate("Language")</label>
+                <select id="exportLanguage" name="RequestLanguageId" class="u-full-width">
+                    @foreach (var lang in Services.Languages.GetLanguages().OrderBy(l => l.Name))
+                    {
+                        var selected = lang.IsDefault ? "selected" : "";
+                        <option value="@lang.LanguageId" @selected>@lang.Name</option>
+                    }
+                </select>
+
+                <label for="purpose">@Translate("Purpose")</label>
+                <select id="purpose" name="purpose" class="u-full-width">
+                    <option value="Office">@Translate("Office")</option>
+                    <option value="Original">@Translate("Original")</option>
+                    <option value="Print">@Translate("Print")</option>
+                    <option value="Web">@Translate("Web")</option>
+                </select>
+
+                <label for="exportFormat">@Translate("Export format")</label>
+                <select id="exportFormat" name="format" class="u-full-width">
+                    <option value="csv">Csv</option>
+                    <option value="json">Json</option>
+                    <option value="xml">Xml</option>
+                </select>
+
+                <input type="submit" value="@Translate("Download")" class="btn btn--full btn--primary dw-mod" title="@Translate("Download")" />
+            </div>
+        </form>
+
+        <form action="/Default.aspx?ID=@exportPageId&ProductID=@System.Web.HttpContext.Current.Request.QueryString.Get("ProductID")&VariantID=@System.Web.HttpContext.Current.Request.QueryString.Get("VariantID")&GeneratePdf=true" method="post" class="u-no-margin">
+            <input name="siteUrl" type="hidden" value="@string.Format("{0}://{1}", GetGlobalValue("Global:Request.Scheme"), GetGlobalValue("Global:Request.Host"))" />
+
+            <div class="panel__content__footer panel__content__footer--250px dw-mod">
+                <h6 class="panel__header panel__header--line dw-mod">@Translate("Generate PDF")</h6>
+                <label for="PdfLanguageId">@Translate("Language")</label>
+                <select id="PdfLanguageId" name="PdfLanguageId" class="u-full-width">
+                    @foreach (var lang in Services.Languages.GetLanguages().OrderBy(l => l.Name))
+                    {
+                        var selected = lang.IsDefault ? "selected" : "";
+                        <option value="@lang.LanguageId" @selected>@lang.Name</option>
+                    }
+                </select>
+                <label for="PdfPageId">@Translate("Generate PDF")</label>
+                <select id="PdfPageId" name="PdfPageId" class="u-full-width">
+                    <option value="" selected>@Translate("Select type")</option>
+                    @foreach (Dynamicweb.Content.Page page in ServiceLocator.Current.GetPageService().GetPagesByParentID(pdfFolderId))
+                    {
+                        <option value="@page.ID">@page.MenuText</option>
+                    }
+                </select>
+
+                <input type="submit" value="@Translate("Generate PDF")" class="btn btn--full btn--primary dw-mod" title="@Translate("Generate PDF")" />
+            </div>
+        </form>
+    </div>
+</aside>
+
+@helper ProductProperties()
+{
+    <div class="grid grid--bleed">
+        <div class="grid__col-lg-8 grid__col-md-8 grid__col-sm-12 grid__col-xs-12">
+            @if (GetLoop("CustomFieldValues").Count > 0)
+            {
+                <table class="table table--clean table--compact">
+                    @foreach (LoopItem customField in GetLoop("CustomFieldValues"))
+                    {
+
+                        string fieldValue = customField.GetString("Product.CustomField.Value.Clean");
+
+                        if (customField.GetLoop("Product.CustomField.Options").Count > 0)
+                        {
+                            fieldValue = "";
+                            int count = 0;
+
+                            foreach (LoopItem customFieldOptions in customField.GetLoop("Product.CustomField.Options"))
+                            {
+                                if (customFieldOptions.GetBoolean("Product.CustomField.Option.IsSelected"))
+                                {
+                                    if (count != 0)
+                                    {
+                                        fieldValue += ", ";
+                                    }
+
+                                    fieldValue += customFieldOptions.GetString("Product.CustomField.Option.Name");
+                                    count++;
+                                }
+                            }
+                        }
+
+                        if (fieldValue == "False")
+                        {
+                            fieldValue = Translate("No");
+                        }
+
+                        if (fieldValue == "True")
+                        {
+                            fieldValue = Translate("Yes");
+                        }
+
+                        if (!String.IsNullOrEmpty(customField.GetString("Product.CustomField.Name")) && !String.IsNullOrEmpty(fieldValue) && customField.GetString("Product.CustomField.Name") != "Custom sticker")
+                        {
+                            <tr>
+                                <td width="160">@customField.GetString("Product.CustomField.Name"):</td>
+                                @if (!String.IsNullOrEmpty(customField.GetString("Document.FullPath")))
+                                {
+                                    <td class="u-ta-left"><a href="@customField.GetString("Document.FullPath")" download title="@Translate("Download")" class="product__document"><span property="identifier">@getIconForFile(fieldValue) @Path.GetFileName(fieldValue)</span></a></td>
+                                }
+                                else
+                                {
+                                    <td class="u-ta-left"><span property="identifier">@fieldValue</span></td>
+                                }
+                            </tr>
+                        }
+                    }
+                </table>
+            }
+
+            @if (GetLoop("ProductCategories").Count > 0)
+            {
+                <table class="table table--clean table--compact u-margin-bottom">
+                    @foreach (LoopItem categoryGroup in GetLoop("ProductCategories"))
+                    {
+                        int fieldsCount = 0;
+                        foreach (LoopItem categoryField in categoryGroup.GetLoop("ProductCategoryFields"))
+                        {
+                            if (!String.IsNullOrEmpty(categoryField.GetString("Ecom:Product.CategoryField.Value")))
+                            {
+                                fieldsCount++;
+                            }
+                        }
+
+                        if (fieldsCount > 0)
+                        {
+                            <tr>
+                                <td colspan="2" class="u-ta-left table__section-header dw-mod">@categoryGroup.GetString("Ecom:Product.Category.Name")</td>
+                            </tr>
+
+                            foreach (LoopItem categoryField in categoryGroup.GetLoop("ProductCategoryFields"))
+                            {
+                                string fieldValue = categoryField.GetString("Ecom:Product.CategoryField.Value");
+
+                                if (fieldValue == "False")
+                                {
+                                    fieldValue = Translate("No");
+                                }
+
+                                if (fieldValue == "True")
+                                {
+                                    fieldValue = Translate("Yes");
+                                }
+
+                                if (!String.IsNullOrEmpty(categoryField.GetString("Ecom:Product.CategoryField.Label")) && !String.IsNullOrEmpty(fieldValue))
+                                {
+                                    <tr>
+                                        <td width="160">@categoryField.GetString("Ecom:Product.CategoryField.Label"):</td>
+                                        @if (categoryField.GetString("Ecom:Product.CategoryField.TypeID") == "9")
+                                        {
+                                            <td class="u-ta-left"><a href="@fieldValue" download title="@Translate("Download")">@getIconForFile(fieldValue) @Path.GetFileName(fieldValue)</a></td>
+                                        }
+                                        else if (categoryField.GetString("Ecom:Product.CategoryField.TypeID") == "15")
+                                        {
+                                            <td class="u-ta-left"><span property="identifier">@categoryField.GetString("Ecom:Product.CategoryField.OptionLabel")</span></td>
+                                        }
+                                        else if (categoryField.GetString("Ecom:Product.CategoryField.TypeID") == "8")
+                                        {
+                                            <td class="u-ta-left"><a property="identifier" target="_blank" href="@fieldValue">@fieldValue</a></td>
+                                        }
+                                        else
+                                        {
+                                            <td class="u-ta-left"><span property="identifier">@fieldValue</span></td>
+                                        }
+                                    </tr>
+                                }
+                            }
+                        }
+                    }
+                </table>
+            }
+        </div>
+    </div>
+}
+
+@* Script templates for the updateable product content *@
+<script id="productUpdateableContentTemplate" type="text/x-template">
+    {{#.}}
+    <div class="grid product">
+        @* Image block with optional thumbs *@
+        <div class="grid__col-md-6 grid__col-sm-6">
+            <div class="grid grid--bleed">
+                <div class="grid__col-2 u-color-light-gray--bg u-hidden-xxs ">
+                    <div class="thumb-list">
+                        <div id="ThumbnailImages" data-template="ThumbnailImageTemplate"></div>
+                    </div>
+                </div>
+
+                <div class="grid__col-auto">
+                    <img class="thumb-image-view flex-img" id="Image_{{id}}" src="/Admin/Public/GetImage.ashx?height=550&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;image={{image}}" alt="{{name}}" />
+                </div>
+            </div>
+        </div>
+
+        @* Primary product informations *@
+        <div class="grid__col-auto">
+            <div class="grid__cell">
+                <div class="u-pull--left product__title dw-mod">
+                    <h1 class="u-no-margin">{{name}}</h1>
+                    <div class="item-number dw-mod">{{number}}</div>
+                </div>
+
+                <div>
+                    @* Short description *@
+                    <div class="introduction-text">
+                        {{description}}
+                    </div>
+
+                    @* Variants *@
+                    <div>
+                        @* Combinations div needed to handle variant options(used in script block with Variants.SetVariantOptionStatesForProductList function) and should not be deleted *@
+                        <div id="Combinations" data-template="VariantCombinations" data-product-id="{{id}}" class="js-variants-wrap u-hidden"></div>
+                        <div id="Variants" data-template="VariantGroup" data-product-id="{{id}}"></div>
+                        <small id="helpText_{{id}}" class="help-text {{hideViewMore}} {{hideHelpText}}">@Translate("Please select variant!")</small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid__cell-footer">
+                <input type="hidden" id="CartButton_{{id}}" class="btn btn--primary dw-mod u-pull--right" name="submit" />
+                <input type="hidden" value="{{variantid}}" name="Variant" id="Variant_{{id}}" />
+            </div>
+        </div>
+    </div>
+    {{/.}}
+</script>
+
+@* Thumbnail images *@
+<script id="ThumbnailImageTemplate" type="text/x-template">
+    <div class="thumb-list__item dw-mod js-thumb-btn" onmouseover="ImageList.GetImage(this)" data-for="Image_{{productId}}" data-image-path="/Admin/Public/GetImage.ashx?width=500&amp;height=500&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;image={{image}}">
+        <img src="/Admin/Public/GetImage.ashx?width=100&amp;height=100&amp;crop=5&amp;FillCanvas=True&amp;Compression=75&amp;image={{image}}" alt="" />
+    </div>
+</script>
+
+
+@* Variants templates *@
+<script id="VariantGroup" type="text/x-template">
+    <div>
+        <div>{{name}}</div>
+        <div id="VariantOptions" data-template="VariantOption"></div>
+    </div>
+</script>
+
+<script id="VariantOption" type="text/x-template">
+    <button type="button" id="{{id}}" data-product-id="@productId" onclick="Variants.UpdateVariants(this, false, true)" class="btn btn--tag {{disabled}} {{selected}}" data-check="{{selected}}" {{disabled}}>{{name}}</button>
+</script>
+
+@* Favorites templates *@
+<script id="FavoriteTemplate" type="text/x-template">
+    <div class="favorites-list u-pull--right u-ta-left">
+        <label for="FavoriteTrigger_{{id}}"><i class="{{favoriteIcon}} fa-1_5x"></i></label>
+        <input type="checkbox" id="FavoriteTrigger_{{id}}" class="dropdown-trigger" />
+        <div class="dropdown dropdown--absolute-position">
+            <div class="dropdown__content dropdown__content--show-left dropdown__content--padding u-w220px dw-mod">
+                <ul class="list list--clean dw-mod">
+                    {{#FavoriteLists}}
+                    {{>FavoriteListItem}}
+                    {{/FavoriteLists}}
+                </ul>
+            </div>
+            <label class="dropdown-trigger-off" for="FavoriteTrigger_{{id}}"></label>
+        </div>
+    </div>
+</script>
+
+@* BOMProduct templates *@
+<script id="BOMProductTemplate" type="text/x-template">
+    <div class="grid__col--border grid">
+        <div class="grid__cell grid__cell--align-middle-left">
+            <a href="{{link}}" class="u-pull--left u-margin-right">
+                <img src="/Admin/Public/GetImage.ashx?width=50&image={{image}}&Compression=99" alt="{{name}}" />
+            </a>
+            <a href="{{link}}">{{name}}</a>
+        </div>
+    </div>
+</script>
+
+<script id="FavoriteListItem" type="text/x-template">
+    <li>
+        <a href="{{link}}" class="list__link dw-mod"><i class="{{favoriteIcon}}"></i> {{name}}</a>
+    </li>
+</script>
+
+<script id="unitOption" type="text/x-template">
+    <div class="dropdown__item dw-mod" onclick="HandlebarsBolt.UpdateContent('@productContainerId', '@feedUrl&ProductID=@productId&UnitID={{value}}')">{{name}}</div>
+</script>
+
+
+@* Script templates for related products *@
+<script id="ProductPreRenderContainer" type="text/x-template">
+    <div class="grid__col-md-4">
+        <div class="pre-render-element pre-render-element--md"></div>
+    </div>
+    <div class="grid__col-md-4">
+        <div class="pre-render-element pre-render-element--md"></div>
+    </div>
+    <div class="grid__col-md-4">
+        <div class="pre-render-element pre-render-element--md"></div>
+    </div>
+</script>
+
+<script id="ProductContainer" type="text/x-template">
+    {{#.}}
+        <div class="u-min-h400px u-full-width">
+            <div class="grid">
+                <div class="grid__col-45px grid__col--bleed-x">
+                    <div class="grid__cell grid__cell--align-middle-left">
+                        <button class="btn btn--condensed btn--clean {{prevdisabled}} dw-mod" onclick="HandlebarsBolt.UpdateContent('ProductList', '{{prevPage}}')" {{prevdisabled}}><i class="fas fa-chevron-left fa-2x"></i></button>
+                    </div>
+                </div>
+                <div class="grid__col-auto grid__col--bleed-x">
+                    <div id="ProductsContainer" class="grid product-list dw-mod">
+                        {{#ProductsContainer}}
+                            <div id="Product{{productId}}" class="grid__col-@relatedProductsColumnWidth product-list__grid-item dw-mod">
+                                {{#Product}}
+                                    <div class="grid__cell product-list__grid-item__image dw-mod {{noImage}}">
+                                        <a href="{{link}}" onclick="Scroll.SavePosition(event)">
+                                            <img class="grid__cell-img grid__cell-img--centered b-lazy" src="/Files/Images/placeholder.gif" data-src="/Admin/Public/GetImage.ashx?width=300&amp;height=300&amp;crop=5&amp;Compression=75&amp;image={{image}}" alt="{{name}}" />
+                                        </a>
+                                    </div>
+
+                                    <div class="grid__cell product-list__grid-item__price-info product-list__grid-item__price-info--short dw-mod">
+                                        <a href="{{link}}" onclick="Scroll.SavePosition(event)" title="{{name}}"><h6 class="u-condensed-text">{{name}}</h6></a>
+                                        <div class="item-number dw-mod">{{number}}</div>
+                                    </div>
+
+                                    <div class="product-list__grid-item__footer dw-mod">
+                                        <div class="u-ta-center">
+                                            <a href="{{link}}" id="CartButton_{{id}}" class="btn btn--secondary btn--full u-no-margin dw-mod">@Translate("View")</a>
+                                        </div>
+                                    </div>
+                                {{/Product}}
+                            </div>
+                        {{/ProductsContainer}}
+                    </div>
+                </div>
+                <div class="grid__col-45px grid__col--bleed-x">
+                    <div class="grid__cell grid__cell--align-middle-right">
+                        <button class="btn btn--condensed btn--clean {{nextdisabled}} dw-mod" onclick="HandlebarsBolt.UpdateContent('ProductList', '{{nextPage}}')" {{nextdisabled}}><i class="fas fa-chevron-right fa-2x"></i></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {{/.}}
+</script>
+
+@*Variants data generation*@
+<script>
+    function selectAll(checkbox) {
+        Array.prototype.slice.call(checkbox.parentElement.nextElementSibling.getElementsByTagName('input')).forEach(function (input) {
+            input.checked = checkbox.checked;
+        });
+    }
+
+    document.addEventListener("DOMContentLoaded", function (event) {
+        var variants = [];
+
+        document.getElementById("productGrid").addEventListener('contentLoaded', function (e) {
+            if (getTarget(e).classList.contains("js-variants-wrap")) {
+                Variants.SetVariantOptionStatesForProductList(getTarget(e));
+            }
+        }, false);
+
+        @foreach (LoopItem variantgroup in GetLoop("VariantGroups"))
+        {
+            <text>var optionsArray = [];</text>
+
+            foreach (LoopItem variantoption in variantgroup.GetLoop("VariantAvailableOptions"))
+            {
+                string variantSelection = variantoption.GetBoolean("Ecom:VariantOption.Selected") ? "checked" : "";
+
+                <text>
+        var option = new Variants.VariantOption("@uniqueId", "@GetString("Ecom:Product.ID")", "@variantoption.GetValue("Ecom:VariantOption.ID")", "@variantoption.GetString("Ecom:VariantOption.Name")", "@variantSelection", "", "@variantoption.GetString("Ecom:VariantOption.Color")", "@variantoption.GetString("Ecom:VariantOption.ImgSmall.Clean")");
+        optionsArray.push(option);
+        </text>
+            }
+
+            <text>
+        var group = new Variants.VariantGroup("@GetString("Ecom:Product.ID")_@variantgroup.GetValue("Ecom:VariantGroup.ID")", "@variantgroup.GetValue("Ecom:VariantGroup.Name")", optionsArray);
+        variants.push(group);
+        </text>
+        }
+
+        var combinations = [];
+        @foreach (LoopItem variantcomb in GetLoop("VariantStockCombinations"))
+        {
+            <text>
+        combinations.push(new Variants.CombinationItem("@variantcomb.GetValue("Ecom:VariantStockCombination.VariantID")"));
+        </text>
+        }
+
+        variants = variants.sort(function (a, b) {
+            var firstVariantId = a.VariantOptions[0].variantId;
+            for (var i = 0; i < combinations.length; i++) {
+                var combinationIndex = combinations[i].id.indexOf(firstVariantId);
+                if (combinationIndex != -1) {
+                    return combinationIndex;
+                }
+            }
+            //should never happen
+            return 0;
+        });
+
+        Variants.SetProductFeedId('@feedId');
+        Variants.SetProductUrl('/@GetString("Ecom:Product.VariantLinkGroup.Clean")');
+
+        HandlebarsBolt.SetDataInCache(("Variants" + "@uniqueId"), variants);
+        HandlebarsBolt.SetDataInCache(("Combinations" + "@uniqueId"), combinations);
+
+        Variants.InitVariants(variants, combinations, "@productId", "@uniqueId");
+    });
+</script>
+
+
+@functions {
+    string getIconForFile(string fileName)
+    {
+        string ext = Path.GetExtension(fileName);
+        string icon = "";
+        switch (ext.ToLower())
+        {
+            case ".xls":
+            case ".xlsx":
+                icon = "fa-file-excel";
+                break;
+            case ".ppt":
+            case ".pptx":
+                icon = "fa-file-powerpoint";
+                break;
+            case ".doc":
+            case ".docx":
+                icon = "fa-file-word";
+                break;
+            case ".jpg":
+            case ".jpeg":
+            case ".png":
+            case ".gif":
+            case ".pdf":
+                return "<img class='product__document-icon' alt='" + fileName + "' src='/Admin/Public/GetImage.ashx?crop=5&height=70&width=120&Compression=75&DoNotUpscale=true&image=" + fileName + "' />";
+            default:
+                icon = "fa-file";
+                break;
+        }
+        return "<i class='far " + icon + "'></i> ";
+    }
+
+    public static string ToPascalCase(string str)
+    {
+        return CultureInfo.InvariantCulture.TextInfo
+        .ToTitleCase(str.ToLowerInvariant())
+        .Replace("-", "")
+        .Replace("_", "")
+        .Replace(" ", "");
+    }
+}

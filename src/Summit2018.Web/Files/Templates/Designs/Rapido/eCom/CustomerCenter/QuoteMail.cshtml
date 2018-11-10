@@ -1,0 +1,73 @@
+﻿@inherits RazorTemplateBase<RazorTemplateModel<Template>>
+@using Dynamicweb.Rendering;
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using Dynamicweb.Security;
+
+@MasterPageFile("../../EmailMaster.cshtml")
+@Include("../../EmailHelpers.cshtml")
+
+<table bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="500" id="emailBody">
+    @RenderHeaderSection()
+    @RenderOrderList()
+    @RenderGiftcards()
+    @RenderComments()
+    @RenderFooterSection()
+</table>
+
+@* CONTENT HELPERS *@
+
+@helper RenderHeaderSection()
+{
+    @RenderHeaderImage();
+    
+    Column info = new Column();
+    info.header = Translate("Quote information");
+    info.text.Add(Translate("Quote no.") + " " + GetString("Ecom:Order.ID"));
+    info.align = "center";
+
+    @CreateRow(info);
+
+    @CreateRowDivider();
+}
+
+@helper RenderOrderList()
+{
+    foreach (LoopItem orderline in GetLoop("OrderLines"))
+    {
+        @RenderOrderline(orderline);
+
+        @CreateRowDivider();
+    }
+
+    @RenderSummary();
+    @RenderTotal();
+}
+
+
+@helper RenderSummary()
+{
+    Column summaryLeft = new Column();
+    summaryLeft.text.Add("Total");
+    summaryLeft.text.Add("VAT");
+
+    Column summaryRight = new Column();
+    summaryRight.text.Add(GetString("Ecom:Order.Price.PriceWithoutVATFormatted"));
+    summaryRight.text.Add(GetString("Ecom:Order.Price.VATFormatted"));
+    summaryRight.align = "right";
+
+    @CreateRow(summaryLeft, summaryRight);
+}
+
+
+@helper RenderTotal()
+{
+    Column totalsLeft = new Column();
+    totalsLeft.subheader = Translate("Total");
+
+    Column totalsRight = new Column();
+    totalsRight.subheader = GetString("Ecom:Order.Price.PriceWithVATFormatted");
+    totalsRight.align = "right";
+
+    @CreateRow(totalsLeft, totalsRight, new RowSettings { backgroundColor = "#e4e4e4" });
+}

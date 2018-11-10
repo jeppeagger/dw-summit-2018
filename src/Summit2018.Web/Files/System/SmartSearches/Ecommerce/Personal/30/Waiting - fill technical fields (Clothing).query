@@ -1,0 +1,70 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="c2469bb4-1fef-40a5-bb93-fdccb0607d96" Name="Waiting - fill technical fields (Clothing)">
+  <Settings />
+  <Source Repository="Products" Item="Products.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="Active" />
+        </Left>
+        <Right>
+          <TermExpression Value="True" DisplayValue="True" Type="System.Boolean" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="ShopIDs" />
+        </Left>
+        <Right>
+          <TermExpression Value="SHOP4" DisplayValue="SHOP4" Type="System.String[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Contains">
+        <Left>
+          <FieldExpression Field="IsVariant" />
+        </Left>
+        <Right>
+          <ConstantExpression Value="False" Type="System.Boolean[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="MatchAll">
+        <Left>
+          <FieldExpression Field="GroupNames" />
+        </Left>
+        <Right>
+          <ConstantExpression Value="Clothing" Type="System.String[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="WorkflowState" />
+        </Left>
+        <Right>
+          <TermExpression Value="2,3,1008" DisplayValue="Ready for Enrich technical details,Ready for Product manager,Ready for Product manager" Type="System.Int32[]" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields>
+    <Field Name="Active" SystemName="" Source="ProductActive" Sort="0" />
+    <Field Name="Product number" SystemName="" Source="ProductNumber" Sort="1" />
+    <Field Name="Product name" SystemName="" Source="ProductName" Sort="2" />
+    <Field Name="EAN" SystemName="" Source="CustomField_EAN" Sort="3" />
+    <Field Name="Material" SystemName="" Source="CustomField_Material" Sort="4" />
+    <Field Name="Clothing - Color" SystemName="" Source="ProductCategory|ClothingDetail|Color" Sort="5" />
+    <Field Name="Clothing - Composition" SystemName="" Source="ProductCategory|ClothingDetail|composition" Sort="6" />
+    <Field Name="Clothing - Form" SystemName="" Source="ProductCategory|ClothingDetail|Form" Sort="7" />
+    <Field Name="Clothing - Material" SystemName="" Source="ProductCategory|ClothingDetail|Material" Sort="8" />
+    <Field Name="Clothing - Model" SystemName="" Source="ProductCategory|ClothingDetail|Model" Sort="9" />
+    <Field Name="Clothing - Washing detail" SystemName="" Source="ProductCategory|ClothingDetail|Washing_detail" Sort="10" />
+    <Field Name="Clothing - Washing instructions" SystemName="" Source="ProductCategory|ClothingDetail|Washing_instructions" Sort="11" />
+    <Field Name="Workflow state" SystemName="" Source="ProductWorkflowStateId" Sort="12" />
+  </ViewFields>
+  <ViewLanguages>
+    <Language ID="LANG1" Name="English" SortOrder="0" />
+  </ViewLanguages>
+  <SortOrder>
+    <Sort Field="Updated" Direction="Ascending" />
+  </SortOrder>
+</Query>

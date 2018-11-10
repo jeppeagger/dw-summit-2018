@@ -1,0 +1,26 @@
+//Fix to make it possible to have fallbacks on Font Awesome 5 Free
+
+.fal, .far {
+    .font-awesome-mixin(); 
+}
+
+.font-awesome-mixin() when (@-use-font-awesome-pro = False) {
+	font-family: "Font Awesome 5 Free";
+    font-weight: 900;
+}
+
+.fa-heart-square::before, .fa-book-heart::before, .fa-box-heart::before, .fa-heart-circle::before {
+    .fa-heart-square-mixin(); 
+}
+
+.fa-heart-square-mixin() when (@-use-font-awesome-pro = False) {
+	content: "\f004";
+}
+
+.fa-dolly-flatbed-alt::before {
+    .fa-dolly-flatbed-alt-mixin(); 
+}
+
+.fa-dolly-flatbed-alt-mixin() when (@-use-font-awesome-pro = False) {
+	content: "\f472";
+}

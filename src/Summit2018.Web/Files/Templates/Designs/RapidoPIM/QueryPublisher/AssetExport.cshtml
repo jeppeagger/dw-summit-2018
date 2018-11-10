@@ -1,0 +1,59 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@Include("../ProductExport/eCom/ProductList/Includes/FeedHelpers.cshtml")
+
+@using System.Text;
+@using System.IO;
+@using System.Threading;
+@using System.Web;
+@using System.Xml.Linq;
+
+@{
+    List<string> assets = new List<string>();
+    List<string> documents = new List<string>();
+    List<string> images = new List<string>();
+    List<string> imageExtensions = new List<string>() { ".jpeg", ".jpg", ".tiff", ".psd", ".png", ".ai", ".svg" };
+    var assetPrefix = "Asset_";
+    foreach (var data in HttpContext.Current.Request.Form.AllKeys)
+    {
+        if (data.StartsWith(assetPrefix))
+        {
+            assets.Add(data.Remove(0, assetPrefix.Length));
+        }
+    }
+
+    string exportPurposeName = HttpContext.Current.Request.Form["purpose"];
+    string siteUrl = HttpContext.Current.Request.Form["siteUrl"];
+    string filename = string.Format("Assets_{0}", DateTime.Now.ToString());
+
+    var exportPurpose = GetExportPurposeByName(exportPurposeName);
+
+    HttpContext.Current.Response.ContentType = "application/zip";
+
+    HttpContext.Current.Response.AddHeader("Content-Disposition", string.Format("attachment;filename={0}.zip", filename));
+}
+
+@{
+
+    var zipEntries = new Dictionary<string, byte[]>();
+
+    //Assets
+    foreach (var asset in assets)
+    {
+        //Check if the file is an image
+        if(imageExtensions.Contains(Path.GetExtension(asset).ToLower()) || (Path.GetExtension(asset).ToLower() == ".pdf" && GetNumberOfPdfPages(asset, siteUrl) == 1))
+        {
+            images.Add(asset);
+        }
+        else
+        {
+            documents.Add(asset);
+        }
+    }
+
+    AddImagesToZip(images, exportPurpose, siteUrl, zipEntries);
+
+    AddDocumentsToZip(documents, siteUrl, zipEntries);
+
+    ZipContent(zipEntries);
+}

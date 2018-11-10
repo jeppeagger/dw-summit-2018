@@ -1,0 +1,30 @@
+﻿<WebsiteItemLayouts>
+  <PageItemLayouts>
+    <ItemLayout systemname="BlogArticle" template="" />
+    <ItemLayout systemname="BlogList" template="" />
+    <ItemLayout systemname="CaseArticle" template="" />
+    <ItemLayout systemname="CasesList" template="" />
+    <ItemLayout systemname="EventArticle" template="" />
+    <ItemLayout systemname="EventList" template="" />
+    <ItemLayout systemname="NewsArticle" template="" />
+    <ItemLayout systemname="Newsletter" template="" />
+    <ItemLayout systemname="NewsList" template="" />
+    <ItemLayout systemname="PartnerArticle" template="" />
+    <ItemLayout systemname="PartnersList" template="" />
+    <ItemLayout systemname="WhitePaper" template="" />
+    <ItemLayout systemname="WhitePaperList" template="" />
+  </PageItemLayouts>
+  <ParagraphItemLayouts>
+    <ItemLayout systemname="Maps" template="" />
+    <ItemLayout systemname="NewsletterBanner" template="" />
+    <ItemLayout systemname="NewsletterOneColumn" template="" />
+    <ItemLayout systemname="NewsletterParagraph" template="" />
+    <ItemLayout systemname="NewsletterProductList" template="" />
+    <ItemLayout systemname="NewsletterTwoColumns" template="" />
+    <ItemLayout systemname="Overlay" template="" />
+    <ItemLayout systemname="Paragraph" template="" />
+    <ItemLayout systemname="ParagraphContainer" template="" />
+    <ItemLayout systemname="PromotionProducts" template="" />
+    <ItemLayout systemname="Video" template="" />
+  </ParagraphItemLayouts>
+</WebsiteItemLayouts>

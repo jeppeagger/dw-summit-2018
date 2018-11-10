@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="0b8b5470-a1d5-4616-8eac-68d47cc78349" Name="WF3 - Ready for Productmanager (Clothing)">
+  <Settings />
+  <Source Repository="Products" Item="Products.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <SortOrder>
+    <Sort Field="Updated" Direction="Descending" />
+  </SortOrder>
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="ShopIDs" />
+        </Left>
+        <Right>
+          <TermExpression Value="SHOP4" DisplayValue="SHOP4" Type="System.String[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Contains">
+        <Left>
+          <FieldExpression Field="IsVariant" />
+        </Left>
+        <Right>
+          <ConstantExpression Value="False" Type="System.Boolean[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="GroupNames" />
+        </Left>
+        <Right>
+          <TermExpression Value="adidas,cannondale,clothing,descente,fortè,men,pearl,performance,shoes,terry,women" DisplayValue="adidas,cannondale,clothing,descente,fortè,men,pearl,performance,shoes,terry,women" Type="System.String[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="WorkflowState" />
+        </Left>
+        <Right>
+          <TermExpression Value="9" DisplayValue="Ready for Product manager" Type="System.Int32" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields>
+    <Field Name="Clothing - Color" SystemName="" Source="ProductCategory|ClothingDetail|Color" Sort="0" />
+    <Field Name="Clothing - Composition" SystemName="" Source="ProductCategory|ClothingDetail|composition" Sort="1" />
+    <Field Name="Clothing - Washing instructions" SystemName="" Source="ProductCategory|ClothingDetail|Washing_instructions" Sort="2" />
+    <Field Name="Clothing - Form" SystemName="" Source="ProductCategory|ClothingDetail|Form" Sort="3" />
+    <Field Name="Name" SystemName="" Source="ProductName" Sort="4" />
+    <Field Name="Number" SystemName="" Source="ProductNumber" Sort="5" />
+    <Field Name="Workflow state" SystemName="" Source="ProductWorkflowStateId" Sort="6" />
+  </ViewFields>
+  <ViewLanguages>
+    <Language ID="LANG1" Name="English" SortOrder="0" />
+    <Language ID="LANG2" Name="Danish" SortOrder="1" />
+  </ViewLanguages>
+  <Meta />
+</Query>

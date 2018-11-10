@@ -1,0 +1,78 @@
+//Steps
+
+.step-bar {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    background-color: @white;
+    border: 1px solid @gray;
+    height: 32px;
+    position: relative;
+}
+
+.step-bar__step {
+    display: inline-block;
+    width: 100%;
+    text-align: center;
+    text-transform: uppercase;
+    line-height: 32px;
+    color: @gray;
+    position: relative;
+}
+
+.step-bar__step::after, .step-bar__step::before {
+    content: " ";
+	left: 100%;
+	top: 50%;
+	border: solid transparent;
+	height: 0;
+	width: 0;
+	position: absolute;
+	pointer-events: none;
+    z-index: @z-index-2;
+}
+
+.step-bar__step::after {
+	border-color: rgba(136, 183, 213, 0);
+	border-left-color: @white;
+	border-width: 14px;
+	margin-top: -14px;
+}
+
+.step-bar__step::before {
+	border-color: rgba(194, 225, 245, 0);
+	border-left-color: @gray;
+	border-width: 16px;
+	margin-top: -16px;
+}
+
+.step-bar__step:last-child::after, .step-bar__step:last-child::before{
+	border-width: 0px;
+	margin-top: 0px;
+}
+
+.step-bar__step--active {
+    background-color: @brand-color-one;
+    color: @white;
+}
+
+.step-bar__step--active::after {
+    border-left-color: @brand-color-one;
+}
+
+@media (max-width: @reflex-sm) {
+    .step-bar {
+        display: block;
+        height: 100%;
+    }
+
+    .step-bar__step {
+        text-align: left;
+        padding: 0 @reflex-cell-spacing-sm;
+    }
+   
+    .step-bar__step::after, .step-bar__step::before{
+	    border-width: 0px;
+	    margin-top: 0px;
+    } 
+}

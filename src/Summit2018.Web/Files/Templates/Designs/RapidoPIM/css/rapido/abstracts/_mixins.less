@@ -1,0 +1,86 @@
+﻿//This is mixins for support website settings variables.
+//Each time you want to use some variable from website settings - just use these mixins instead of usual CSS properties.
+
+.background-color(@background-color) when not (@background-color = none) {   
+	background-color: @background-color;
+}
+
+.color(@color) when not (@color = none) {   
+    color: @color;
+}
+
+.font-size(@size, @unit) when not (@size = none) {   
+	font-size: unit(@size, @unit);
+}
+
+.font-family(@font-family, @base-family) when not (@font-family = none) {   
+	font-family: @font-family, @base-family;
+}
+
+.font-family(@font-family) {   
+	.font-family(@font-family, sans-serif);
+}
+
+.font-weight(@font-weight) when not (@font-weight = none) {   
+	font-weight: ~'@{font-weight}';
+}
+
+.line-height(@line-height, @unit) when not (@line-height = none) {   
+	line-height: unit(@line-height, @unit);
+}
+
+.line-height(@line-height) when not (@line-height = none) {   
+	line-height: @line-height;
+}
+
+.text-transform(@casing) when not (@casing = "none") {   
+	text-transform: ~'@{casing}';
+}
+
+//.border(@side, @size, @type, @color) when not (@size = none) and not (@type = none) and not (@color = none) {
+//    border-@{side}: @size @type @color;
+//}
+//suddenly don't support until 1.6.0 version
+
+.border-top(@size, @type, @color) when not (@size = none) and not (@type = none) and not (@color = none) {
+    border-top: @size @type @color;
+}
+
+.border-bottom(@size, @type, @color) when not (@size = none) and not (@type = none) and not (@color = none) {
+    border-bottom: @size @type @color;
+}
+
+.border-left(@size, @type, @color) when not (@size = none) and not (@type = none) and not (@color = none) {
+    border-left: @size @type @color;
+}
+
+.border-right(@size, @type, @color) when not (@size = none) and not (@type = none) and not (@color = none) {
+    border-right: @size @type @color;
+}
+
+.border-top-color(@color) when not (@color = none) {
+    border-top-color: @color;
+}
+
+.border-bottom-color(@color) when not (@color = none) {
+    border-bottom-color: @color;
+}
+
+.border-left-color(@color) when not (@color = none) {
+    border-left-color: @color;
+}
+
+.border-right-color(@color) when not (@color = none) {
+    border-right-color: @color;
+}
+
+//
+
+.font-mixin(@font-family, @font-size, @font-weight, @line-height, @font-color, @casing) {  
+    .font-family(@font-family);
+    .font-size(@font-size, px);
+    .font-weight(@font-weight);
+    .line-height(@line-height);
+    .color(@font-color);
+    .text-transform(@casing);
+}

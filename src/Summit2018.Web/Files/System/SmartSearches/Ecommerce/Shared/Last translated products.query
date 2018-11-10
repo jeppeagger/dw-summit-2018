@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="911fa8fb-6207-4cdf-98b3-5b50724094ab" Name="Last translated products">
+  <Settings />
+  <Source Repository="Products" Item="Products.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <SortOrder>
+    <Sort Field="Updated" Direction="Descending" />
+  </SortOrder>
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="LanguageID" />
+        </Left>
+        <Right>
+          <TermExpression Value="LANG1,LANG11,LANG13,LANG14,LANG2,LANG8" DisplayValue="English,Deutsch,Swedish,Norwegian,Danish,French" Type="System.String[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="ShopIDs" />
+        </Left>
+        <Right>
+          <TermExpression Value="SHOP4,SHOP5" DisplayValue="SHOP4,SHOP5" Type="System.String[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Contains">
+        <Left>
+          <FieldExpression Field="IsVariant" />
+        </Left>
+        <Right>
+          <ConstantExpression Value="False" Type="System.Boolean[]" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="WorkflowState" />
+        </Left>
+        <Right>
+          <TermExpression Value="1006,1010" DisplayValue="Ready for Publishing,Ready for Publishing" Type="System.Int32[]" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields>
+    <Field Name="Product number" SystemName="" Source="ProductNumber" Sort="0" />
+    <Field Name="Product name" SystemName="" Source="ProductName" Sort="1" />
+    <Field Name="Workflow state" SystemName="" Source="ProductWorkflowStateId" Sort="2" />
+  </ViewFields>
+  <ViewLanguages>
+    <Language ID="LANG2" Name="Danish" SortOrder="0" />
+    <Language ID="LANG1" Name="English" SortOrder="1" />
+  </ViewLanguages>
+</Query>

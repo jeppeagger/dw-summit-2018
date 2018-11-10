@@ -1,0 +1,697 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.PageViewModel>
+
+@* Rapido version 2.1 *@ 
+
+@using Dynamicweb.Frontend.Devices
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using Dynamicweb.Security;
+@using System
+@using System.Linq
+@using System.Web
+@using System.IO
+
+@{
+    string userInitials = "";
+    if (Model.CurrentUser.ID != 0)
+    {
+        if (!String.IsNullOrEmpty(Model.CurrentUser.Name))
+        {
+            string[] names = Model.CurrentUser.Name.Split(' ');
+            userInitials += Model.CurrentUser.Name.Substring(0, 1);
+
+            if (names.Length > 1)
+            {
+                userInitials += names[names.Length - 1].Substring(0, 1);
+            }
+        }
+        else
+        {
+            userInitials += Model.CurrentUser.FirstName != null && Model.CurrentUser.FirstName != "" ? Model.CurrentUser.FirstName.Substring(0, 1) : "";
+            userInitials += Model.CurrentUser.LastName != null && Model.CurrentUser.LastName != "" ? Model.CurrentUser.LastName.Substring(0, 1) : "";
+            userInitials += userInitials.Length == 1 && Model.CurrentUser.FirstName != null && Model.CurrentUser.FirstName.Length > 1 ? Model.CurrentUser.FirstName.Substring(1, 2) : "";
+            userInitials += userInitials == "" && Model.CurrentUser.Email != null && Model.CurrentUser.Email.Length > 1 ? Model.CurrentUser.Email.Substring(0, 2) : "";
+            userInitials += userInitials == "" ? Model.CurrentUser.UserName.Substring(0, 2) : "";
+        }
+    }
+
+    //General settings
+    string favicon = Model.Area.Item.GetFile("LogoFavicon") != null ? Model.Area.Item.GetFile("LogoFavicon").PathUrlEncoded : "/Files/Images/favicon.png";
+    string logo = Model.Area.Item.GetFile("LogoImage") != null ? Model.Area.Item.GetFile("LogoImage").PathUrlEncoded : "/Files/Images/logo-dynamicweb.png";
+    string logoHeight = !String.IsNullOrEmpty(Model.Area.Item.GetString("LogoHeight")) ? Model.Area.Item.GetString("LogoHeight") : "40";
+    logoHeight = logoHeight != "0" ? logoHeight : "40";
+    if (Path.GetExtension(logo).ToLower() != ".svg")
+    {
+        if (Pageview.Device.ToString() != "Mobile")
+        {
+            logo = "/Admin/Public/GetImage.ashx?height=" + logoHeight + "&amp;crop=5&amp;Compression=75&amp;image=" + @logo;
+        }
+        else
+        {
+            logoHeight = "40";
+            logo = "/Admin/Public/GetImage.ashx?height=40&amp;crop=5&amp;Compression=75&amp;image=" + @logo;
+        }
+    }
+    else
+    {
+        logo = HttpUtility.UrlDecode(logo);
+    }
+    bool megaMenu = Model.Area.Item.GetBoolean("NavigationMegaMenu");
+    bool stickyMenu = Pageview.Device.ToString() == "Mobile" ? false : Model.Area.Item.GetBoolean("NavigationStickyMenu");
+    string mobileNavigationLevels = Model.Area.Item.GetBoolean("MobileNavigationLevels") ? Model.Area.Item.GetString("MobileNavigationLevels") : "3";
+    string mobileTopLayout = !String.IsNullOrEmpty(Model.Area.Item.GetItem("MobileTopLayout").GetList("MobileLayoutTop").SelectedValue) ? Model.Area.Item.GetItem("MobileTopLayout").GetList("MobileLayoutTop").SelectedValue : "nav-left";
+    string mobileNavigationPosition = mobileTopLayout == "nav-left" || mobileTopLayout == "nav-search-left" ? "left" : "right";
+    string footerColumnOneContent = !string.IsNullOrEmpty(Model.Area.Item.GetString("FooterColumnOne")) ? Model.Area.Item.GetString("FooterColumnOne") : "";
+    string footerColumnTwoContent = !string.IsNullOrEmpty(Model.Area.Item.GetString("FooterColumnTwo")) ? Model.Area.Item.GetString("FooterColumnTwo") : "";
+    string searchPlaceholder = Translate("Search", "Search");
+    string userSignedInError = !Model.LogOnFailed ? "" : "checked";
+    string userSignedInErrorText;
+
+    switch (Model.LogOnFailedReason)
+    {
+        case Dynamicweb.Security.UserManagement.LogOnFailedReason.PasswordLengthInvalid:
+            userSignedInErrorText = Translate("Password length is invalid");
+            break;
+        case Dynamicweb.Security.UserManagement.LogOnFailedReason.IncorrectLogin:
+            userSignedInErrorText = Translate("Invalid email or password");
+            break;
+        case Dynamicweb.Security.UserManagement.LogOnFailedReason.ExceededFailedLogOnLimit:
+            userSignedInErrorText = Translate("You have exceeded the limit of allowed login attempts. The user account is temporarily locked");
+            break;
+        case Dynamicweb.Security.UserManagement.LogOnFailedReason.LoginLocked:
+            userSignedInErrorText = Translate("The user account is temporarily locked");
+            break;
+        case Dynamicweb.Security.UserManagement.LogOnFailedReason.PasswordExpired:
+            userSignedInErrorText = Translate("The password has expired and needs to be renewed");
+            break;
+        default:
+            userSignedInErrorText = Translate("An unknown error occured");
+            break;
+    }
+    string loggedIn = Model.CurrentUser != null ? "true" : "false";
+    string wireframeMode = Model.Area.Item.GetBoolean("WireframeMode").ToString();
+
+    //Font settings
+    string navigationFont = Model.Area.Item.GetItem("NavigationFont").GetGoogleFont("FontFamily").Family.Replace(" ", "+");
+    string mobileNavigationFont = Model.Area.Item.GetItem("MobileNavigationFont").GetGoogleFont("FontFamily").Family.Replace(" ", "+");
+    string headerFont = Model.Area.Item.GetItem("ContentLayoutHeaderFont").GetGoogleFont("FontFamily").Family.Replace(" ", "+");
+    string subHeaderFont = Model.Area.Item.GetItem("ContentLayoutSubheaderFont").GetGoogleFont("FontFamily").Family.Replace(" ", "+");
+    string contentFont = Model.Area.Item.GetItem("ContentLayoutBodyText").GetGoogleFont("FontFamily").Family.Replace(" ", "+");
+    string newStickersFont = Model.Area.Item.GetItem("NewStickersFont").GetGoogleFont("FontFamily").Family.Replace(" ", "+");
+    string customStickersFont = Model.Area.Item.GetItem("CustomStickersFont").GetGoogleFont("FontFamily").Family.Replace(" ", "+");
+
+    //Page IDs for use in the template
+    string firstPageId = Model.Area.FirstActivePage.ID.ToString();
+    string areaId = Model.Area.ID.ToString();
+    string autoCssLink = "/Files/Templates/Designs/RapidoPIM/css/rapido/rapidopim_" + @areaId + ".min.css?ticks=" + Model.Area.UpdatedDate.Ticks;
+    bool useFontAwesomePro = Model.Area.Item.GetItem("Icons").GetString("UseFontAwesomePro") != null ? Model.Area.Item.GetItem("Icons").GetBoolean("UseFontAwesomePro") : false;
+
+    int pageId = Model.TopPage.ID;
+    string newsletterSignUpPageId = GetPageIdByNavigationTag("NewsletterSignUp").ToString();
+    string searchPageId = "";
+
+    string stickyTop = stickyMenu ? "top-container--sticky" : "";
+    string pagePos = stickyMenu ? "js-page-pos" : "";
+    string topLayout = Model.Area.Item.GetList("LayoutTop").SelectedValue;
+    string megamenuPromotionImage = Model.Area.Item.GetFile("NavigationMegamenuPromotionImage") != null ? Model.Area.Item.GetFile("NavigationMegamenuPromotionImage").PathUrlEncoded : "";
+    bool renderPagesInToolBar = Model.Area.Item.GetBoolean("RenderPagesInToolBar");
+    string toolbarText = Model.Area.Item.GetString("ToolbarText");
+}
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@Model.TopPage.Name</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Favicon -->
+    <link href="@favicon" rel="icon" type="image/png">
+
+    <!-- Font awesome -->
+    @if (useFontAwesomePro)
+    {
+        <link rel="stylesheet" href="/Files/Templates/Designs/Rapido/css/fonts/FontAwesomePro/css/fontawesome-all.min.css" type="text/css">
+    }
+    else
+    {
+        <link rel="stylesheet" href="/Files/Templates/Designs/Rapido/css/fonts/FontAwesomeFree/css/fontawesome-all.min.css" type="text/css">
+    }
+
+    <!-- Base (Default, wireframe) styles -->
+    <link rel="stylesheet" href="/Files/Templates/Designs/Rapido/css/base/base.min.css" type="text/css">
+
+    <!-- Rapido Css from Website Settings -->
+    <link id="rapidoCss" rel="stylesheet" href="@autoCssLink" type="text/css">
+
+    <!-- Ignite Css (Custom site specific styles) -->
+    <link id="igniteCss" type="text/css" href="/Files/Templates/Designs/Rapido/css/ignite/ignite.min.css" rel="stylesheet">
+
+    <!-- Google fonts -->
+    @{
+        var fonts = new string[5] { @navigationFont, @mobileNavigationFont, @headerFont, @subHeaderFont, @contentFont };
+        var family = string.Join("%7C", fonts.Distinct().Select(x => string.Format("{0}:100,200,300,400,500,600,700,800,900", x)));
+    }
+    <link href="https://fonts.googleapis.com/css?family=@family" rel="stylesheet">
+</head>
+
+<body>
+    @MobileNavigation(userInitials, mobileNavigationPosition)
+
+    @LoginModal()
+
+    <main class="site dw-mod">
+        <header class="top-container @stickyTop dw-mod" id="top">
+            @if (renderPagesInToolBar)
+            {
+                <div class="tools-navigation dw-mod">
+                    <div class="center-container grid top-container__center-container dw-mod">
+                        <div class="grid__cell">
+                            <div class="u-pull--left u-margin-top">@toolbarText</div>
+                            <div class="u-pull--right">
+                                @RenderNavigation(new
+                                {
+                                    id = "topnavigation",
+                                    cssclass = "menu menu-tools dw-mod dwnavigation",
+                                    template = "TopMenu.xslt"
+                                })
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+
+
+            @if (Pageview.Device.ToString() != "Mobile" && Pageview.Device.ToString() != "Tablet")
+            {
+                switch (topLayout)
+                {
+                    case "condensed": //2
+                    <!-- Main navigation -->
+                        <nav class="main-navigation dw-mod">
+                            <div class="center-container top-container__center-container dw-mod">
+                                <div class="grid">
+
+                                    <div class="grid__col-md-3 grid--align-self-center grid__col--bleed">
+                                        <div class="logo u-padding--xs dw-mod">
+                                            <a href="/Default.aspx?ID=@firstPageId">
+                                                <img class="grid__cell-img logo__img dw-mod" src="@logo" alt="@Translate("Logo")" />
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    @* Navigation *@
+                                    <div class="u-pull--left">
+                                        @RenderHeaderNavigation()
+                                    </div>
+
+                                    <div class="grid__cell grid__cell--align-middle-right">
+                                        @RenderSignIn("inNavigation", userInitials)
+                                        <ul class="menu dw-mod u-pull--right">
+                                            @RenderLanguageSelector()
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </nav>
+
+                        break;
+                    case "minimal": //3
+                    <!-- Main navigation -->
+                        <nav class="main-navigation dw-mod">
+                            <div class="center-container top-container__center-container dw-mod">
+                                <div class="grid">
+
+                                    <div class="grid__col-md-3 grid--align-self-center grid__col--bleed">
+                                        <div class="logo u-padding--xs dw-mod">
+                                            <a href="/Default.aspx?ID=@firstPageId">
+                                                <img class="grid__cell-img logo__img dw-mod" src="@logo" alt="@Translate("Logo")" />
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    @* Navigation *@
+                                    <div class="u-pull--left">
+                                        @RenderHeaderNavigation()
+                                    </div>
+
+                                    <div class="grid__cell grid__cell--align-middle-right">
+                                        @RenderSignIn("inNavigation", userInitials)
+                                        <ul class="menu dw-mod u-pull--right">
+                                            @RenderLanguageSelector()
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </nav>
+                        break;
+                    case "splitted": //4
+                    <!-- Header -->
+                        <div class="header header-top dw-mod">
+                            <div class="center-container top-container__center-container dw-mod">
+                                <div class="grid">
+
+                                    @* Logo *@
+                                    <div class="grid__col-md-6 grid__col-sm-6 grid--align-self-center grid__col--bleed">
+                                        <div class="grid__cell">
+                                            <div class="logo dw-mod">
+                                                <a href="/Default.aspx?ID=@firstPageId">
+                                                    <img class="grid__cell-img logo__img dw-mod" src="@logo" alt="@Translate("Logo")" />
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Main navigation -->
+                        <nav class="main-navigation dw-mod">
+                            <div class="center-container top-container__center-container dw-mod">
+                                <div class="grid">
+                                    <div class="u-pull--left">
+                                        @RenderHeaderNavigation()
+                                    </div>
+                                    <div class="grid__cell grid__cell--align-middle-right">
+                                        @RenderSignIn("inNavigation", userInitials)
+                                        <ul class="menu dw-mod u-pull--right">
+                                            @RenderLanguageSelector()
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                        </nav>
+
+                        break;
+                    case "normal": //1
+                    default:
+                    <!-- Header -->
+                        <div class="header header-top dw-mod">
+                            <div class="center-container top-container__center-container dw-mod">
+                                <div class="grid">
+
+                                    @* Logo *@
+                                    <div class="grid__col-md-3 grid__col-sm-3 grid__col-xs-12 grid--align-self-center grid__col--bleed-y">
+                                        <div class="logo dw-mod">
+                                            <a href="/Default.aspx?ID=@firstPageId">
+                                                <img class="grid__cell-img" src="@logo" alt="@Translate("Logo")" />
+                                            </a>
+                                        </div>
+                                    </div>
+
+                                    <div class="grid__col-md-4 grid__col-sm-4 grid__col-xs-12 grid__col--bleed-y grid--align-self-center">
+                                        <div class="grid__cell grid__cell--align-middle-right">
+                                            @RenderSignIn("outsideNavigation", userInitials)
+                                            <ul class="menu dw-mod u-pull--right">
+                                                @RenderLanguageSelector("outsideNavigation")
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    <!-- Main navigation -->
+                        <nav class="main-navigation dw-mod">
+                            <div class="center-container top-container__center-container dw-mod">
+                                <div class="grid">
+                                    @RenderHeaderNavigation()
+                                </div>
+                            </div>
+                        </nav>
+
+                        break;
+                }
+            }
+            else
+            {
+                string style = (topLayout == "normal" || topLayout == "splitted" ? "main-navigation--top-style" : "main-navigation--nav-style");
+                <!-- Main navigation -->
+                <nav class="main-navigation dw-mod @style">
+                    <div class="center-container top-container__center-container dw-mod">
+                        <div class="grid">
+                            @MobileNavigationTrigger()
+
+                            <div class="logo dw-mod">
+                                <a href="/Default.aspx?ID=@firstPageId">
+                                    <img class="grid__cell-img logo__img dw-mod" src="@logo" alt="@Translate("Logo")" />
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </nav>
+            }
+        </header>
+
+        <!-- Render the content -->
+        <div id="Page" class="page @pagePos">
+            <section class="center-container content-container dw-mod" id="content">
+                @ContentPlaceholder()
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer section -->
+    @RenderFooter()
+
+<!-- Helpers -->
+@helper RenderLanguageSelector(string type = "inNavigation")
+{
+    string liClasses = type == "inNavigation" ? "menu__item menu__item--horizontal menu__item--top-level dw-mod u-hidden-xxs" : "menu__item menu__item--horizontal menu--clean u-w40px dw-mod";
+    string menuLinkClass = type == "inNavigation" ? "menu__link" : "header-menu__link";
+
+    @* Language selector *@
+    if (Model.Languages.Count > 0)
+    {
+        <li class="@liClasses">
+            <div class="@menuLinkClass u-w40px is-dropdown is-dropdown--no-icon dw-mod">
+                <i class="fas fa-globe fa-1_5x"></i>
+                <div class="menu menu--dropdown u-w100px dw-mod">
+                    @foreach (var lang in Model.Languages)
+                    {
+                        <a href="/Default.aspx?ID=@lang.Page.ID" class="menu-dropdown__item menu-dropdown__item--link dw-mod">@lang.Name</a>
+                    }
+                </div>
+            </div>
+        </li>
+    }
+}
+
+    
+@helper RenderSignIn(string type = "inNavigation", string userInitials = "")
+{
+    string liClasses = type == "inNavigation" ? "menu__item menu__item--horizontal menu__item--top-level dw-mod u-hidden-xxs" : "menu__item menu__item--horizontal menu__item--clean u-w40px dw-mod";
+    string menuLinkClass = type == "inNavigation" ? "menu__link" : "header-menu__link";
+
+    int pageId = Model.TopPage.ID;
+    int signInProfilePageId = GetPageIdByNavigationTag("SignInPage");
+    
+    string userIcon = !String.IsNullOrEmpty(Model.Area.Item.GetItem("Icons").GetList("SignInProfileIcon").SelectedValue) ? Model.Area.Item.GetItem("Icons").GetList("SignInProfileIcon").SelectedValue.ToLower() : "fas fa-user";
+
+
+    @* Sign in + Customer center links *@
+    <li class="@liClasses">
+        <div class="@menuLinkClass is-dropdown is-dropdown--no-icon u-w40px dw-mod">
+            @if (Model.CurrentUser.ID <= 0)
+            {
+                <i class="@userIcon fa-1_5x"></i>
+            }
+            else
+            {
+                <a href="#" class="u-color-inherit"><div class="circle-icon-btn">@userInitials.ToUpper()</div></a>
+            }
+
+            <div class="menu menu--dropdown sign-in-dropdown dw-mod">
+                <ul class="list list--clean dw-mod">
+                    @if (Model.CurrentUser.ID <= 0)
+                    {
+                        <li>
+                            <label for="SignInModalTrigger" class="btn btn--primary btn--full u-no-margin sign-in-modal-trigger-button dw-mod" onclick="setTimeout(function () { document.getElementById('LoginUsername').focus() }, 10)">@Translate("Sign in")</label>
+                        </li>
+                    }
+                    else
+                    {
+                        <li>
+                            <a href="/Admin/Public/ExtranetLogoff.aspx?ID=@pageId" class="list__link dw-mod">@Translate("Sign out")</a>
+                        </li>
+                    }
+                </ul>
+            </div>
+        </div>
+    </li>
+}
+<!-- Content rendering helpers -->
+
+@helper MobileNavigation(string userInitials, string position) {
+int pageId = Model.TopPage.ID;
+string mobileNavigationLevels = Model.Area.Item.GetBoolean("MobileNavigationLevels") ? Model.Area.Item.GetString("MobileNavigationLevels") : "3";
+
+bool renderPagesInToolBar = Model.Area.Item.GetBoolean("RenderPagesInToolBar");
+bool isSlidesDesign = Model.Area.Item.GetList("MobileNavigationDesign").SelectedValue == "Slides";
+string menuTemplate = isSlidesDesign ? "BaseMenuForMobileSlides.xslt" : "BaseMenuForMobileExpandable.xslt";
+int startLevel = renderPagesInToolBar ? 1 : 0;
+
+string userIcon = !String.IsNullOrEmpty(Model.Area.Item.GetItem("Icons").GetList("SignInProfileIcon").SelectedValue) ? Model.Area.Item.GetItem("Icons").GetList("SignInProfileIcon").SelectedValue.ToLower() : "fas fa-user";
+
+if (Pageview.Device.ToString() == "Mobile" || Pageview.Device.ToString() == "Tablet")
+{
+        <!-- Trigger for mobile navigation -->
+        <input type="checkbox" id="MobileNavTrigger" class="mobile-nav-trigger mobile-nav-trigger--@position" autocomplete="off" />
+
+        <!-- Mobile navigation -->
+        <nav class="mobile-navigation mobile-navigation--@position dw-mod">
+
+            @RenderNavigation(new
+       {
+           id = "mobilenavigation",
+           cssclass = "menu menu-mobile dwnavigation",
+           startLevel = @startLevel,
+           ecomStartLevel = @startLevel + 1,
+           endlevel = @mobileNavigationLevels,
+           expandmode = "all",
+           template = @menuTemplate
+       })
+
+            @if (Model.Area.Item.GetBoolean("RenderPagesInToolBar"))
+            {
+            @RenderNavigation(new
+           {
+               id = "topToolsMobileNavigation",
+               cssclass = "menu menu-mobile dwnavigation",
+               template = "ToolsMenuForMobile.xslt"
+           })
+            }
+
+            <ul class="menu menu-mobile">
+                @if (Model.CurrentUser.ID <= 0)
+                {
+                <li class="menu-mobile__item">
+                    <label for="SignInModalTrigger" onclick="document.getElementById('MobileNavTrigger').checked = false;" class="menu-mobile__link dw-mod menu-mobile__link--highlighted"><i class="@userIcon menu-mobile__link-icon"></i> @Translate("Sign in")</label>
+                </li>
+                }
+                else
+                {
+                <li class="menu-mobile__item">
+                    <label for="MobileNavTrigger"><a class="menu-mobile__link menu-mobile__link--highlighted dw-mod" href="/Admin/Public/ExtranetLogoff.aspx?ID=@pageId"><i class="@userIcon menu-mobile__link-icon"></i> @Translate("Sign out")</a></label>
+                </li>
+                }
+            </ul>
+        </nav>
+        <label class="mobile-nav-trigger-off" for="MobileNavTrigger"></label>
+    }
+}
+
+@helper RenderHeaderNavigation()
+{
+    bool megaMenu = Model.Area.Item.GetList("NavigationMegaMenu").SelectedValue.ToLower() == "true" ? true : false;
+    string megamenuPromotionImage = Model.Area.Item.GetFile("NavigationMegamenuPromotionImage") != null ? Model.Area.Item.GetFile("NavigationMegamenuPromotionImage").PathUrlEncoded : "";
+    bool renderPagesInToolBar = Model.Area.Item.GetBoolean("RenderPagesInToolBar");
+    int startLevel = renderPagesInToolBar ? 1 : 0;
+
+    if (Pageview.Device.ToString() != "Mobile" && Pageview.Device.ToString() != "Tablet")
+    {
+        if (!megaMenu)
+        {
+            @RenderNavigation(new
+            {
+               id = "topnavigation",
+               cssclass = "menu dw-mod dwnavigation u-full-max-width",
+               startLevel = @startLevel,
+               ecomStartLevel = @startLevel + 1,
+               endlevel = 5,
+               expandmode="all",
+               template = "BaseMenuWithDropdown.xslt"
+            });
+        }
+        else
+        {
+            @RenderNavigation(new
+            {
+               id = "topnavigation",
+               cssclass = "menu dw-mod dwnavigation u-full-max-width",
+               startLevel = @startLevel,
+               ecomStartLevel = @startLevel + 1,
+               endlevel = 5,
+               promotionImage = megamenuPromotionImage,
+               promotionLink = Model.Area.Item.GetString("NavigationMegamenuPromotionLink"),
+               expandmode="all",
+               template = "BaseMegaMenu.xslt"
+            });
+        }
+    }
+}
+
+@helper MobileNavigationTrigger()
+{
+    @* Mobile navigation trigger *@
+
+    if (Pageview.Device.ToString() == "Mobile" || Pageview.Device.ToString() == "Tablet")
+    {
+        <div class="menu dw-mod u-pull--left">
+            <div class="menu__item menu__item--horizontal menu__item--top-level dw-mod">
+                <label for="MobileNavTrigger" class="mobile-nav-trigger-button menu__link dw-mod"></label>
+            </div>
+        </div>
+    }
+}
+
+    
+@helper LoginModal() {
+    int pageId = Model.TopPage.ID;
+    string topLayout = Model.Area.Item.GetList("LayoutTop").SelectedValue;
+    int signInProfilePageId = GetPageIdByNavigationTag("SignInPage");
+    string userSignedInError = !Model.LogOnFailed ? "" : "checked";
+    string userSignedInErrorText = "";
+
+    if (Model.LogOnFailed) {
+        switch (Model.LogOnFailedReason)
+        {
+            case Dynamicweb.Security.UserManagement.LogOnFailedReason.PasswordLengthInvalid:
+                userSignedInErrorText = Translate("Password length is invalid");
+                break;
+            case Dynamicweb.Security.UserManagement.LogOnFailedReason.IncorrectLogin:
+                userSignedInErrorText = Translate("Invalid email or password");
+                break;
+            case Dynamicweb.Security.UserManagement.LogOnFailedReason.ExceededFailedLogOnLimit:
+                userSignedInErrorText = Translate("You have exceeded the limit of allowed login attempts. The user account is temporarily locked");
+                break;
+            case Dynamicweb.Security.UserManagement.LogOnFailedReason.LoginLocked:
+                userSignedInErrorText = Translate("The user account is temporarily locked");
+                break;
+            case Dynamicweb.Security.UserManagement.LogOnFailedReason.PasswordExpired:
+                userSignedInErrorText = Translate("The password has expired and needs to be renewed");
+                break;
+            default:
+                userSignedInErrorText = Translate("An unknown error occured");
+                break;
+        }
+    }
+
+    <!-- Trigger for the login modal -->
+    <input type="checkbox" id="SignInModalTrigger" class="modal-trigger @topLayout" @userSignedInError />
+
+    <!-- Login modal -->
+    <div class="modal-container">
+        <label for="SignInModalTrigger" id="SignInModalOverlay" class="modal-overlay"></label>
+        <div class="modal modal--xs" id="SignInModal">
+            <div class="modal__header">
+                <h2>@Translate("Sign in")</h2>
+            </div>
+            <div class="modal__body">
+                <form method="post" id="LoginForm" class="u-no-margin">
+                    <input type="hidden" name="ID" value="@pageId" />
+                    <input type="hidden" name="DWExtranetUsernameRemember" value="True" />
+                    <input type="hidden" name="DWExtranetPasswordRemember" value="True" />
+                    <input type="text" class="u-full-width" id="LoginUsername" name="username" placeholder="@Translate("Email")" />
+                    <input type="password" class="u-full-width" id="LoginPassword" name="password" placeholder="@Translate("Password")" />
+                    <div class="field-error dw-mod">@userSignedInErrorText</div>
+
+                    <div class="form__field-group dw-mod">
+                        <input type="checkbox" id="rememberMe" name="Autologin" checked="checked" value="True" class="form__control">
+                        <label for="rememberMe">@Translate("Remember me")</label>
+                    </div>
+
+                    <button type="submit" class="btn btn--primary btn--full dw-mod" name="LoginAction" value="Login" onclick="Buttons.LockButton(event)">@Translate("Sign in")</button>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+@helper RenderFooter()
+{
+    string footerColumnOneContent = !string.IsNullOrEmpty(Model.Area.Item.GetString("FooterColumnOne")) ? Model.Area.Item.GetString("FooterColumnOne") : "";
+    string footerColumnTwoContent = !string.IsNullOrEmpty(Model.Area.Item.GetString("FooterColumnTwo")) ? Model.Area.Item.GetString("FooterColumnTwo") : "";
+    string footerColumnThreeContent = !string.IsNullOrEmpty(Model.Area.Item.GetString("FooterColumnThree")) ? Model.Area.Item.GetString("FooterColumnThree") : "";
+    string footerColumnOneHeader = Model.Area.Item.GetString("FooterColumnOneHeader");
+    string footerColumnTwoHeader = Model.Area.Item.GetString("FooterColumnTwoHeader");
+    string footerColumnThreeHeader = Model.Area.Item.GetString("FooterColumnThreeHeader");
+    int newsletterSignUpPageId = GetPageIdByNavigationTag("NewsletterSignUp");
+
+    <!-- Footer section -->
+    <footer class="footer dw-mod">
+        <div class="center-container top-container__center-container dw-mod">
+            <div class="grid grid--external-bleed-x">
+                @if (!string.IsNullOrEmpty(footerColumnOneContent) || !string.IsNullOrEmpty(footerColumnOneHeader))
+                {
+                    <div class="grid__col-md-auto">
+                        <h4 class="footer__heading dw-mod">@footerColumnOneHeader</h4>
+                        <div class="footer__content dw-mod">
+                            @footerColumnOneContent
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(footerColumnTwoContent) || !string.IsNullOrEmpty(footerColumnTwoHeader))
+                {
+                    <div class="grid__col-md-auto">
+                        <h4 class="footer__heading dw-mod">@footerColumnTwoHeader</h4>
+                        <div class="footer__content dw-mod">
+                            @footerColumnTwoContent
+                        </div>
+                    </div>
+                }
+                @if (!string.IsNullOrEmpty(footerColumnThreeContent) || !string.IsNullOrEmpty(footerColumnThreeHeader))
+                {
+                    <div class="grid__col-md-auto">
+                        <h4 class="footer__heading dw-mod">@footerColumnThreeHeader</h4>
+                        <div class="footer__content dw-mod">
+                            @footerColumnThreeContent
+                        </div>
+                    </div>
+                }
+                @if (Model.Area.Item.GetBoolean("FooterNewsletterSignUp"))
+                {
+                <div class="grid__col-md-auto">
+                    <h4 class="footer__heading dw-mod">@Translate("Mailing list", "Mailing list")</h4>
+                    <div class="footer__content dw-mod">
+                        <p>@Translate("Sign up if you would like to receive occasional treats from us", "Sign up if you would like to receive occasional treats from us").</p>
+                        <form class="form dw-mod" name="NewsletterRedirect" action='/Default.aspx' method="get" enctype="multipart/form-data">
+                            <input name="ID" value="@newsletterSignUpPageId" type="hidden" />
+                            <div class="form__field-combi">
+                                <input name="NewsletterEmail" id="NewsletterEmail" type="text" placeholder='@Translate("Your email address", "Your email address")' />
+                                <input class="btn btn--primary dw-mod" type="submit" id="Submitter" value='@Translate("Go", "Go")' />
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                }
+                @if (Model.Area.Item.GetItems("FooterSocialLinks").Count > 0)
+                {
+                <div class="grid__col-md-auto">
+                    <h4 class="footer__heading dw-mod">@Translate("Social links", "Social links")</h4>
+                    <div class="footer__content dw-mod">
+                        <div class="collection dw-mod">
+                            @foreach (var socialitem in Model.Area.Item.GetItems("FooterSocialLinks"))
+                            {
+                                //Fields.FirstOrDefault(x => x.SystemName == "Icon").GetString()
+                                var socialIcon = socialitem.GetValue("Icon") as Dynamicweb.Frontend.ListViewModel;
+                                string socialIconClass = socialIcon.SelectedValue;
+                                string socialIconTitle = socialIcon.SelectedName;
+                                string socialLink = socialitem.GetString("Link");
+
+                                <a href="@socialLink" target="_blank" title="@socialIconTitle"><i class="@socialIconClass fa-2x"></i></a>
+                            }
+                    </div>
+                    </div>
+                </div>
+                }
+                <div class="grid__col-12 footer__copyright dw-mod">
+                    <p>@Model.Area.Item.GetString("FooterCopyrightText")</p>
+                </div>
+            </div>
+        </div>
+    </footer>
+}
+
+    <!-- Javascript -->
+    <script src="/Files/Templates/Designs/Rapido/js/handlebars-v4.0.11.js"></script>
+    <script src="/Files/Templates/Designs/Rapido/js/master.min.js"></script>
+
+    @if (Model.Area.Item.GetBoolean("UseCustomJavascript"))
+    {
+        <script src="/Files/Templates/Designs/Rapido/js/custom.min.js"></script>
+    }
+    <!--@Javascripts-->
+</body>
+</html>
+

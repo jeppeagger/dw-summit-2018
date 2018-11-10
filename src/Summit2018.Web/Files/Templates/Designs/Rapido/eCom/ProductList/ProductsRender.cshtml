@@ -1,0 +1,136 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Frontend.Devices
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic;
+@using System.Linq
+@using System.Text.RegularExpressions
+@using Dynamicweb.Rapido.Blocks
+  
+@functions { 
+    BlocksPage productListPage = BlocksPage.GetBlockPage("ProductList");
+}
+
+@{
+    Block pageContainer = new Block()
+    {
+        Id = "PageContainer",
+        Template = RenderPageĆontainer(),
+        SkipRenderBlocksList = true
+    };
+    productListPage.Add(pageContainer);
+
+    Block productListNavigation = new Block()
+    {
+        Id = "Navigation",
+        SortId = 20,
+        Design = new Design
+        {
+            RenderType = RenderType.Column,
+            Size = "3"
+        }
+    };
+    productListPage.Add("PageContainer", productListNavigation);
+
+    Block productListContainer = new Block()
+    {
+        Id = "ProductList",
+        SortId = 30,
+        Template = RenderProductList(),
+        SkipRenderBlocksList = true
+    };
+    productListPage.Add("PageContainer", productListContainer);
+
+    Block productListSnippets = new Block()
+    {
+        Id = "BottomSnippets",
+        SortId = 40
+    };
+    productListPage.Add(productListSnippets);
+}
+
+@* This is required for the product list feed to work *@
+@GetValue("DoNotRenderProductListTemplate")
+
+@* Include the required Grid builder (Contains the methods @RenderBlockList and @RenderBlock) *@
+@Include("../../Components/GridBuilder.cshtml")
+
+@* Include the Blocks for the page *@
+@Include("Blocks/Products.cshtml")
+@Include("Blocks/ViewList.cshtml")
+@Include("Blocks/ViewGrid.cshtml")
+@Include("Blocks/ViewDetails.cshtml")
+@Include("Blocks/Promotions.cshtml")
+@Include("Blocks/Menu.cshtml")
+@Include("Blocks/Facets.cshtml")
+@Include("Blocks/ListMore.cshtml")
+@Include("Blocks/BottomSnippets.cshtml")
+@Include("Blocks/Custom__Blocks.cshtml")
+@Include("Blocks/ListActions.cshtml")
+
+@if (productListNavigation.BlocksList.Count < 1) {
+    productListNavigation.Design.RenderType = RenderType.Hide;
+}
+
+<form name="multiForm" id="multiForm" method="post">
+	<input type="hidden" name="CartCmd" id="CartCmd" value="addMulti" />
+    @* The @RenderBlockList base helper is included in Components/GridBuilder.cshtml *@
+    @RenderBlockList(productListPage.BlocksRoot.BlocksList)
+</form>
+
+@helper RenderPageĆontainer() {
+    List<Block> subBlocks = this.productListPage.GetBlockListById("PageContainer").OrderBy(item => item.SortId).ToList();
+
+    string pageUrl = GetGlobalValue("Global:Pageview.Url.Raw");
+    string listId = HttpContext.Current.Request.QueryString.Get("ListID");
+    bool isFavoriteList = !String.IsNullOrEmpty(listId) ? true : false;
+    string feedFullUrl = pageUrl + "&feed=true";
+    feedFullUrl += !isFavoriteList ? "&DoNotShowVariantsAsSingleProducts=True" : "";
+
+    <div class="grid grid--external-bleed grid--align-content-start js-handlebars-root" id="productList" data-template="ProductContainer" data-pre-render-template="ProductPreRenderContainer" data-json-feed="@feedFullUrl" data-preloader="overlay"></div>
+
+    <script id="ProductContainer" type="text/x-template">
+        {{#each .}}
+            @RenderBlockList(subBlocks)
+        {{else}}
+            <div class="grid__col-12">
+                <h2 class="u-ta-center">@Translate("Your search gave 0 results")</h2>
+            </div>
+        {{/each}}
+    </script>
+}
+
+@helper RenderProductList() {
+    @*This is part of a script template *@
+
+    List<Block> subBlocks = productListPage.GetBlockListById("ProductList").OrderBy(item => item.SortId).ToList();
+
+    string pageId = GetGlobalValue("Global:Page.ID");
+    string pageUrl = GetGlobalValue("Global:Pageview.Url.Raw");
+    string listId = HttpContext.Current.Request.QueryString.Get("ListID");
+    bool isFavoriteList = !String.IsNullOrEmpty(listId) ? true : false;
+    string feedFullUrl = pageUrl + "&feed=true";
+    feedFullUrl += !isFavoriteList ? "&DoNotShowVariantsAsSingleProducts=True" : "";
+
+    <div class="grid__col-auto">
+        @if (isFavoriteList)
+        {
+            string searchPlaceholder = Translate("Search favorite products", "Search favorite products");
+            string searchValue = HttpContext.Current.Request.QueryString.Get("Search") != null ? HttpContext.Current.Request.QueryString.Get("Search") : "";
+            <div class="grid--align-self-center grid__col--bleed grid__col-12 u-margin-bottom">
+                <div class="typeahead u-margin u-color-inherit js-typeahead" data-page-size="10" id="FavoritesSearch" data-list-id="@listId" data-search-feed-id="@pageId&feed=true" data-result-page-id="@pageId">
+                    <input type="text" class="typeahead-search-field u-no-margin u-full-width js-typeahead-search-field" placeholder="@searchPlaceholder" value="@searchValue">
+                    <ul class="dropdown dropdown--absolute-position u-full-width js-handlebars-root js-typeahead-search-content u-min-w220px u-full-width dw-mod" id="FavoritesSearchContent" data-template="SearchProductsTemplate" data-json-feed="@feedFullUrl&ListID=@listId" data-init-onload="false" data-preloader="minimal"></ul>
+                    <button type="button" class="btn btn--condensed btn--primary u-no-margin dw-mod js-typeahead-enter-btn"><i class="fas fa-search"></i></button>
+                </div>
+            </div>
+        }
+
+        <div class="grid__cell">
+           @RenderBlockList(subBlocks) 
+        </div>
+    </div>
+}                                                                        

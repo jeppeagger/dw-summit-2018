@@ -1,0 +1,47 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+
+
+@functions {
+    public class Comment
+    {
+        public string comment { get; set; }
+        public string count { get; set; }
+        public string targetElement { get; set; }
+    }
+
+    public class Root
+    {
+        public List<Comment> Comment { get; set; }
+    }
+}
+
+@{
+    string jsonFeed = "";
+    int count = 0;
+
+    List<Root> feedObject = new List<Root>();
+    Root feedRoot = new Root();
+
+    feedRoot.Comment = new List<Comment>();
+
+    foreach (LoopItem item in GetLoop("ItemPublisher:Items.List"))
+    {
+        Comment comment = new Comment();
+        comment.comment = item.GetString("ItemPublisher:Item.Comment");
+        comment.count = count.ToString();
+        comment.targetElement = item.GetString("ItemPublisher:Item.TargetElement");
+
+        count++;
+
+        feedRoot.Comment.Add(comment);
+    };
+
+    feedObject.Add(feedRoot);
+    jsonFeed = Newtonsoft.Json.JsonConvert.SerializeObject(feedObject);
+
+}
+
+@jsonFeed

@@ -1,0 +1,110 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@Include("Includes/FeedHelpers.cshtml")
+
+@using System.Text;
+@using System.IO;
+@using System.Threading;
+@using System.Web;
+@using System.Xml.Linq;
+
+@{
+    string exportFormat = HttpContext.Current.Request.Form["format"];
+    string productId = HttpContext.Current.Request.QueryString.Get("ProductID");
+    string downloadParameter = HttpContext.Current.Request.Form["download"];
+    string filename = HttpContext.Current.Request.Form["filename"];
+    bool download = false;
+
+    if(string.IsNullOrEmpty(filename))
+    {
+        filename = string.Format("export_{0}", DateTime.Now.ToString());
+    }
+
+    if(!string.IsNullOrEmpty(downloadParameter))
+    {
+        download = bool.Parse(downloadParameter);
+    }
+
+    var fields = new Dictionary<string, Field>();
+
+    fields.Add("ID", new Field("ID", "ID", "Ecom:Product.ID", FieldType.System));
+    fields.Add("Name", new Field("Name", "Name", "Ecom:Product.Name", FieldType.Standard));
+    fields.Add("Number", new Field("Number", "Number", "Ecom:Product.Number", FieldType.Standard));
+    fields.Add("ShortDescription", new Field("ShortDescription", "Short description", "Ecom:Product.ShortDescription", FieldType.Standard));
+    fields.Add("LongDescription", new Field("LongDescription", "Long description", "Ecom:Product.LongDescription", FieldType.Standard));
+    fields.Add("Price", new Field("Price", "Price", "Ecom:Product.Price.PriceFormatted", FieldType.Standard));
+    fields.Add("Created", new Field("Created", "Created", "Ecom:Product.Created", FieldType.System));
+    fields.Add("Updated", new Field("Updated", "Updated", "Ecom:Product.Updated", FieldType.System));
+    fields.Add("Publication", new Field("Publication", "Publication Date", "Ecom:Product.Updated", FieldType.System));
+
+    foreach(LoopItem customField in GetLoop("CustomFieldList"))
+    {
+        var field = new Field(customField.GetString("Ecom:CustomField.System"), customField.GetString("Ecom:CustomField.Name"), "Ecom:Product:Field." + customField.GetString("Ecom:CustomField.Template"), FieldType.Custom);
+
+        if(!fields.ContainsKey(field.ID))
+        {
+            fields.Add(field.ID,field);
+        }
+    }
+
+
+        foreach (LoopItem product in GetLoop("Products"))
+        {
+            if (product.GetLoop("ProductCategories").Count > 0)
+            {
+                foreach (LoopItem categoryGroup in product.GetLoop("ProductCategories"))
+                {
+                    foreach (LoopItem categoryField in categoryGroup.GetLoop("ProductCategoryFields"))
+                    {
+                        var fieldTag = string.Format("Ecom:Product.CategoryField.{0}.{1}", categoryGroup.GetString("Ecom:Product.Category.ID"), categoryField.GetString("Ecom:Product.CategoryField.TemplateTag"));
+                        var key = product.GetString(string.Format("{0}.CategoryID", fieldTag)) + "_" + product.GetString(string.Format("{0}.ID", fieldTag));
+
+                        var field = new Field(key, key, string.Format("{0}.Value", fieldTag), FieldType.CategoryField);
+
+                        if (!fields.ContainsKey(field.ID))
+                        {
+                            fields.Add(field.ID, field);
+                        }
+                    }
+                }
+            }
+        }
+
+    if (exportFormat == "csv")
+    {
+        HttpContext.Current.Response.ContentType = "text/csv";
+
+        HttpContext.Current.Response.AddHeader("Content-Disposition", string.Format("attachment;filename={0}.csv", filename));
+    }
+    else if(exportFormat == "json")
+    {
+        HttpContext.Current.Response.ContentType = "application/json";
+
+        if(download)
+        {
+            HttpContext.Current.Response.AddHeader("Content-Disposition", string.Format("attachment;filename={0}.json", filename));
+        }
+    }
+    else if(exportFormat == "xml")
+    {
+        HttpContext.Current.Response.ContentType = "text/xml";
+
+        if(download)
+        {
+            HttpContext.Current.Response.AddHeader("Content-Disposition", string.Format("attachment;filename={0}.xml", filename));
+        }
+    }
+}
+
+@if(exportFormat == "csv")
+{
+    HttpContext.Current.Response.Write(GenerateCsv(fields.Values, productId));
+}
+else if(exportFormat == "json")
+{
+    HttpContext.Current.Response.Write(GenerateJson(fields.Values, productId));
+}
+else if(exportFormat == "xml")
+{
+    HttpContext.Current.Response.Write(GenerateXml(fields.Values, productId));
+}

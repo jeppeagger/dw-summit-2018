@@ -1,0 +1,43 @@
+@using Dynamicweb.Rendering
+@using Dynamicweb.Ecommerce.ProductCatalog
+@inherits ViewModelTemplate<ProductViewModel>
+
+@{
+    string groupIdQueryParameter = string.IsNullOrEmpty(Dynamicweb.Context.Current.Request["GroupID"])
+        ? string.Empty
+        : "&amp;GroupID=" + Dynamicweb.Context.Current.Request["GroupID"];
+    string productLink = "/Default.aspx?ID=" + Pageview.Page.ID + "&amp;ProductID=" + Model.Id + groupIdQueryParameter;
+}
+<h1>Product details</h1>
+<h2><a href="@productLink">@Model.Name</a></h2>
+<small>@Model.Id</small>
+<div>@Model.VariantId</div>
+<div>@Model.LanguageId</div>
+<div>@Model.ShortDescription</div>
+<div>@Model.LongDescription</div>
+@if (Model.Price != null)
+{
+    <div>Price: @Model.Price.PriceFormatted</div>
+}
+@if (Model.RelatedProducts != null)
+{
+    <h4>Related products</h4>
+    <div class="relatedProducts">
+        <ol>
+            @foreach (var related in Model.RelatedProducts)
+            {
+                productLink = "/Default.aspx?ID=" + Pageview.Page.ID + "&amp;ProductID=" + related.Id + "&amp;VariantID=" + related.VariantId + groupIdQueryParameter;
+                <li>
+                    <div><a href="@productLink">@related.Id</a></div>
+                    <div>@related.VariantId</div>
+                    <div>@related.LanguageId</div>
+                </li>
+            }
+        </ol>
+    </div>
+}
+@*
+    <pre>
+        @Model.ToJson()
+    </pre>
+*@

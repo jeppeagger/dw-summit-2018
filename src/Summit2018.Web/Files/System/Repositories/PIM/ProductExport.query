@@ -1,0 +1,46 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="1d009356-0af1-4db1-b81e-fe79ccfa57eb" Name="ProductExport.query">
+  <Settings />
+  <Source Repository="PIM" Item="PIM.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <Parameters>
+    <Parameter Name="ProductIds" Type="System.String[]" DefaultValue="" />
+    <Parameter Name="GroupIds" Type="System.String[]" DefaultValue="" />
+    <Parameter Name="RequestLanguageId" Type="System.String" DefaultValue="" />
+  </Parameters>
+  <Expressions>
+    <GroupExpression Operator="And">
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="ID" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="ProductIds" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="In">
+        <Left>
+          <FieldExpression Field="GroupIDs" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="GroupIds" />
+        </Right>
+      </BinaryExpression>
+      <BinaryExpression Operator="Equal">
+        <Left>
+          <FieldExpression Field="LanguageID" />
+        </Left>
+        <Right>
+          <ParameterExpression Name="RequestLanguageId" />
+        </Right>
+      </BinaryExpression>
+    </GroupExpression>
+  </Expressions>
+  <ViewFields>
+    <Field Name="Active" SystemName="" Source="ProductActive" Sort="0" />
+    <Field Name="Product name" SystemName="" Source="ProductName" Sort="1" />
+    <Field Name="Product number" SystemName="" Source="ProductNumber" Sort="2" />
+    <Field Name="Price" SystemName="" Source="ProductPrice" Sort="3" />
+  </ViewFields>
+  <ViewLanguages />
+  <Meta />
+</Query>

@@ -1,0 +1,67 @@
+﻿// -----------------------------------------------------------------------------
+// Contains all styles related to the Website settings LayoutTopBackgroundColor
+// -----------------------------------------------------------------------------
+
+.header-top.dw-mod {
+    .header-top-mixin();
+}
+
+.header-top-mixin() when not (@top-background-color = none) {
+    background-color: @top-background-color;
+
+    .header-menu__link:hover {
+       background-color: @top-background-color;
+    }
+}
+
+.mobile-top-mixin(@font-color, @active-font-color, @bg-color, @active-bg-color) {  
+    .mixin() when not (@font-color = none) { 
+        .menu__link.dw-mod {
+            color: @font-color;
+        }
+    }
+    
+    .mixin() when not (@active-font-color = none) { 
+        .menu__link.dw-mod {
+            &:active,
+            &:focus,
+            &:hover {
+                color: @active-font-color;
+            }
+        }
+    }
+
+    .mixin() when not (@bg-color = none) { 
+        background-color: @bg-color;
+    }
+
+    .mixin() when not (@active-bg-color = none) { 
+        .menu__link.dw-mod {
+            &:active,
+            &:focus,
+            &:hover {
+                background-color: @active-bg-color;
+            }
+        }
+    }
+
+    .mixin;
+}
+
+.main-navigation.main-navigation--nav-style.dw-mod {
+    .mobile-top-mixin (
+        @navigation-font-color,
+        @navigation-active-font-color,
+        @navigation-background-color,
+        @navigation-active-background-color
+    ); 
+}
+
+.main-navigation.main-navigation--top-style.dw-mod {
+    .mobile-top-mixin (
+        @top-links-color,
+        @top-links-active-color,
+        @top-background-color,
+        @top-background-color
+    ); 
+}

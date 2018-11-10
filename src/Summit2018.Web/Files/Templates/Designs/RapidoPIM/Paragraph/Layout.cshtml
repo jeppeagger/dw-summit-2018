@@ -1,0 +1,12 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.ParagraphViewModel>
+
+@functions {
+	public string columnClass()
+	{
+		if (Model.Item.GetString("WidthMobile") == "hide"){
+			return "grid__col-md-" + Model.Item.GetList("Width").SelectedValue + " grid__col-xs--hidden";
+		} else {
+			return "grid__col-md-" + Model.Item.GetList("Width").SelectedValue + " grid__col-xs-" + Model.Item.GetList("WidthMobile").SelectedValue;
+		}
+	}
+}

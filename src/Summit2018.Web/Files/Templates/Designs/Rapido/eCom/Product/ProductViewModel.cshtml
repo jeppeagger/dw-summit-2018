@@ -1,0 +1,1496 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Ecommerce.ProductCatalog.ProductViewModel> 
+@using Dynamicweb.Ecommerce.ProductCatalog
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using System;
+@using System.Globalization;
+@using System.IO
+@using Dynamicweb.Core
+@using System.Web
+@using System.Web.UI.HtmlControls
+
+@functions {
+    List<FieldValueViewModel> downloadDocuments = new List<FieldValueViewModel>();
+    string pageId;
+    string productId;
+    string productVariantId;
+    string feedFullUrl;
+    string variantsFeedUrl;
+    string requestQuery;
+    bool pointShopOnly;
+    bool useFacebookPixel;
+
+    static string ConvertBytes(long bytes)
+    {
+        double size = bytes / 1024; //KB
+        if (size > 1024)
+        {
+            size = (bytes / 1024f) / 1024f; //MB
+            return string.Format("{0:n1} MB", size);
+        }
+        else
+        {
+            return string.Format("{0:n0} KB", size);
+        }
+    }
+
+    string imagePrefix = "/Admin/Public/GetImage.ashx?width=800&amp;height=550&amp;crop=5&FillCanvas=True&DoNotUpscale=true&amp;Compression=75&amp;image=";
+    string thumbPrefix = "/Admin/Public/GetImage.ashx?width=150&amp;height=150&amp;crop=5&FillCanvas=True&DoNotUpscale=true&amp;Compression=75&amp;image=";
+    string image = "";
+    string thumb = "";
+
+
+    public class ProductSection
+    {
+        public string name { get; set; }
+        public string id { get; set; }
+        public RazorEngine.Templating.TemplateWriter helper { get; set; }
+        public string layoutType { get; set; }
+    }
+
+    RazorEngine.Templating.TemplateWriter RenderSection(RazorEngine.Templating.TemplateWriter section)
+    {
+        return section;
+    }
+
+    List<ProductSection> productSectionsList = new List<ProductSection>();
+
+    string cartIcon;
+    bool onlyPreview = false;
+    bool renderVariantsAsProducts = false;
+}
+
+@{
+    useFacebookPixel = !string.IsNullOrWhiteSpace(Pageview.AreaSettings.GetItem("Ecommerce").GetString("FacebookPixelID")));
+    pointShopOnly = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("PointShopOnly");
+    onlyPreview = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("OnlyPreviewForAnonymous") && Pageview.User == null;
+    productId = Model.Id;
+    string uniqueId = productId + Model.VariantId;
+    requestQuery = GetGlobalValue("Global:Request.Query") + "&MainProductID=" + "&feed=true";
+    string productCatalogId = GetGlobalValue("Global:Page.ID");
+
+    foreach (FieldValueViewModel customField in Model.ProductFieldValues)
+    {
+        if (!string.IsNullOrEmpty(customField.Name) && !string.IsNullOrEmpty(customField.Value.ToString()) && customField.Name != "Custom sticker")
+        {
+            if (!string.IsNullOrEmpty(customField.GetString("Document.FullPath")))
+            {
+                downloadDocuments.Add(customField);
+            }
+        }
+    }
+
+    foreach (CategoryFieldViewModel customField in Model.ProductCategoryFields)
+    {
+        foreach (FieldValueViewModel field in customField.Fields)
+        {
+            if (!string.IsNullOrEmpty(field.Name) && !string.IsNullOrEmpty(field.Value.ToString()))
+            {
+                if (field.Type == "9")
+                {
+                    downloadDocuments.Add(field);
+                }
+            }
+        }
+    }
+
+    int videosCount = 0;
+
+    foreach (LoopItem detailField in GetLoop("Details"))
+    {
+        if (detailField.GetString("Ecom:Product:Detail.Text").IndexOf("iframe") != -1 && detailField.GetString("Ecom:Product:Detail.Text").IndexOf("youtube.com/embed") != -1)
+        {
+            videosCount++;
+        }
+        if (detailField.GetString("Ecom:Product:Detail.Text").IndexOf("iframe") != -1 && detailField.GetString("Ecom:Product:Detail.Text").IndexOf("vimeo.com") != -1)
+        {
+            videosCount++;
+        }
+    }
+
+    int relatedProductsPageSize = 4;
+    int relatedProductsColumnWidth = 3;
+
+    if (Pageview.Device.ToString() == "Mobile")
+    {
+        relatedProductsPageSize = 1;
+        relatedProductsColumnWidth = 12;
+    }
+
+    if (Pageview.Device.ToString() == "Tablet")
+    {
+        relatedProductsPageSize = 3;
+        relatedProductsColumnWidth = 4;
+    }
+
+    cartIcon = Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetString("CartIcon") != null ? Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("CartIcon").SelectedValue : "fas fa-shopping-cart";
+
+    pageId = GetGlobalValue("Global:Page.ID").ToString();
+    productVariantId = HttpContext.Current.Request.QueryString.Get("variantId") != null ? HttpContext.Current.Request.QueryString.Get("variantId") : "";
+    string feedId = pageId + "&ProductID=" + productId + "&VariantID=" + productVariantId + "&Feed=True&redirect=false";
+    string feedPageUrl = "/Default.aspx?ID=" + GetPageIdByNavigationTag("ProductsPage");
+    feedFullUrl = feedPageUrl + "&PageSize=" + relatedProductsPageSize + "&ProdID=" + productId + "&feed=true";
+    string variantsListPageSize = HttpContext.Current.Request.QueryString.Get("PageSize") != null ? HttpContext.Current.Request.QueryString.Get("PageSize") : "30";
+    variantsFeedUrl = feedPageUrl + "&PageSize=" + variantsListPageSize + "&MainProductID=" + productId + "&OnlyShowVariants=true&feed=true";
+    string productContainerId = "Product" + productId;
+
+    string siteURL = Dynamicweb.Context.Current.Request.Url.Scheme + "://" + Dynamicweb.Context.Current.Request.Url.Host;
+
+    renderVariantsAsProducts = Pageview.AreaSettings.GetItem("ProductPage").GetString("RenderVariantsAsProductList") != null && GetInteger("Ecom:Product.VariantCount") > 1 ? Pageview.AreaSettings.GetItem("ProductPage").GetBoolean("RenderVariantsAsProductList") : false;
+    string imageBlockPosition = !String.IsNullOrEmpty(Pageview.AreaSettings.GetItem("ProductPage").GetString("ImageSectionPosition")) ? Pageview.AreaSettings.GetItem("ProductPage").GetList("ImageSectionPosition").SelectedValue : "right-right";
+    string fullDesctiptionLayout = Pageview.AreaSettings.GetItem("ProductPage").GetString("FullDescriptionLayout") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetList("FullDescriptionLayout").SelectedValue : "section";
+    string detailFieldsLayout = Pageview.AreaSettings.GetItem("ProductPage").GetString("DetailFieldsLayout") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetList("DetailFieldsLayout").SelectedValue : "section";
+    string categoryFieldsLayout = Pageview.AreaSettings.GetItem("ProductPage").GetString("CategoryFieldsLayout") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetList("CategoryFieldsLayout").SelectedValue : "section";
+    string downloadsFieldsLayout = Pageview.AreaSettings.GetItem("ProductPage").GetString("DownloadsLayout") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetList("DownloadsLayout").SelectedValue : "section";
+    string videosLayout = Pageview.AreaSettings.GetItem("ProductPage").GetString("VideosLayout") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetList("VideosLayout").SelectedValue : "section";
+    string relatedProductsLayout = Pageview.AreaSettings.GetItem("ProductPage").GetString("RelatedProductsLayout") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetList("RelatedProductsLayout").SelectedValue : "section";
+    string variantsListLayout = Pageview.AreaSettings.GetItem("ProductPage").GetString("VariantsListLayout") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetList("VariantsListLayout").SelectedValue : "section";
+
+    if (!string.IsNullOrEmpty(GetString("Ecom:Product.LongDescription")) && fullDesctiptionLayout != "hide")
+    {
+        ProductSection descriptionSectionObject = new ProductSection();
+        descriptionSectionObject.name = Translate("Description");
+        descriptionSectionObject.id = "Description";
+        descriptionSectionObject.layoutType = fullDesctiptionLayout;
+        descriptionSectionObject.helper = @ProductDescription();
+        productSectionsList.Add(descriptionSectionObject);
+    }
+}
+@if (renderVariantsAsProducts && variantsListLayout != "hide")
+{
+    ProductSection variantSectionObject = new ProductSection();
+    variantSectionObject.name = Translate("Variants");
+    variantSectionObject.id = "Variants";
+    variantSectionObject.helper = @VariantsProductList();
+    variantSectionObject.layoutType = variantsListLayout;
+    productSectionsList.Add(variantSectionObject);
+}
+@if (Model.ProductFieldValues.Count > 0 && detailFieldsLayout != "hide")
+{
+    ProductSection detailsSectionObject = new ProductSection();
+    detailsSectionObject.name = Translate("Product information");
+    detailsSectionObject.id = "ProductInformation";
+    detailsSectionObject.helper = @ProductDetails(detailFieldsLayout);
+    detailsSectionObject.layoutType = detailFieldsLayout;
+    productSectionsList.Add(detailsSectionObject);
+}
+@if (categoryFieldsLayout != "hide")
+{
+    foreach (CategoryFieldViewModel categoryGroup in Model.ProductCategoryFields)
+    {
+        bool hasFields = categoryGroup.Fields.Count > 0 ? true : false;
+        if (hasFields)
+        {
+            ProductSection categoryFieldsSectionObject = new ProductSection();
+            categoryFieldsSectionObject.name = categoryGroup.Name;
+            categoryFieldsSectionObject.id = ToPascalCase(categoryGroup.Name);
+            categoryFieldsSectionObject.helper = @ProductCategory(categoryGroup.Name, categoryGroup, categoryFieldsLayout);
+            categoryFieldsSectionObject.layoutType = categoryFieldsLayout;
+            productSectionsList.Add(categoryFieldsSectionObject);
+        }
+    }
+}
+@if (downloadDocuments.Count > 0 && downloadsFieldsLayout != "hide")
+{
+    ProductSection downloadsSectionObject = new ProductSection();
+    downloadsSectionObject.name = Translate("Downloads");
+    downloadsSectionObject.id = "Downloads";
+    downloadsSectionObject.helper = @ProductDownloads(downloadsFieldsLayout);
+    downloadsSectionObject.layoutType = downloadsFieldsLayout;
+    productSectionsList.Add(downloadsSectionObject);
+}
+@if (videosCount > 0 && videosLayout != "hide")
+{
+    ProductSection videosSectionObject = new ProductSection();
+    videosSectionObject.name = Translate("Videos");
+    videosSectionObject.id = "Videos";
+    videosSectionObject.helper = @ProductVideos(videosCount);
+    videosSectionObject.layoutType = videosLayout;
+    productSectionsList.Add(videosSectionObject);
+}
+@if (relatedProductsLayout != "hide")
+{
+    foreach (LoopItem relatedGroup in GetLoop("ProductRelatedGroups"))
+    {
+        string relatedGroupId = ToPascalCase(relatedGroup.GetString("Ecom:Product:RelatedGroup.Name"));
+        string relatedFeed = feedFullUrl + "&" + relatedGroupId + "=" + productId + "&GroupName=" + relatedGroupId;
+
+        ProductSection relatedSectionObject = new ProductSection();
+        relatedSectionObject.name = relatedGroup.GetString("Ecom:Product:RelatedGroup.Name");
+        relatedSectionObject.id = relatedGroupId;
+        if (relatedProductsLayout != "top")
+        {
+            relatedSectionObject.helper = @RelatedProducts(relatedSectionObject.name, relatedGroupId, relatedFeed);
+        }
+        else
+        {
+            relatedSectionObject.helper = @RelatedProductsMini(relatedSectionObject.name, relatedGroupId, relatedFeed);
+        }
+        relatedSectionObject.layoutType = relatedProductsLayout;
+        productSectionsList.Add(relatedSectionObject);
+    }
+}
+
+
+<!-- Trigger for the gallery modal -->
+<input type="checkbox" id="GalleryModalTrigger" class="modal-trigger" />
+
+@if (!String.IsNullOrEmpty(GetString("Ecom:Product.ImageDefault.Default.Clean")))
+{
+    <!-- Gallery modal -->
+    <div class="modal-container">
+        <label for="GalleryModalTrigger" id="GalleryModalOverlay" class="modal-overlay"></label>
+        <div class="modal modal--full" id="GalleryModal">
+            <div class="modal__body modal__body--full">
+                <div class="gallery-slider">
+                    <div class="gallery-slider__image">
+                        <img id="FullImage" src="@imagePrefix@GetString("Ecom:Product.ImageDefault.Default.Clean")" class="modal--full__img js-gallery-image" alt="@Model.Name" />
+                    </div>
+                    <div class="gallery-slider__image-counter" id="FullImage_counter"></div>
+                    <label class="gallery-slider__close-btn" for="GalleryModalTrigger"></label>
+                    <button class="gallery-slider__previous-btn" id="FullImage_prev" onclick="Gallery.prevImage('FullImage')"></button>
+                    <button class="gallery-slider__next-btn" id="FullImage_next" onclick="Gallery.nextImage('FullImage')"></button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="grid product grid--external-bleed-x u-padding-bottom--lg js-product" id="productGrid">
+    @if (imageBlockPosition == "left-left" || imageBlockPosition == "left-right")
+    {
+    @* Image block with optional thumbs *@
+        @ImageSection()
+
+        @* Primary product informations *@
+        @MainProductInformation()
+    }
+    else
+    {
+    @* Primary product informations *@
+        @MainProductInformation()
+
+        @* Image block with optional thumbs *@
+        @ImageSection()
+    }
+</div>
+
+<div class="product__info tabs">
+    @{
+        bool firstTab = true;
+        foreach (ProductSection item in productSectionsList)
+        {
+            if (item.layoutType == "tab")
+            {
+                string isChecked = firstTab ? "checked" : "";
+                firstTab = false;
+                <input type="radio" class="tabs__trigger" name="productTabs" id="@item.id" onchange="bLazy.revalidate()" @isChecked />
+            }
+        }
+    }
+
+    <div class="tabs__list dw-mod">
+        @foreach (ProductSection item in productSectionsList)
+        {
+            if (item.layoutType == "tab")
+            {
+            <label for="@item.id" class="tabs__label dw-mod">@item.name</label>
+            }
+        }
+    </div>
+
+    <div class="tabs__blocks dw-mod">
+        @{
+            foreach (ProductSection item in productSectionsList)
+            {
+                if (item.layoutType == "tab")
+                {
+                <div class="tabs__block dw-mod">
+                    <section class="product__section paragraph-container paragraph-container--full-width product__section--bordered dw-mod">
+                        <div class="center-container u-padding--lg dw-mod">
+                            @RenderSection(item.helper)
+                        </div>
+                    </section>
+                </div>
+                }
+            }
+        }
+    </div>
+</div>
+
+@foreach (ProductSection item in productSectionsList)
+{
+    if (item.layoutType == "section")
+    {
+        <section class="product__section paragraph-container paragraph-container--full-width dw-mod">
+            <div class="center-container u-padding--lg dw-mod">
+                <h2>@item.name</h2>
+                @RenderSection(item.helper)
+            </div>
+        </section>
+    }
+
+    if (item.layoutType == "ribbon")
+    {
+        <section class="product__section product__section--ribbon paragraph-container paragraph-container--full-width dw-mod">
+            <div class="center-container u-padding--lg dw-mod">
+                <h2>@item.name</h2>
+                @RenderSection(item.helper)
+            </div>
+        </section>
+    }
+}
+
+
+
+@* Helpers for the main product area *@
+
+@helper ImageSection()
+{
+    string imageBlockPosition = !String.IsNullOrEmpty(Pageview.AreaSettings.GetItem("ProductPage").GetString("ImageSectionPosition")) ? Pageview.AreaSettings.GetItem("ProductPage").GetList("ImageSectionPosition").SelectedValue : "right-right";
+    string imageBlockWidth = !String.IsNullOrEmpty(Pageview.AreaSettings.GetItem("ProductPage").GetString("TopLayout")) ? Pageview.AreaSettings.GetItem("ProductPage").GetList("TopLayout").SelectedValue : "6";
+    imageBlockWidth = imageBlockPosition == "left-left" || imageBlockPosition == "left-right" ? Converter.ToString(12 - Converter.ToInt32(productDetails["ProductDetailsTopLayout"])) : imageBlockWidth;
+
+    if (!String.IsNullOrEmpty(GetString("Ecom:Product.ImageDefault.Default.Clean")))
+    {
+        <div class="grid__col-md-@imageBlockWidth grid__col-sm-@imageBlockWidth grid__col-xs-12 u-padding-bottom--lg">
+            <div class="grid grid--bleed">
+                @if (imageBlockPosition == "left-left" || imageBlockPosition == "right-left")
+                {
+                    @Thumbnails()
+                    @MainImage()
+                }
+                else
+                {
+                    @MainImage()
+                    @Thumbnails()
+                }
+            </div>
+        </div>
+    }
+}
+
+@helper Thumbnails()
+{
+    <div class="grid__col-2 u-hidden-xxs dw-mod">
+        <div class="product__thumbs dw-mod">
+            <i class="fas fa-circle-notch fa-spin preloader js-remove-after-load"></i> <!--preloader-->
+            <div class="carousel js-carousel-container carousel--hidden dw-mod" id="leftCarousel">
+                <div class="thumb-list carousel__container dw-mod">
+                    @*Main image thumb*@
+                    @{
+                        image = imagePrefix + GetString("Ecom:Product.ImageDefault.Default.Clean");
+                        thumb = thumbPrefix + GetString("Ecom:Product.ImageDefault.Default.Clean");
+                    }
+
+                    <div class="carousel__slide carousel__slide--vertical dw-mod">
+                        <div class="thumb-list__item thumb-list__item--active dw-mod js-thumb js-gallery" data-for="Image_@productId" data-image="@image" onmouseover="Gallery.openImage(this)">
+                            <label for="GalleryModalTrigger">
+                                <img src="@thumb" alt="@Model.Name" class="js-gallery" data-for="FullImage" data-image="@image" onclick="Gallery.openImage(this)">
+                            </label>
+                        </div>
+                    </div>
+
+                    @foreach (LoopItem alternativeImage in GetLoop("Ecom:Product.AlternativeImages"))
+                    {
+                        if (!String.IsNullOrEmpty(alternativeImage.GetString("Ecom:Product.AlternativeImages.Image")))
+                        {
+                            image = imagePrefix + alternativeImage.GetString("Ecom:Product.AlternativeImages.Image");
+                            thumb = thumbPrefix + alternativeImage.GetString("Ecom:Product.AlternativeImages.Image");
+
+                            <div class="carousel__slide carousel__slide--vertical dw-mod">
+                                <div class="thumb-list__item dw-mod js-thumb js-gallery" data-for="Image_@productId" data-image="@image" onmouseover="Gallery.openImage(this)">
+                                    <label for="GalleryModalTrigger">
+                                        <img src="@thumb" alt="@Model.Name" class="js-gallery" data-for="FullImage" data-image="@image" onclick="Gallery.openImage(this)">
+                                    </label>
+                                </div>
+                            </div>
+                        }
+                    }
+
+                    @foreach (LoopItem detail in GetLoop("Details"))
+                    {
+                        if (!String.IsNullOrEmpty(detail.GetString("Ecom:Product:Detail.Image.Clean")))
+                        {
+                            string ext = Path.GetExtension(detail.GetString("Ecom:Product:Detail.Image.Clean")).ToLower();
+                            if (ext == ".jpg" || ext == ".jpeg" || ext == ".gif" || ext == ".png")
+                            {
+                                image = imagePrefix + detail.GetString("Ecom:Product:Detail.Image.Clean");
+                                thumb = thumbPrefix + detail.GetString("Ecom:Product:Detail.Image.Clean");
+
+                                <div class="carousel__slide carousel__slide--vertical dw-mod">
+                                    <div class="thumb-list__item dw-mod js-thumb js-gallery" data-for="Image_@productId" data-image="@image" onmouseover="Gallery.openImage(this)">
+                                        <label for="GalleryModalTrigger">
+                                            <img src="@thumb" alt="@Model.Name" class="js-gallery" data-for="FullImage" data-image="@image" onclick="Gallery.openImage(this)">
+                                        </label>
+                                    </div>
+                                </div>
+                            }
+                        }
+                    }
+                </div>
+                <div class="js-carousel-data" data-carousel-slide-time="0" data-direction="vertical" data-sliding-type="items" data-slides-in-view="5">
+                    <div class="carousel-prev-btn carousel-prev-btn--vertical dw-mod" onclick="Carousel.GetPreviousSlide('leftCarousel')"></div>
+                    <div class="carousel-next-btn carousel-next-btn--vertical dw-mod" onclick="Carousel.GetNextSlide('leftCarousel')"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+@helper MainImage()
+{
+    <div class="grid__col-auto">
+        <div class="stickers-container dw-mod">
+            @{
+                if (Pageview.AreaSettings.GetItem("Ecommerce").GetItem("SaleSticker").GetBoolean("Enable") && !pointShopOnly)
+                {
+                    string contentType = Pageview.AreaSettings.GetItem("Ecommerce").GetItem("SaleSticker").GetString("ContentType");
+                    string text = "";
+                    var currency = Dynamicweb.Ecommerce.Services.Currencies.GetDefaultCurrency();
+
+                    switch (contentType)
+                    {
+                        case "Name":
+                            foreach (LoopItem discount in GetLoop("ProductDiscounts"))
+                            {
+                                text = discount.GetString("Ecom:Product.Discount.Name");
+                                <div class="stickers-container__tag stickers-container__tag--sale dw-mod">@text</div>
+                            }
+                            break;
+                        case "Amount":
+                            if (GetLoop("ProductDiscounts").Count > 0)
+                            {
+                                text = Dynamicweb.Ecommerce.Services.Currencies.Format(currency, GetDouble("Ecom:Product.Discount.Price.Price") - GetDouble("Ecom:Product.Price.Price"));
+                                <div class="stickers-container__tag stickers-container__tag--sale dw-mod">@text</div>
+                            }
+                            break;
+                        case "Percents":
+                            double percents = 0;
+                            foreach (LoopItem discount in GetLoop("ProductDiscounts"))
+                            {
+                                percents += discount.GetDouble("Ecom:Product.Discount.PercentWithoutVAT");
+                            }
+                            if (percents > 0)
+                            {
+                                text = Math.Round(percents, 0) + "%";
+                                <div class="stickers-container__tag stickers-container__tag--sale dw-mod">@text</div>
+                            }
+                            break;
+                        case "Amount and percents":
+                            double amount = 0;
+                            double percent = 0;
+                            foreach (LoopItem discount in GetLoop("ProductDiscounts"))
+                            {
+                                if (discount.GetString("Ecom:Product.Discount.Type") == "PERCENT")
+                                {
+                                    percent += discount.GetDouble("Ecom:Product.Discount.PercentWithoutVAT");
+                                }
+                                else if (discount.GetString("Ecom:Product.Discount.Type") == "AMOUNT")
+                                {
+                                    amount += discount.GetDouble("Ecom:Product.Discount.AmountWithVAT");
+                                }
+                            }
+                            if (percent > 0)
+                            {
+                                text = percent + "%";
+                                <div class="stickers-container__tag stickers-container__tag--sale dw-mod">@text</div>
+                            }
+                            if (amount > 0)
+                            {
+                                text = Dynamicweb.Ecommerce.Services.Currencies.Format(currency, amount);
+                                <div class="stickers-container__tag stickers-container__tag--sale dw-mod">@text</div>
+                            }
+                            break;
+                        default:
+                            if (GetLoop("ProductDiscounts").Count > 0)
+                            {
+                                text = Translate("Sale!");
+                                <div class="stickers-container__tag stickers-container__tag--sale dw-mod">@text</div>
+                            }
+                            break;
+                    }
+                }
+
+                if (!pointShopOnly && Pageview.AreaSettings.GetItem("Ecommerce").GetItem("NewSticker").GetBoolean("Enable") && GetDate("Ecom:Product.Created").AddDays(Converter.ToDouble(Pageview.AreaSettings.GetItem("Ecommerce").GetItem("NewSticker").GetString("Expiration"))) > DateTime.Now)
+                {
+                    <div class="stickers-container__tag stickers-container__tag--new dw-mod">@Translate("New!")</div>
+                }
+
+                if (!pointShopOnly && !String.IsNullOrEmpty(GetString("Ecom:Product:Field.CustomSticker.Value")))
+                {
+                    <div class="stickers-container__tag stickers-container__tag--custom dw-mod">@GetString("Ecom:Product:Field.CustomSticker.Value")</div>
+                }
+            }
+        </div>
+        <label for="GalleryModalTrigger" class="product__image-container">
+            <img class="thumb-image-view product__image-container__image dw-mod b-lazy" src="/Files/Images/placeholder.gif" data-src="@imagePrefix@GetString("Ecom:Product.ImageDefault.Default.Clean")" alt="@Model.Name" id="Image_@productId" data-for="FullImage" data-number="0" onclick="Gallery.openImageByNum(this)" />
+        </label>
+    </div>
+}
+
+@helper MainProductInformation()
+{
+    string pageId = GetGlobalValue("Global:Page.ID").ToString();
+    string currentPrice = Model.Discount.PriceFormatted == Model.Price.PriceFormatted ? Model.Price.PriceFormatted : Model.Discount.PriceFormatted;
+    string favoriteIcon = icons["FavoriteIcon"] != null ? "fas fa-" + icons["FavoriteIcon"].ToString() : "fas fa-star";
+    string favoriteOutlineIcon = icons["FavoriteIcon"] != null ? "far fa-" + icons["FavoriteIcon"].ToString() : "far fa-star";
+    bool hideProductNumber = false;
+
+    <div class="grid__col-auto product__info dw-mod u-padding-bottom--lg">
+        <div class="grid__cell">
+            <div class="u-pull--left product__title dw-mod">
+                <h1 class="u-no-margin">@Model.Name @GetString("Ecom:Product.SelectedVariantComboName")</h1>
+
+                @if (!hideProductNumber)
+                {
+                    <div class="item-number dw-mod">@Model.Number</div>
+                }
+            </div>
+            <div class="u-pull--right">
+                @if (Dynamicweb.Core.Converter.ToBoolean(GetGlobalValue("Global:Extranet.UserName")) && !renderVariantsAsProducts)
+                {
+                    string favoriteId = "Favorite" + Model.Id;
+                    <div id="@favoriteId" class="favorites favorites--md u-pull--right js-favorite-btn dw-mod">
+                        <div>
+                            @{
+                                string favorite = GetBoolean("Ecom:Product.IsProductInFavoriteList") ? favoriteIcon : favoriteOutlineIcon;
+                                string AddToWishlist = "fbq('track', 'AddToWishlist', {" +
+                                    "content_name: '" + Model.Name + "'," +
+                                    "content_ids: ['" + Model.Number + "']," +
+                                    "value: " + Model.Price.Price + "," +
+                                    "currency: '" + Model.Price.CurrencyCode + "'" +
+                                "});";
+                            }
+                            <label for="FavoriteTrigger"><i class="@favorite fa-1_5x"></i></label>
+                        </div>
+                        <input type="checkbox" id="FavoriteTrigger" class="dropdown-trigger" />
+
+                        <div class="dropdown">
+                            <div class="dropdown__content dropdown__content--show-left dropdown__content--padding u-w220px dw-mod">
+                                <ul class="list list--clean dw-mod">
+                                    @if (GetLoop("CustomerCenter.ListTypes").Count > 0)
+                                    {
+                                        foreach (LoopItem listType in GetLoop("CustomerCenter.ListTypes"))
+                                        {
+                                            foreach (LoopItem list in listType.GetLoop("CustomerCenter.ProductLists"))
+                                            {
+                                                string favLinkType = list.GetBoolean("Ecom:Product.List.IsProductInThisList") ? list.GetString("Ecom:Product.RemoveFromThisList") : list.GetString("Ecom:Product.AddToThisListAction");
+                                                string isInListIcon = list.GetBoolean("Ecom:Product.List.IsProductInThisList") ? favoriteIcon : favoriteOutlineIcon;
+                                                <li>
+                                                    <a href="@favLinkType" class="list__link u-no-underline dw-mod" onclick="@(list.GetString("Ecom:Product.List.IsProductInThisList") != "True" && useFacebookPixel ? AddToWishlist : "")"><i class="@isInListIcon"></i> @list.GetValue("Ecom:CustomerCenter.List.Name")</a>
+                                                </li>
+                                            }
+                                        }
+                                    }
+                                    else
+                                    {
+                                        string favLinkType = GetString("Ecom:Product.AddToFavorites") + "&CCListType=0&CCCreateNewList=" + Translate("My favorites");
+                                        string isInListIcon = favoriteOutlineIcon;
+                                        <li>
+                                            <a href="@favLinkType" class="list__link u-no-underline dw-mod" onclick="@(useFacebookPixel ? AddToWishlist : "")"><i class="@isInListIcon"></i> @Translate("My favorites")</a>
+                                        </li>
+                                    }
+                                </ul>
+                            </div>
+                            <label class="dropdown-trigger-off" for="FavoriteTrigger"></label>
+                        </div>
+                    </div>
+                                }
+            </div>
+            <div class="u-clearfix"></div>
+            @ShortDescription()
+        </div>
+
+        @foreach (ProductSection item in productSectionsList)
+        {
+            if (item.layoutType == "top")
+            {
+            <div>
+                @RenderSection(item.helper)
+            </div>
+            }
+        }
+
+        @if (!renderVariantsAsProducts)
+        {
+        @Variants()
+        }
+
+        @BomProducts()
+
+        @if (!renderVariantsAsProducts)
+        {
+        @BuySection()
+            @DeliveryStockInfo()
+        }
+    </div>
+}
+
+@helper Variants()
+{
+    string pageId = GetGlobalValue("Global:Page.ID").ToString();
+    string variantSelection = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString.Get("variantId")) ? HttpContext.Current.Request.QueryString.Get("variantId").Replace(".", ",") : "";
+    string hideHelpText = "";
+
+    foreach (LoopItem variantgroup in GetLoop("VariantGroups"))
+    {
+        foreach (LoopItem variantoption in variantgroup.GetLoop("VariantAvailableOptions"))
+        {
+            if (variantoption.GetBoolean("Ecom:VariantOption.Selected"))
+            {
+                hideHelpText = "u-hidden";
+            }
+        }
+    }
+
+    if (GetLoop("VariantGroups").Count > 0)
+    {
+        var variantCombinationsObject = new List<Array>();
+        foreach (LoopItem variantcomb in GetLoop("VariantStockCombinations"))
+        {
+            string[] combinations = variantcomb.GetString("Ecom:VariantStockCombination.VariantID").Split('.');
+            variantCombinationsObject.Add(combinations);
+        }
+
+        string combinationsJson = Newtonsoft.Json.JsonConvert.SerializeObject(variantCombinationsObject).Replace("\"", "\'");
+
+        var variantGroupsObject = new List<List<String>>();
+        foreach (LoopItem variantGroup in GetLoop("VariantGroups"))
+        {
+            var variantsObject = new List<String>();
+            foreach (LoopItem variantOption in variantGroup.GetLoop("VariantAvailableOptions"))
+            {
+                variantsObject.Add(variantOption.GetString("Ecom:VariantOption.ID"));
+            }
+            variantGroupsObject.Add(variantsObject);
+        }
+        string variantsJson = Newtonsoft.Json.JsonConvert.SerializeObject(variantGroupsObject).Replace("\"", "\'");
+
+        <div>
+            <div class="js-variants" data-total-variant-groups="@GetLoop("VariantGroups").Count" data-combinations="@combinationsJson" data-variants="@variantsJson" data-variant-selections="@variantSelection" data-selection-complete="UpdatePage" data-page-id="@pageId" data-product-id="@productId">
+                @foreach (LoopItem variantGroup in GetLoop("VariantGroups"))
+                {
+                    string groupId = variantGroup.GetString("Ecom:VariantGroup.ID");
+
+                    <div>
+                        <div class="u-bold">@variantGroup.GetString("Ecom:VariantGroup.Name")</div>
+                        <div>
+                            @foreach (LoopItem variantOption in variantGroup.GetLoop("VariantAvailableOptions"))
+                            {
+                                string selected = variantOption.GetBoolean("Ecom:VariantOption.Selected") ? "checked" : "";
+
+                                if (!string.IsNullOrEmpty(variantOption.GetString("Ecom:VariantOption.ImgSmall.Clean")))
+                                {
+                                    string variantImage = "/Admin/Public/GetImage.ashx?width=100&amp;height=50&amp;crop=5&amp;Compression=75&amp;image=/Images/" + variantOption.GetString("Ecom: VariantOption.ImgSmall.Clean");
+                                    <img data-variant-id="@variantOption.GetString("Ecom:VariantOption.ID")" data-variant-group="@groupId" src="@variantImage" onclick="MatchVariants.SelectThis(event)" alt="@variantOption.GetString("Ecom:VariantOption.Name")" title="@variantOption.GetString("Ecom:VariantOption.Name")" class="btn btn--tag @selected js-variant-option" data-check="@selected" />
+                                }
+                                else
+                                {
+                                <button type="button" data-variant-id="@variantOption.GetString("Ecom:VariantOption.ID")" data-variant-group="@groupId" onclick="MatchVariants.SelectThis(event)" class="btn btn--tag @selected js-variant-option" data-check="@selected">@variantOption.GetString("Ecom:VariantOption.Name")</button>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            <small class="js-help-text help-text @hideHelpText">@Translate("Please select variant!")</small>
+        </div>
+}
+}
+
+@helper BomProducts()
+{
+    if (GetLoop("BOMProducts").Count > 0)
+    {
+        <h2 class="section-title">@Translate("Including products")</h2>
+        foreach (LoopItem BOMProductItem in GetLoop("BOMProducts"))
+        {
+            string link = "/" + BOMProductItem.GetString("Ecom:Product.LinkGroup.Clean") + (!String.IsNullOrEmpty(BOMProductItem.GetString("Ecom:Product.VariantID")) ? "&VariantID=" + BOMProductItem.GetString("Ecom:Product.VariantID") : "");
+            <div class="grid__col--border grid">
+                <div class="grid__cell grid__cell--align-middle-left">
+                    <a href="@link" class="u-pull--left u-margin-right">
+                        <img src="/Admin/Public/GetImage.ashx?width=50&image=@BOMProductItem.GetString("Ecom:Product.ImageDefault.Default.Clean")&Compression=99" alt="@BOMProductItem.GetString("Ecom:Product.Name")" />
+                    </a>
+                    <a href="@link">@BOMProductItem.GetString("Ecom:Product.Name")</a>
+                </div>
+            </div>
+        }
+    }
+}
+
+@helper BuySection()
+{
+    string pageId = GetGlobalValue("Global:Page.ID").ToString();
+    string variantId = HttpContext.Current.Request.QueryString.Get("variantId");
+    string feedId = pageId + "&ProductID=" + productId + "&VariantID=" + variantId + "&Feed=True&redirect=false";
+
+    <div class="product__price-actions js-handlebars-root dw-mod" id="PriceAndActions" data-template="PricesAndActionsTemplate" data-json-feed="/Default.aspx?ID=@feedId" data-preloader="minimal"></div>
+    <input type="hidden" value="@GetString("Ecom:Product.VariantID.Extented")" name="Variant" id="Variant_@Model.Id" />
+}
+
+@helper DeliveryStockInfo()
+{
+bool hideStockState = productDetails["ProductDetailsHideStockState"] != null ? Converter.ToBoolean(productDetails["ProductDetailsHideStockState"]) : false;
+bool hideDelivery = productDetails["ProductDetailsHideShipping"] != null ? Converter.ToBoolean(productDetails["ProductDetailsHideShipping"]) : false;
+
+if (!onlyPreview && (!String.IsNullOrEmpty(GetString("Ecom:Product:Stock.Text")) || !String.IsNullOrEmpty(GetString("Ecom:Product:Stock.DeliveryText"))))
+{
+    string stockIcon = GetInteger("Ecom:Product.Stock") > 0 ? "stock-icon--in" : "stock-icon--not";
+
+    <div class="product__stock-delivery dw-mod">
+        @if (!hideStockState)
+        {
+        @GetString("Ecom:Product:Stock.Text") <div class="stock-icon @stockIcon"></div>
+        }
+
+        @if (!String.IsNullOrEmpty(GetString("Ecom:Product:Stock.DeliveryText")) && !hideDelivery)
+        {
+        <span>@Translate("Shipping")</span> <span>@GetString("Ecom:Product:Stock.DeliveryText")</span> <span>@GetString("Ecom:Product:Stock.DeliveryUnit")</span>
+        }
+    </div>
+}
+}
+
+@helper ShortDescription()
+{
+    if (!String.IsNullOrEmpty(Model.ShortDescription))
+    {
+        <div class="introduction-text">
+            @Model.ShortDescription
+        </div>
+    }
+}
+
+
+
+@* Helpers for the details product area *@
+
+@helper ProductDescription()
+{
+    <div class="product__description dw-mod">
+        @GetString("Ecom:Product.LongDescription")
+    </div>
+}
+
+@helper VariantsProductList()
+{
+    <div class="js-handlebars-root" id="VariantsList" data-template="VariantProductsContainer" data-json-feed="@variantsFeedUrl" data-preloader="minimal"></div>
+}
+
+@helper ProductDetails(string layoutType)
+{
+    string viewType = productDetails["ProductDetailsDetailFieldsView"] != null ? productDetails["ProductDetailsDetailFieldsView"].ToString() : "grid";
+
+    if (viewType != "table")
+    {
+        <div class="grid grid--external-bleed-x u-margin-bottom--lg">
+            @ProductDetailsFields(GetLoop("CustomFieldValues"), viewType)
+        </div>
+    }
+    else
+    {
+        string tableWidth = layoutType != "top" ? "grid__col-md-6" : "grid__col-md-12";
+
+        <div class="grid grid--external-bleed-x u-margin-bottom--lg">
+            <div class="@tableWidth grid__col-sm-12 grid__col-xs-12">
+                <table>
+                    @ProductDetailsFields(GetLoop("CustomFieldValues"), viewType)
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@helper ProductDetailsFields(List<LoopItem> fieldsLoop, string viewType)
+{
+    foreach (LoopItem customField in fieldsLoop)
+    {
+        string fieldValue = customField.GetString("Product.CustomField.Value.Clean");
+        fieldValue = fieldValue == "False" ? Translate("No") : fieldValue;
+        fieldValue = fieldValue == "True" ? Translate("Yes") : fieldValue;
+
+        if (customField.GetLoop("Product.CustomField.Options").Count > 0)
+        {
+            fieldValue = customField.GetString("Product.CustomField.Label");
+        }
+
+        if (!string.IsNullOrEmpty(customField.GetString("Product.CustomField.Name")) && !string.IsNullOrEmpty(fieldValue) && customField.GetString("Product.CustomField.Name") != "Custom sticker")
+        {
+            if (string.IsNullOrEmpty(customField.GetString("Document.FullPath")))
+            {
+                @RenderFieldItem(customField.GetString("Product.CustomField.Name"), fieldValue, viewType);
+            }
+        }
+    }
+}
+
+@helper ProductCategory(string name, CategoryFieldViewModel categoryGroup, string layoutType)
+{
+    string viewType = productDetails["ProductDetailsCategoryFieldsView"] != null ? productDetails["ProductDetailsCategoryFieldsView"].ToString() : "grid";
+
+    if (viewType != "table")
+    {
+        <div class="grid grid--external-bleed-x u-margin-bottom--lg">
+            @ProductCategoryFields(Model.ProductCategoryFields, viewType)
+        </div>
+    }
+    else
+    {
+        string tableWidth = layoutType != "top" ? "grid__col-md-6" : "grid__col-md-12";
+
+        <div class="grid grid--external-bleed-x u-margin-bottom--lg">
+            <div class="@tableWidth grid__col-sm-12 grid__col-xs-12">
+                <table>
+                    @ProductCategoryFields(Model.ProductCategoryFields, viewType)
+                </table>
+            </div>
+        </div>
+    }
+}
+
+@helper ProductCategoryFields(List<CategoryFieldViewModel> fieldsLoop, string viewType)
+{
+    foreach (CategoryFieldViewModel categoryField in fieldsLoop)
+    {
+        string fieldValue = categoryField.GetString("Ecom:Product.CategoryField.Value");
+        fieldValue = fieldValue == "False" ? Translate("No") : fieldValue;
+        fieldValue = fieldValue == "True" ? Translate("Yes") : fieldValue;
+
+        if (!string.IsNullOrEmpty(categoryField.GetString("Ecom:Product.CategoryField.Label")) && !string.IsNullOrEmpty(fieldValue))
+        {
+            if (categoryField.GetString("Ecom:Product.CategoryField.TypeID") != "9")
+            {
+                if (categoryField.GetString("Ecom:Product.CategoryField.TypeID") == "15")
+                {
+                @RenderFieldItem(categoryField.GetString("Ecom:Product.CategoryField.Label"), categoryField.GetString("Ecom:Product.CategoryField.OptionLabel"), viewType);
+                }
+                else if (categoryField.GetString("Ecom:Product.CategoryField.TypeID") == "8")
+                {
+                @RenderFieldItem(categoryField.GetString("Ecom:Product.CategoryField.Label"), fieldValue, viewType, "link");
+                }
+                else
+                {
+                @RenderFieldItem(categoryField.GetString("Ecom:Product.CategoryField.Label"), fieldValue, viewType);
+                }
+            }
+        }
+    }
+}
+
+@helper ProductDownloads(string layoutType)
+{
+string viewType = productDetails["ProductDetailsDownloadsView"] != null ? productDetails["ProductDetailsDownloadsView"].ToString() : "grid";
+
+if (viewType != "table")
+{
+    <div class="grid grid--external-bleed-x u-margin-bottom--lg">
+        @ProductDownloadsFields(downloadDocuments, viewType)
+    </div>
+}
+else
+{
+    string tableWidth = layoutType != "top" ? "grid__col-md-6" : "grid__col-md-12";
+
+    <div class="grid grid--external-bleed-x u-margin-bottom--lg">
+        <div class="@tableWidth grid__col-sm-12 grid__col-xs-12">
+            <table>
+                @ProductDownloadsFields(downloadDocuments, viewType)
+            </table>
+        </div>
+    </div>
+}
+}
+
+@helper ProductVideos(int videosCount)
+{
+    string videoColumn = "12";
+    videoColumn = videosCount == 2 ? "6" : videoColumn;
+    videoColumn = videosCount > 2 ? "4" : videoColumn;
+
+    <div class="grid grid--external-bleed-x u-margin-bottom--lg">
+        @foreach (LoopItem detailField in GetLoop("Details"))
+        {
+            if (detailField.GetString("Ecom:Product:Detail.Text").IndexOf("iframe") != -1 && detailField.GetString("Ecom:Product:Detail.Text").IndexOf("youtube.com/embed") != -1 || detailField.GetString("Ecom:Product:Detail.Text").IndexOf("iframe") != -1 && detailField.GetString("Ecom:Product:Detail.Text").IndexOf("vimeo.com") != -1)
+            {
+            <div class="grid__col-md-@videoColumn grid__col-lg-@videoColumn">
+                <div class="video-wrapper">
+                    @detailField.GetString("Ecom:Product:Detail.Text")
+                </div>
+            </div>
+            }
+        }
+    </div>
+}
+
+@helper ProductDownloadsFields(List<LoopItem> fieldsLoop, string viewType)
+{
+foreach (LoopItem document in fieldsLoop)
+{
+    string fieldValue;
+    if (!string.IsNullOrEmpty(document.GetString("Document.FullPath")))
+    {
+        fieldValue = document.GetString("Product.CustomField.Value.Clean");
+        @RenderFieldItem(fieldValue, document.GetString("Document.FullPath"), viewType, "download")
+    }
+
+    if (document.GetString("Ecom:Product.CategoryField.TypeID") == "9")
+    {
+        fieldValue = document.GetString("Ecom:Product.CategoryField.Value");
+        @RenderFieldItem(fieldValue, fieldValue, viewType, "download")
+    }
+}
+}
+
+@helper RenderFieldItem(string name, string value, string viewType, string fieldType = "clean")
+{
+if (viewType != "table")
+{
+    string fieldColumns = viewType == "list" ? "12" : "4";
+    <div class="grid__col-md-@fieldColumns u-margin-bottom">
+        <div class="u-bold">
+            @name
+        </div>
+        <div>
+            @RenderFieldItemContent(name, value, fieldType)
+        </div>
+    </div>
+}
+else
+{
+    <tr>
+        <td class="u-bold">@name</td>
+        <td>
+            @RenderFieldItemContent(name, value, fieldType)
+        </td>
+    </tr>
+}
+}
+
+@helper RenderFieldItemContent(string name, string value, string fieldType = "clean")
+{
+    if (fieldType == "link")
+    {
+        <a target="_blank" href="@value">@value</a>
+    }
+    else if (fieldType == "download")
+    {
+        FileInfo info = new FileInfo(Dynamicweb.Core.SystemInformation.MapPath(value));
+
+        if (info.Exists)
+        {
+            <a href="@name" download title="@Translate("Download")" class="product__document dw-mod">@getIconForFile(value)</a>
+            <div class="product__document-info dw-mod">
+                <a href="@name" download title="@Translate("Download")" class="product__document dw-mod">@Path.GetFileName(value)</a>
+                <small class="u-block u-margin-top">@ConvertBytes(info.Length)</small>
+            </div>
+        }
+    }
+    else
+    {
+        @value
+    }
+}
+
+@helper RelatedProducts(string name, string groupId, string relatedFeedUrl)
+{
+    <div class="js-handlebars-root" id="ProductList_@groupId" data-template="ProductContainer" data-pre-render-template="ProductPreRenderContainer" data-json-feed="@relatedFeedUrl" data-preloader="minimal"></div>
+}
+
+@helper RelatedProductsMini(string name, string groupId, string relatedFeedUrl)
+{
+    <div class="js-handlebars-root" id="ProductList_@groupId" data-template="ProductContainerMini" data-pre-render-template="ProductPreRenderContainer" data-json-feed="@relatedFeedUrl" data-preloader="minimal"></div>
+}
+
+<script id="PricesAndActionsTemplate" type="text/x-template">
+    {{#.}}
+    @if (!onlyPreview)
+    {
+    <div class="product__price-actions__price dw-mod u-margin-bottom--lg">
+        @if (pointShopOnly)
+                {
+                <text>
+                    {{#if havePointPrice}}
+                    <div class="price price--product-page dw-mod">{{points}} @Translate("points")</div>
+                    {{else}}
+                    @Translate("Not avaliable")
+                    {{/if}}
+                </text>
+        }
+        else
+        {
+        <div class="before-price {{onSale}} dw-mod">{{discount}}</div>
+                    <div class="price price--product-page dw-mod">{{price}}</div>
+        }
+    </div>
+            <div class="buttons-collection product__price-actions__actions dw-mod">
+                <input type="checkbox" id="UnitOptions_{{id}}" class="dropdown-trigger" />
+                <div class="dropdown u-w150px u-w80px--xs dw-mod {{hasUnits}}">
+                    <label class="dropdown__header dropdown__btn dw-mod" for="UnitOptions_{{id}}">{{unitName}}</label>
+                    <div id="unitOptions" class="dropdown__content dw-mod">
+                        {{#unitOptions}}
+                        {{>UnitOption}}
+                        {{/unitOptions}}
+                    </div>
+                    <label class="dropdown-trigger-off" for="UnitOptions_{{id}}"></label>
+                </div>
+                <input type="hidden" value="{{unitId}}" name="Unit" id="Unit_{{id}}" />
+                <input type="number" class="u-w70px" id="Quantity_{{id}}" name="Quantity" value="{{quantity}}" min="1" onchange="HandlebarsBolt.UpdateQueryParameters('PriceAndActions', { quantity: this.value });">
+                @if (pointShopOnly)
+                {
+                <button {{#unless canBePurchasedWithPoints}} disabled{{/unless}} type="button" id="CartButton_{{id}}" class="btn btn--primary btn--condensed u-no-margin dw-mod js-cart-btn {{#unless canBePurchasedWithPoints}}disabled js-stay-disabled{{/unless}}" name="CartCmd" value="addWithPoints" onclick="Cart.AddToCart(event, '{{productId}}', document.getElementById('Quantity_{{id}}').value, 'Unit_{{id}}', 'Variant_{{productId}}', true); {{facebookPixelAction}}">
+                    <i class="@cartIcon"></i><span class="u-hidden-xs u-hidden-xxs"> @Translate("Buy with points")</span>
+                </button>
+                    <text>
+                        {{#unless canBePurchasedWithPoints}}
+                        {{#if havePointPrice}}
+                        <small class="help-text u-no-margin u-margin-top">@Translate("Not enough points to buy this")</small>
+                        {{/if}}
+                        {{/unless}}
+                    </text>
+                }
+                else
+                {
+                <button type="button" id="CartButton_{{id}}" class="btn btn--primary btn--condensed u-no-margin u-margin-bottom dw-mod js-cart-btn" name="submit" onclick="Cart.AddToCart(event, '{{productId}}', document.getElementById('Quantity_{{id}}').value, 'Unit_{{id}}', 'Variant_{{productId}}'); {{facebookPixelAction}}">
+                    <i class="@cartIcon"></i><span class="u-hidden-xs u-hidden-xxs"> @Translate("Add to cart")</span>
+                </button>
+                }
+                @if (!pointShopOnly && Pageview.User != null && Dynamicweb.Security.Licensing.LicenseManager.LicenseHasFeature("LoyaltyPoints"))
+                {
+                <text>
+                    {{#if canBePurchasedWithPoints}}
+                    <div class="loyalty-points u-no-margin">
+                        <button type="button" onclick="Cart.AddToCart(event, '{{productId}}', document.getElementById('Quantity_{{id}}').value, 'Unit_{{id}}', 'Variant_{{productId}}', true); HandlebarsBolt.UpdateContent('PriceAndActions'); {{facebookPixelAction}}" class="btn btn--loyalty-points u-no-margin dw-mod pull-right u-no-margin" name="CartCmd" value="addWithPoints">
+                            @Translate("Buy for") {{points}} @Translate("points")
+                        </button>
+                    </div>
+                    {{/if}}
+                </text>
+                }
+            </div>
+    }
+    else
+    {
+    <button type="button" id="CartButton_{{id}}" class="u-hidden"></button>
+    }
+    {{/.}}
+</script>
+
+<script id="Units" type="text/x-template">
+    <div class="dropdown__item dw-mod" onclick="HandlebarsBolt.UpdateContent('PriceAndActions', '/Default.aspx?ID=@feedId&UnitID={{value}}')">{{name}}</div>
+</script>
+
+
+@* Script templates for related products *@
+<script id="ProductPreRenderContainer" type="text/x-template">
+    <div class="u-h600px u-full-width">
+        <div class="grid">
+            <div class="grid__col-12">
+                <div class="pre-render-element pre-render-element--md"></div>
+            </div>
+        </div>
+    </div>
+</script>
+
+<script id="ProductContainer" type="text/x-template">
+    {{#.}}
+    <div class="u-min-h400px u-full-width">
+        <div class="grid">
+            <div class="grid__col-45px grid__col--bleed-x">
+                <div class="grid__cell grid__cell--align-middle-left">
+                    <button class="btn btn--condensed btn--clean {{prevdisabled}} dw-mod" onclick="HandlebarsBolt.UpdateContent('ProductList_{{groupName}}', '{{prevPage}}')" {{prevdisabled}}><i class="fas fa-chevron-left fa-2x"></i></button>
+                </div>
+            </div>
+            <div class="grid__col-auto grid__col--bleed-x">
+                <div id="ProductsContainer" class="grid product-list dw-mod">
+                    {{#ProductsContainer}}
+                    <div id="Product{{productId}}" class="grid__col-@relatedProductsColumnWidth product-list__grid-item dw-mod">
+                        {{#Product}}
+                        <div class="grid__cell product-list__grid-item__image dw-mod {{noImage}}">
+                            <div class="stickers-container dw-mod">
+                                {{#Stickers}}
+                                {{>Sticker}}
+                                {{/Stickers}}
+                            </div>
+                            <a href="{{link}}" onclick="Scroll.SavePosition(event)"><img class="grid__cell-img grid__cell-img--centered b-lazy" src="/Files/Images/placeholder.gif" data-src="/Admin/Public/GetImage.ashx?width=300&amp;height=300&amp;crop=5&amp;Compression=75&amp;image={{image}}" alt="{{name}}" /></a>
+                        </div>
+
+                        <div class="grid__cell product-list__grid-item__price-info {{shortGridInfo}} dw-mod">
+                            <a href="{{link}}" onclick="Scroll.SavePosition(event)" title="{{name}}"><h6 class="u-condensed-text">{{name}}</h6></a>
+                            {{#if showProductNumber}}
+                                <div class="item-number dw-mod">{{number}}</div>
+                            {{/if}}
+                            @if (!onlyPreview)
+                            {
+                                <div class="price dw-mod">{{price}}</div>
+                                <div class="before-price {{onSale}} dw-mod">{{discount}}</div>
+                            }
+                        </div>
+
+                        <div class="product-list__grid-item__footer dw-mod">
+                            <div class="u-ta-center">
+                                <a href="{{link}}" id="CartButton_{{id}}" class="btn btn--secondary btn--full u-no-margin dw-mod">@Translate("View")</a>
+                            </div>
+                        </div>
+                        {{/Product}}
+                    </div>
+                    {{/ProductsContainer}}
+                </div>
+            </div>
+            <div class="grid__col-45px grid__col--bleed-x">
+                <div class="grid__cell grid__cell--align-middle-right">
+                    <button class="btn btn--condensed btn--clean {{nextdisabled}} dw-mod" onclick="HandlebarsBolt.UpdateContent('ProductList_{{groupName}}', '{{nextPage}}')" {{nextdisabled}}><i class="fas fa-chevron-right fa-2x"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{/.}}
+</script>
+
+<script id="ProductContainerMini" type="text/x-template">
+    {{#.}}
+    <div class="u-full-width">
+        <div class="grid">
+            <div class="grid__col-45px grid__col--bleed-x">
+                <div class="grid__cell grid__cell--align-middle-left">
+                    <button class="btn btn--condensed btn--clean {{prevdisabled}} dw-mod" onclick="HandlebarsBolt.UpdateContent('ProductList_{{groupName}}', '{{prevPage}}')" {{prevdisabled}}><i class="fas fa-chevron-left fa-2x"></i></button>
+                </div>
+            </div>
+            <div class="grid__col-auto grid__col--bleed-x">
+                <div id="ProductsContainer" class="grid product-list dw-mod">
+                    {{#ProductsContainer}}
+                    <div id="Product{{productId}}" class="grid__col-@relatedProductsColumnWidth product-list__grid-item dw-mod">
+                        {{#Product}}
+                        <div class="grid__cell product-list__grid-item__image dw-mod {{noImage}}">
+                            <div class="stickers-container dw-mod">
+                                {{#Stickers}}
+                                {{>Sticker}}
+                                {{/Stickers}}
+                            </div>
+                            <a href="{{link}}" onclick="Scroll.SavePosition(event)"><img class="grid__cell-img grid__cell-img--centered b-lazy" src="/Files/Images/placeholder.gif" data-src="/Admin/Public/GetImage.ashx?width=300&amp;height=300&amp;crop=5&amp;Compression=75&amp;image={{image}}" alt="{{name}}" /></a>
+                        </div>
+
+                        <div class="grid__cell product-list__grid-item__price-info {{shortGridInfo}} dw-mod">
+                            <a href="{{link}}" onclick="Scroll.SavePosition(event)" title="{{name}}"><h6 class="u-condensed-text">{{name}}</h6></a>
+                            {{#if showProductNumber}}
+                            <div class="item-number dw-mod">{{number}}</div>
+                            {{/if}}
+                            @if (!onlyPreview)
+                            {
+                                if (pointShopOnly)
+                                {
+                                <text>
+                                    {{#if havePointPrice}}
+                                    <div>{{points}} @Translate("points")</div>
+                                    {{else}}
+                                    @Translate("Not avaliable")
+                                    {{/if}}
+                                </text>
+                                }
+                                else
+                                {
+                                <div>{{price}}</div>
+                                                <div class="before-price {{onSale}} dw-mod">{{discount}}</div>
+                                }
+                            }
+                        </div>
+                        {{/Product}}
+                    </div>
+                    {{/ProductsContainer}}
+                </div>
+            </div>
+            <div class="grid__col-45px grid__col--bleed-x">
+                <div class="grid__cell grid__cell--align-middle-right">
+                    <button class="btn btn--condensed btn--clean {{nextdisabled}} dw-mod" onclick="HandlebarsBolt.UpdateContent('ProductList_{{groupName}}', '{{nextPage}}')" {{nextdisabled}}><i class="fas fa-chevron-right fa-2x"></i></button>
+                </div>
+            </div>
+        </div>
+    </div>
+    {{/.}}
+</script>
+
+<script id="Sticker" type="text/x-template">
+    <div class="stickers-container__tag {{className}} dw-mod">{{text}}</div>
+</script>
+
+
+@* Script templates for variant products *@
+
+<script id="VariantProductsContainer" type="text/x-template">
+    {{#.}}
+    <div class="">
+        <table id="VariantsProductsContainer" class="table u-position-relative dw-mod">
+            <thead>
+                <tr>
+                    <td width="75">&nbsp;</td>
+                    <td>@Translate("Product")</td>
+                    {{#AvailableCustomFields}}
+                    {{>TableFieldNameTemplate}}
+                    {{/AvailableCustomFields}}
+                    @if (Converter.ToBoolean(productDetails["ProductDetailsRenderVariantGroupsInTable"]))
+                    {
+                        foreach (LoopItem variantgroup in GetLoop("VariantGroups"))
+                        {
+                        <td>@variantgroup.GetString("Ecom:VariantGroup.Name")</td>
+                        }
+                    }
+                    <td width="320">&nbsp;</td>
+                </tr>
+            </thead>
+
+            <tbody id="VariantProductListContainer" data-template="VariantProductItemContainer" data-save-cookie="true">
+                {{#ProductsContainer}}
+                {{>VariantProductItemContainer}}
+                {{/ProductsContainer}}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="grid">
+        <div class="grid__col-12 grid__col--bleed-y">
+            <button type="button" id="LoadMoreButton" class="btn btn--primary btn--full  {{nextdisabled}} dw-mod" data-current="{{currentPage}}" data-page-size="{{pageSize}}" data-total="{{totalPages}}" data-container="VariantProductListContainer" data-feed-url="@variantsFeedUrl{{loadMoreFeedParams}}" onclick="LoadMore.Next(this)" {{nextdisabled}}>@Translate("Load") @Translate("more")</button>
+        </div>
+    </div>
+    {{/.}}
+</script>
+
+<script id="VariantProductItemContainer" type="text/x-template">
+    {{#.}}
+    <tr id="VariantProduct{{id}}" data-template="VariantProductItem" data-preloader="overlay" style="z-index: {{zIndex}}">
+        {{#Product}}
+        {{>VariantProductItem}}
+        {{/Product}}
+    </tr>
+    {{/.}}
+</script>
+
+<script id="VariantProductItem" type="text/x-template">
+    {{#.}}
+    <td width="75">
+        <div class="lightbox u-hidden-xxs">
+            <a href="{{link}}" onclick="Scroll.SavePosition(event)">
+                <img class="lightbox__image {{noImage}}" src="/Admin/Public/GetImage.ashx?width=220&amp;height=220&amp;crop=5&amp;Compression=75&amp;image={{image}}" alt="{{name}}" />
+                <div class="u-margin-right {{noImage}}">
+                    <img src="/Admin/Public/GetImage.ashx?width=75&amp;height=55&amp;crop=5&FillCanvas=true&amp;Compression=75&amp;image={{image}}" alt="{{name}}" />
+                </div>
+            </a>
+        </div>
+    </td>
+    <td class="u-va-middle">
+        <a href="{{link}}" onclick="Scroll.SavePosition(event)" title="{{name}}"><h6 class="u-no-margin">{{name}}</h6></a>
+        <div class="item-number item-number--compressed dw-mod">
+            {{#if showProductNumber}}
+            {{number}}
+            {{/if}}
+            @if (!onlyPreview)
+            {
+            <span>
+                <span class="stock-icon {{stockState}} u-no-margin dw-mod" title="{{stockText}}"></span> {{stockText}}{{deliveryText}}
+            </span>
+            }
+            else
+            {
+            <div class="grid__cell-footer stickers-container stickers-container--block dw-mod">
+                {{#Stickers}}
+                {{>MiniSticker}}
+                {{/Stickers}}
+            </div>
+            }
+        </div>
+    </td>
+    {{#CustomFields}}
+    {{>TableFieldNameTemplate}}
+    {{/CustomFields}}
+    @if (Converter.ToBoolean(productDetails["ProductDetailsRenderVariantGroupsInTable"]))
+    {
+    <text>
+        {{#VariantSelectionNames}}
+        {{>TableFieldNameTemplate}}
+        {{/VariantSelectionNames}}
+    </text>
+    }
+    <td width="320" class="u-va-middle">
+        @if (onlyPreview)
+        {
+        <div class="u-hidden-sm">
+            <div class="u-full-width u-ta-right u-padding-right">
+                @if (pointShopOnly)
+                {
+                <text>
+                    {{#if havePointPrice}}
+                    <div class="price price--product-list price--micro dw-mod">{{points}} @Translate("points")</div>
+                    {{else}}
+                    @Translate("Not avaliable")
+                    {{/if}}
+                </text>
+                }
+                else
+                {
+                <div class="before-price {{onSale}} before-price--micro dw-mod">{{discount}}</div>
+                            <div class="price price--product-list price--micro dw-mod">{{price}}</div>
+                }
+            </div>
+        </div>
+        }
+        else
+        {
+        <div class="grid grid--align-center grid--justify-end">
+            <div class="u-margin-right">
+                <input type="checkbox" id="UnitOptions_{{id}}" class="dropdown-trigger" />
+                <div class="dropdown u-w120px {{hasUnits}} dw-mod">
+                    <label class="dropdown__header dropdown__btn dw-mod" for="UnitOptions_{{id}}">{{unitName}}</label>
+                    <div id="unitOptions" class="dropdown__content dw-mod">
+                        {{#unitOptions}}
+                        {{>UnitOption}}
+                        {{/unitOptions}}
+                    </div>
+                    <label class="dropdown-trigger-off" for="UnitOptions_{{id}}"></label>
+                </div>
+                <input type="hidden" value="{{unitId}}" name="Unit{{id}}" id="Unit_{{id}}" />
+                <input type="hidden" value="{{variantid}}" name="VariantID{{id}}" id="Variant_{{id}}" />
+            </div>
+            <div class="u-margin-right u-hidden-xs u-hidden-xxs">
+                @if (pointShopOnly)
+                {
+                <text>
+                    {{#if canBePurchasedWithPoints}}
+                    <div class="price price--product-list price--micro dw-mod">{{points}} @Translate("points")</div>
+                    {{else}}
+                    {{#if havePointPrice}}
+                    <small class="help-text u-no-margin u-margin-top">@Translate("Not enough points to buy this")</small>
+                    {{else}}
+                    <small class="help-text u-no-margin u-margin-top">@Translate("Not avaliable")</small>
+                    {{/if}}
+                    {{/if}}
+                </text>
+                }
+                else
+                {
+                <div class="before-price {{onSale}} before-price--micro dw-mod">{{discount}}</div>
+                            <div class="price price--product-list price--micro dw-mod">{{price}}</div>
+                }
+            </div>
+            @if (pointShopOnly)
+            {
+            <div>
+                <button {{#unless canBePurchasedWithPoints}} disabled{{/unless}} type="button" id="CartButton_{{id}}" class="btn btn--primary btn--condensed u-no-margin dw-mod js-cart-btn {{#unless canBePurchasedWithPoints}}disabled js-stay-disabled{{/unless}}" name="CartCmd" value="addWithPoints" onclick="Cart.AddToCart(event, '{{productId}}', 1, 'Unit_{{id}}', 'Variant_{{id}}', true); {{facebookPixelAction}}">
+                    <i class="@cartIcon"></i>
+                </button>
+            </div>
+            }
+            else
+            {
+            <div>
+                <input type="number" class="u-w80px u-no-margin u-margin-right" id="Quantity_{{id}}" name="Quantity{{id}}" value="1" min="1">
+            </div>
+                        <div>
+                            <button type="button" id="CartButton_{{id}}" class="btn btn--primary btn--condensed u-no-margin dw-mod {{hasVariants}}" name="submit" onclick="Cart.AddToCart(event, '{{productId}}', document.getElementById('Quantity_{{id}}').value, 'Unit_{{id}}', 'Variant_{{id}}'); {{facebookPixelAction}}" {{hasVariants}}><i class="@cartIcon"></i></button>
+                        </div>
+            }
+            <div class="favorites u-margin-left {{hasVariants}} dw-mod" {{hasVariants}}>
+                {{#Favorite}}
+                {{>FavoriteTemplate}}
+                {{/Favorite}}
+            </div>
+        </div>
+        }
+    </td>
+    {{/.}}
+</script>
+
+<script id="TableFieldNameTemplate" type="text/x-template">
+    <td class="u-va-middle">{{name}}</td>
+</script>
+
+<script id="TableFieldValueTemplate" type="text/x-template">
+    <td class="u-va-middle">{{value}}</td>
+</script>
+
+<script id="MiniSticker" type="text/x-template">
+    <div class="stickers-container__tag stickers-container__tag--micro {{className}} dw-mod">{{text}}</div>
+</script>
+
+@* Favorites templates *@
+
+<script id="FavoriteTemplate" type="text/x-template">
+    <div class="favorites-list u-ta-left">
+        <label for="FavoriteTrigger_{{id}}" class="u-no-margin"><i class="{{favoriteIcon}} fa-1_5x"></i></label>
+        <input type="checkbox" id="FavoriteTrigger_{{id}}" class="dropdown-trigger" />
+        <div class="dropdown dropdown--absolute-position">
+            <div class="dropdown__content dropdown__content--show-left dropdown__content--padding u-w220px dw-mod">
+                <ul class="list list--clean dw-mod">
+                    {{#FavoriteLists}}
+                    {{>FavoriteListItem}}
+                    {{/FavoriteLists}}
+                </ul>
+            </div>
+            <label class="dropdown-trigger-off" for="FavoriteTrigger_{{id}}"></label>
+        </div>
+    </div>
+</script>
+
+<script id="FavoriteListItem" type="text/x-template">
+    <li>
+        <a href="{{link}}" class="list__link u-no-underline dw-mod" onclick="{{facebookPixelAction}}"><i class="{{favoriteIcon}}"></i> {{name}}</a>
+    </li>
+</script>
+
+@* Units templates *@
+
+<script id="UnitOption" type="text/x-template">
+    <div class="dropdown__item dw-mod" onclick="HandlebarsBolt.UpdateContent('PriceAndActions', '{{link}}&feed=true&UnitID={{value}}&rid={{id}}')">{{name}}</div>
+</script>
+
+@functions {
+    string getIconForFile(string fileName)
+    {
+        string ext = Path.GetExtension(fileName);
+        string icon = "";
+        switch (ext.ToLower())
+        {
+            case ".xls":
+            case ".xlsx":
+                icon = "fa-file-excel";
+                break;
+            case ".ppt":
+            case ".pptx":
+                icon = "fa-file-powerpoint";
+                break;
+            case ".doc":
+            case ".docx":
+                icon = "fa-file-word";
+                break;
+            case ".jpg":
+            case ".jpeg":
+            case ".png":
+            case ".gif":
+            case ".pdf":
+                return "<img class='product__document-img' alt='" + fileName + "' src='/Admin/Public/GetImage.ashx?crop=5&height=70&width=120&Compression=75&DoNotUpscale=true&image=" + fileName + "' />";
+            default:
+                icon = "fa-file";
+                break;
+        }
+        return "<i class='product__document-icon far " + icon + "'></i> ";
+    }
+
+    public static string ToPascalCase(string str)
+    {
+        return CultureInfo.InvariantCulture.TextInfo
+        .ToTitleCase(str.ToLowerInvariant())
+        .Replace("-", "")
+        .Replace("_", "")
+        .Replace(" ", "");
+    }
+}
+
+@Include("../GoogleProductSchema.cshtml")
+
+<script>
+    if (document.getElementById("PriceAndActions")) {
+        document.getElementById("PriceAndActions").addEventListener("contentLoaded", function (event) {
+            if (document.querySelector(".js-variants") != null) {
+                MatchVariants.Update(document.querySelector(".js-variants"), "DoNothing");
+            }
+        });
+    }
+</script>

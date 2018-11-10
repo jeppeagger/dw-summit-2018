@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Query ID="4227123c-ab00-409a-a37a-a3eddfd15f5d" Name="Show Product-card Example">
+  <Settings />
+  <Source Repository="Products" Item="Products.index" Type="Dynamicweb.Indexing.Queries.IndexQueryProvider, Dynamicweb.Indexing" />
+  <ViewFields>
+    <Field Name="Active" SystemName="" Source="ProductActive" Sort="0" />
+    <Field Name="Product name" SystemName="" Source="ProductName" Sort="1" />
+    <Field Name="Product number" SystemName="" Source="ProductNumber" Sort="2" />
+    <Field Name="Short description" SystemName="" Source="ProductShortDescription" Sort="3" />
+    <Field Name="Long description" SystemName="" Source="ProductLongDescription" Sort="4" />
+    <Field Name="Brand" SystemName="" Source="CustomField_brand" Sort="5" />
+    <Field Name="Clothing - Color" SystemName="" Source="ProductCategory|ClothingDetail|Color" Sort="6" />
+    <Field Name="Clothing - Composition" SystemName="" Source="ProductCategory|ClothingDetail|composition" Sort="7" />
+    <Field Name="Clothing - Form" SystemName="" Source="ProductCategory|ClothingDetail|Form" Sort="8" />
+    <Field Name="Clothing - Material" SystemName="" Source="ProductCategory|ClothingDetail|Material" Sort="9" />
+    <Field Name="Clothing - Model" SystemName="" Source="ProductCategory|ClothingDetail|Model" Sort="10" />
+    <Field Name="Clothing - Washing detail" SystemName="" Source="ProductCategory|ClothingDetail|Washing_detail" Sort="11" />
+    <Field Name="Clothing - Washing instructions" SystemName="" Source="ProductCategory|ClothingDetail|Washing_instructions" Sort="12" />
+    <Field Name="Color" SystemName="" Source="CustomField_Color" Sort="13" />
+    <Field Name="Document" SystemName="" Source="CustomField_Document" Sort="14" />
+    <Field Name="EAN" SystemName="" Source="CustomField_EAN" Sort="15" />
+    <Field Name="Eco" SystemName="" Source="CustomField_EcoFriendly" Sort="16" />
+    <Field Name="Equipment - Back derailleur" SystemName="" Source="ProductCategory|equipment|Back_derailleur" Sort="17" />
+    <Field Name="Equipment - Breaks" SystemName="" Source="ProductCategory|equipment|Breaks" Sort="18" />
+    <Field Name="Equipment - Cassette" SystemName="" Source="ProductCategory|equipment|Cassette" Sort="19" />
+    <Field Name="Equipment - Crankset" SystemName="" Source="ProductCategory|equipment|Crankset" Sort="20" />
+    <Field Name="Equipment - Deck" SystemName="" Source="ProductCategory|equipment|Deck" Sort="21" />
+    <Field Name="Equipment - External reviews" SystemName="" Source="ProductCategory|equipment|External_reviews" Sort="22" />
+    <Field Name="Equipment - Fork" SystemName="" Source="ProductCategory|equipment|Fork" Sort="23" />
+    <Field Name="Equipment - Frame" SystemName="" Source="ProductCategory|equipment|Frame" Sort="24" />
+    <Field Name="Equipment - Front derailleur" SystemName="" Source="ProductCategory|equipment|Front_derailleur" Sort="25" />
+    <Field Name="Equipment - Gear" SystemName="" Source="ProductCategory|equipment|Gear" Sort="26" />
+    <Field Name="Equipment - Light" SystemName="" Source="ProductCategory|equipment|Light" Sort="27" />
+    <Field Name="Equipment - Lock" SystemName="" Source="ProductCategory|equipment|Lock" Sort="28" />
+    <Field Name="Equipment - Monitor" SystemName="" Source="ProductCategory|equipment|Monitor" Sort="29" />
+    <Field Name="Equipment - Shifter" SystemName="" Source="ProductCategory|equipment|Shifter" Sort="30" />
+    <Field Name="Equipment - Wheel" SystemName="" Source="ProductCategory|equipment|Wheel" Sort="31" />
+    <Field Name="Format" SystemName="" Source="CustomField_Format" Sort="32" />
+    <Field Name="Materials" SystemName="" Source="VariantGroup_VARGRP6" Sort="33" />
+    <Field Name="SupplierItemNumber" SystemName="" Source="CustomField_SupplierItemNumber" Sort="34" />
+    <Field Name="TranslateStatus" SystemName="" Source="CustomField_translateStatus" Sort="35" />
+    <Field Name="Brand details - Brandlogo" SystemName="" Source="ProductCategory|Brand_detail|Brandlogo" Sort="36" />
+    <Field Name="Brand details - Brandtext" SystemName="" Source="ProductCategory|Brand_detail|Brandtext" Sort="37" />
+    <Field Name="Brand details - Reviews" SystemName="" Source="ProductCategory|Brand_detail|reviews" Sort="38" />
+    <Field Name="Brand details - Website" SystemName="" Source="ProductCategory|Brand_detail|website" Sort="39" />
+  </ViewFields>
+  <ViewLanguages />
+  <Meta />
+</Query>

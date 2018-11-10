@@ -1,0 +1,40 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@{ 
+    BlocksPage productListMenuBlocksPage = BlocksPage.GetBlockPage("ProductList");
+
+    if (Pageview.Page.PropertyItem["LeftMenu"] != null && Converter.ToString(Pageview.Page.PropertyItem["LeftMenu"]) == "True" && Pageview.Page.NavigationSettings != null && Pageview.Page.NavigationSettings.UseEcomGroups) {
+        Block productListMenuBlock = new Block
+        {
+            Id = "Menu",
+            SortId = 20,
+            Template = RenderProductListMenu()
+        };
+
+        productListMenuBlocksPage.Add("Navigation", productListMenuBlock);
+    }
+}
+
+@helper RenderProductListMenu()
+{
+    var navigationMarkup = RenderNavigation(new
+    {
+        id = "leftnav",
+        cssclass = "dwnavigation",
+        startLevel = 1,
+        endlevel = 5,
+        template = "LeftNavigation.xslt",
+        mode = "ecom"
+    });
+
+    <h2 class="u-margin-bottom">@Translate("Product categories")</h2>
+
+    <div class="u-padding-bottom--lg">
+        @navigationMarkup
+    </div>
+}

@@ -1,0 +1,209 @@
+﻿@using System.Linq
+@using Dynamicweb
+@using Dynamicweb.Content.Items
+@using Dynamicweb.Core
+@using Dynamicweb.Rendering
+@using Dynamicweb.Ecommerce.ProductCatalog
+@inherits ViewModelTemplate<ProductListViewModel>
+
+@{
+    string pageId = Pageview.ID.ToString();
+    var group = Dynamicweb.Ecommerce.Services.ProductGroups.GetGroup(Converter.ToString(Context.Current.Request["GroupID"]));
+    string pageName = group != null ? group.Name : Translate("Products");
+    string groupIdQueryParameter = string.IsNullOrEmpty(Context.Current.Request["GroupID"]) ? string.Empty : "&amp;GroupID=" + Context.Current.Request["GroupID"];
+    string currentPageLink = "/Default.aspx?ID=" + pageId + groupIdQueryParameter;
+    string listHeader = Context.Current.Request.QueryString.Get("Search") != null ? Translate("Search result for") + " \"" + Context.Current.Request.QueryString.Get("Search") + "\" : " : pageName + ": ";
+    listHeader = Context.Current.Request.QueryString.Get("ListName") != null ? Context.Current.Request.QueryString.Get("ListName") + ": " : listHeader;
+    listHeader += Model.Products.Count();
+    bool onlyPreview = Converter.ToBoolean(Pageview.Area.Item["OnlyPreviewForAnonymous"]) && Pageview.User == null;
+
+    Dictionary<string, string> Sorts = new Dictionary<string, string>() {
+        {"CreatedDESC", Translate("Newest")},
+        {"PriceDESC", Translate("Price high - low")},
+        {"PriceASC", Translate("Price low - high")}
+    };
+
+    string sortBy = Context.Current.Request.QueryString.Get("SortBy");
+    string sortOrder = Context.Current.Request.QueryString.Get("SortOrder");
+
+    string selectedSort = string.IsNullOrEmpty(sortBy) ? Translate("Default") : Sorts[sortBy + sortOrder];
+    bool hideSorting = Converter.ToBoolean(Pageview.Area.Item["HideSorting"]);
+
+    Item icons = Item.GetItemById("Icons", Pageview.Area.Item["Icons"].ToString());
+    string cartIcon = icons["CartIcon"] != null ? icons["CartIcon"].ToString() : "fas fa-shopping-cart";
+
+    var navigationMarkup = RenderNavigation(new
+    {
+        id = "leftnav",
+        cssclass = "dwnavigation",
+        startLevel = 1,
+        endlevel = 5,
+        template = "LeftNavigationEcom.xslt"
+    });
+}
+
+<form name="multiForm" id="multiForm" method="post">
+    <div class="grid grid--external-bleed grid--align-content-start">
+        @if (Pageview.Page.PropertyItem["LeftMenu"].ToString() == "True" && Pageview.Page.NavigationSettings.UseEcomGroups)
+        {
+            <div class="grid__col-3 grid__col--bleed-x">
+                <h2>@Translate("Product categories")</h2>
+
+                <div class="u-padding-bottom--lg">
+                    @navigationMarkup
+                </div>
+            </div>
+        }
+        <div class="grid__col-auto grid__col--bleed-x">
+            <div class="grid__cell">
+                <div class="u-pull--left u-margin-left">
+                    <h2>@listHeader</h2>
+                </div>
+                @if (!hideSorting)
+                {
+                    <div class="collection u-pull--right u-no-margin u-margin-right">
+                        <h5 class="u-inline-block u-margin-right">@Translate("Sort by")</h5>
+                        <div class="dropdown u-w150px u-margin-right u-inline-block dw-mod">
+                            <label class="dropdown__header dropdown__btn dropdown__btn--small dw-mod" for="ProductSort">@selectedSort</label>
+                            <div class="dropdown__content dw-mod">
+                                <div class="dropdown__item" onclick="window.location = '/Default.aspx?ID=@pageId'">@Translate("Default")</div>
+                                <div class="dropdown__item" onclick="window.location = '/Default.aspx?ID=@pageId&SortBy=Created&SortOrder=DESC'">@Translate("Newest")</div>
+                                <div class="dropdown__item" onclick="window.location = '/Default.aspx?ID=@pageId&SortBy=Price&SortOrder=ASC'">@Translate("Price low - high")</div>
+                                <div class="dropdown__item" onclick="window.location = '/Default.aspx?ID=@pageId&SortBy=Price&SortOrder=DESC'">@Translate("Price high - low")</div>
+                            </div>
+                            <label class="dropdown-trigger-off" for="ProductSort"></label>
+                        </div>
+                    </div>
+                }
+
+                <div class="grid product-list dw-mod">
+                    @{ var variantGroupService = new Dynamicweb.Ecommerce.Variants.VariantGroupService();}
+                    @foreach (var product in Model.Products)
+                    {
+                        string imagePlaceholder = "%2fFiles%2fImages%2fmissing_image.jpg"; // Cant get product image
+                        string uniqueId = string.Format("{0}{1}", product.Id, product.VariantId);
+                        string onSale = string.Equals(product.PriceBeforeDiscount.PriceFormatted, product.Price.PriceFormatted) ? "u-hidden" : "";
+                        string newSticker = Converter.ToBoolean(Pageview.Area.Item["NewStickersEnable"]) && product.Created.AddDays(Converter.ToDouble(Pageview.Area.Item["NewStickersExpiration"])) > DateTime.Now ? "" : "u-hidden";
+                        string price = product.Price.PriceFormatted;
+                        string discount = product.PriceBeforeDiscount.PriceFormatted;
+                        string link = string.Format("{0}&ProductID={1}{2}", currentPageLink, product.Id, !string.IsNullOrWhiteSpace(product.VariantId) ? "&VariantID=" + product.VariantId : "");
+                        bool hasVariants = variantGroupService.GetVariantGroups(product.LanguageId, product.Id).Any();
+
+                    <div class="grid__col-12">
+                        <div class="grid product-list__list-item dw-mod">
+                            @if (!string.IsNullOrEmpty(imagePlaceholder)) //TODO check image
+                            {
+                                <div class="grid__col-md-4 product-list__list-item__left dw-mod">
+                                    <div class="grid__cell">
+                                        <div class="stickers-container dw-mod">
+                                            <div class="stickers-container__tag stickers-container__tag--new @newSticker dw-mod">@Translate("New!")</div>
+                                            <div class="stickers-container__tag stickers-container__tag--sale @onSale dw-mod">@Translate("Sale!")</div>
+                                        </div>
+                                        <a href="@link" onclick="Scroll.SavePosition(event)">
+                                            <img class="grid__cell-img grid__cell-img--centered u-padding b-lazy" src="/Files/Images/placeholder.gif" data-src="/Admin/Public/GetImage.ashx?width=300&amp;height=300&amp;crop=5&amp;Compression=75&amp;DoNotUpscale=true&amp;FillCanvas=true&amp;image=@imagePlaceholder" alt="@product.Name" />
+                                        </a>                                        
+                                    </div>
+                                </div>
+                            }
+                            <div class="grid__col-md-auto product-list__list-item__right dw-mod">
+                                <div>
+                                    <div class="u-pull--left">
+                                        <a href="@link" onclick="Scroll.SavePosition(event)" title="@product.Name"><h2>@product.Name</h2></a>
+                                        <div class="item-number dw-mod">@product.Number</div>
+                                    </div>
+                                </div>
+
+                                <div class="grid__cell">
+                                    @product.ShortDescription
+                                </div>
+                                @if (!onlyPreview)
+                                {
+                                    <div class="grid__cell-footer">
+                                        <div class="grid__cell">
+                                            <div class="product-list__list-item__price-actions dw-mod">
+                                                <div class="u-margin-bottom">
+                                                    <div class="before-price @onSale dw-mod">@discount</div>
+                                                    <div class="price dw-mod">@price</div>
+                                                </div>
+                                                <div class="buttons-collection buttons-collection--right">
+                                                    @if (hasVariants)
+                                                    {
+                                                        <a href="@link" id="CartButton_@product.Id" class="btn btn--secondary btn--full u-no-margin dw-mod">@Translate("View")</a>
+                                                    }
+                                                    else
+                                                    {
+                                                        <button type="button" id="CartButton_@product.Id" class="btn btn--primary btn--condensed u-pull--right dw-mod" name="submit" onclick="Cart.AddToCart(event, '@product.Id', document.getElementById('Quantity_@product.Id').value, 'Unit_@product.Id', 'Variant_@product.Id');"><i class="@cartIcon"></i><span class="u-hidden-xs u-hidden-xxs"> @Translate("Add to cart")</span></button>
+                                                        <input type="number" class="u-w80px u-pull--right" id="Quantity_@product.Id" name="Quantity_@uniqueId" value="1" min="1">
+                                                    }
+                                                    <input type="hidden" value="@uniqueId" name="Unit_@uniqueId" id="Unit_@product.Id" />
+                                                    <input type="hidden" value="@product.VariantId" name="VariantID_@uniqueId" id="Variant_@product.Id" />
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <button type="button" id="CartButton_@product.Id" class="u-hidden"></button>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @{
+        var pagingHref = string.Format("{0}&PageSize={1}&PageNum={{0}}", currentPageLink, Model.PageSize);
+        var totalPageCount = Model.GetPageCount();
+        var prevPage = Model.CurrentPage <= 1
+            ? string.Empty
+            : string.Format(pagingHref, Model.CurrentPage - 1);
+        var nextPage = Model.CurrentPage >= totalPageCount
+            ? string.Empty
+            : string.Format(pagingHref, Model.CurrentPage + 1);
+    }
+
+    <div class="grid__col-12 u-margin-top">
+        <div class="pager">
+            <div class="pager__info">
+                @Translate("Page") @Model.CurrentPage @Translate("of") @totalPageCount
+            </div>
+            <ul class="pager__list">
+                @if (!string.IsNullOrWhiteSpace(prevPage))
+                {
+                    <li class="pager__btn">
+                        <a href="@prevPage" class="pager__num dw-mod"><i class="fas fa-angle-left"></i></a>
+                    </li>
+                }
+
+                @{string pageHrefTemplate = string.Format("<a class=\"pager__num dw-mod\" href=\"{0}\">{{0}}</a>", pagingHref); }
+                @for (int page = 1; page <= totalPageCount; page++)
+                {
+                    bool isActive = page == Model.CurrentPage;
+                    <li class="pager__btn">
+                        @if (isActive)
+                        {
+                            <span class="pager__num pager__num--current dw-mod">@page</span>
+                        }
+                        else
+                        {
+                            <text>
+                                @string.Format(pageHrefTemplate, page)
+                            </text>
+                        }
+                    </li>
+                }
+
+                @if (!string.IsNullOrWhiteSpace(nextPage))
+                {
+                    <li class="pager__btn">
+                        <a href="@nextPage" class="pager__num dw-mod"><i class="fas fa-angle-right"></i></a>
+                    </li>
+                }
+            </ul>
+        </div>
+    </div>
+</form>

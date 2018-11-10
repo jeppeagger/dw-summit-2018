@@ -1,0 +1,392 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@functions {
+    bool useFacebookPixel;
+    bool useGoogleTagManager;
+    BlocksPage mainInfoPage = BlocksPage.GetBlockPage("Product");
+}
+
+@{ 
+    bool mainInfoRenderVariantsAsProducts = Pageview.AreaSettings.GetItem("ProductPage").GetString("RenderVariantsAsProductList") != null && GetInteger("Ecom:Product.VariantCount") > 1 ? Pageview.AreaSettings.GetItem("ProductPage").GetBoolean("RenderVariantsAsProductList") : false;
+    bool mainInfoOnlyPreview = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("OnlyPreviewForAnonymous") && Pageview.User == null;
+    string mainInfoVariantId = HttpContext.Current.Request.QueryString.Get("variantId") != null ? HttpContext.Current.Request.QueryString.Get("variantId") : "";
+    string mainInfoFeedId = GetGlobalValue("Global:Page.ID").ToString() + "&ProductID=" + GetString("Ecom:Product.ID") + "&VariantID=" + mainInfoVariantId + "&Feed=True&redirect=false";
+    string mainInfoCartIcon = Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetString("CartIcon") != null ? Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("CartIcon").SelectedValue : "fas fa-shopping-cart";
+    useFacebookPixel = !string.IsNullOrWhiteSpace(Pageview.AreaSettings.GetItem("Settings").GetString("FacebookPixelID"));
+    useGoogleTagManager = !string.IsNullOrEmpty(Pageview.AreaSettings.GetItem("Settings").GetString("GoogleTagManagerID"));
+
+    Block mainInfoHeader = new Block()
+    {
+        Id = "MainInfoHeader",
+        SortId = 10,
+        Template = RenderMainInfoHeader()
+    };
+    mainInfoPage.Add("MainInformation", mainInfoHeader);
+
+    Block mainInfoDescription = new Block()
+    {
+        Id = "ShortDescription",
+        SortId = 30,
+        Template = RenderShortDescription()
+    };
+    mainInfoPage.Add("MainInformation", mainInfoDescription);
+
+    if (!mainInfoRenderVariantsAsProducts) {
+        Block mainInfoVariants = new Block()
+        {
+            Id = "Variants",
+            SortId = 50,
+            Template = RenderMainInfoVariants()
+        };
+        mainInfoPage.Add("MainInformation", mainInfoVariants);
+    }
+
+    Block mainInfoBOM = new Block() {
+        Id = "BOM",
+        SortId = 60,
+        Template = RenderMainInfoBOM()
+    };
+    mainInfoPage.Add("MainInformation", mainInfoBOM);
+
+    if (!mainInfoRenderVariantsAsProducts) {
+        Block mainInfoPrice = new Block() {
+            Id = "Price",
+            SortId = 70,
+            Template = RenderMainInfoPrice()
+        };
+        mainInfoPage.Add("MainInformation", mainInfoPrice);
+
+        Block mainInfoBuy = new Block() {
+            Id = "Buy",
+            SortId = 80,
+            Template = RenderMainInfoBuy()
+        };
+        mainInfoPage.Add("MainInformation", mainInfoBuy);
+
+        Block stockAndShipping = new Block()
+        {
+            Id = "StockAndShipping",
+            SortId = 90,
+            Template = RenderStockAndShipping()
+        };
+        mainInfoPage.Add("MainInformation", stockAndShipping);
+    }
+}
+
+@helper RenderMainInfoHeader() {
+    bool renderVariantsAsProducts = Pageview.AreaSettings.GetItem("ProductPage").GetBoolean("RenderVariantsAsProductList") != null && GetInteger("Ecom:Product.VariantCount") > 1 ? Pageview.AreaSettings.GetItem("ProductPage").GetBoolean("RenderVariantsAsProductList") : false;
+    string pageId = GetGlobalValue("Global:Page.ID").ToString();
+    string currentPrice = GetString("Ecom:Product.Discount.Price.PriceFormatted") == GetString("Ecom:Product.Price.PriceFormatted") ? GetString("Ecom:Product.Price.PriceFormatted") : GetString("Ecom:Product.Discount.Price.PriceFormatted");
+    string favoriteIcon = Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetString("FavoriteIcon") != null ? "fas fa-" + Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("FavoriteIcon").SelectedValue : "fas fa-star";
+    string favoriteOutlineIcon = Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetString("FavoriteIcon") != null ? "far fa-" + Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("FavoriteIcon").SelectedValue : "far fa-star";
+    bool hideProductNumber = false;
+
+    <div>
+        <div class="u-pull--left product__title dw-mod">
+            <h1 class="u-no-margin">@GetString("Ecom:Product.Name") @GetString("Ecom:Product.SelectedVariantComboName")</h1>
+
+            @if (!hideProductNumber)
+            {
+                <div class="item-number dw-mod">@GetString("Ecom:Product.Number")</div>
+            }
+        </div>
+        <div class="u-pull--right">
+            @if (Dynamicweb.Core.Converter.ToBoolean(GetGlobalValue("Global:Extranet.UserName")) && !renderVariantsAsProducts)
+            {
+                string favoriteId = "Favorite" + GetString("Ecom:Product.ID");
+                <div id="@favoriteId" class="favorites favorites--md u-pull--right js-favorite-btn dw-mod">
+                    <div>
+                        @{ 
+                            string favorite = GetBoolean("Ecom:Product.IsProductInFavoriteList") ? favoriteIcon : favoriteOutlineIcon;
+                            string AddToWishlist = "fbq('track', 'AddToWishlist', {" +
+                                "content_name: '" + GetString("Ecom:Product.Name") + "'," +
+                                "content_ids: ['" + GetString("Ecom:Product.Number") + "']," +
+                                "value: " + GetDouble("Ecom:Product.Price.Price") + "," +
+                                "currency: '" + GetString("Ecom:Product.Price.Currency.Code") + "'" +
+                            "});";
+                        }
+                        <label for="FavoriteTrigger"><i class="@favorite fa-1_5x"></i></label>
+                    </div>
+                    <input type="checkbox" id="FavoriteTrigger" class="dropdown-trigger" />
+
+                    <div class="dropdown">
+                        <div class="dropdown__content dropdown__content--show-left dropdown__content--padding u-w220px dw-mod">
+                            <ul class="list list--clean dw-mod">
+                                @if (GetLoop("CustomerCenter.ListTypes").Count > 0)
+                                {
+                                    foreach (LoopItem listType in GetLoop("CustomerCenter.ListTypes"))
+                                    {
+                                        foreach (LoopItem list in listType.GetLoop("CustomerCenter.ProductLists"))
+                                        {
+                                            string favLinkType = list.GetString("Ecom:Product.List.IsProductInThisList") == "True" ? list.GetString("Ecom:Product.RemoveFromThisList") : list.GetString("Ecom:Product.AddToThisListAction");
+                                            string isInListIcon = list.GetString("Ecom:Product.List.IsProductInThisList") == "True" ? favoriteIcon : favoriteOutlineIcon;
+                                            <li>
+                                                <a href="@favLinkType" class="list__link u-no-underline dw-mod" onclick="@(list.GetString("Ecom:Product.List.IsProductInThisList") != "True" && useFacebookPixel ? AddToWishlist : "")"><i class="@isInListIcon"></i> @list.GetValue("Ecom:CustomerCenter.List.Name")</a>
+                                            </li>
+                                        }
+                                    }
+                                }
+                                else
+                                {
+                                    string favLinkType = GetString("Ecom:Product.AddToFavorites") + "&CCListType=0&CCCreateNewList=" + Translate("My favorites");
+                                    string isInListIcon = favoriteOutlineIcon;
+                                    <li>
+                                        <a href="@favLinkType" class="list__link u-no-underline dw-mod" onclick="@(useFacebookPixel ? AddToWishlist : "")"><i class="@isInListIcon"></i> @Translate("My favorites")</a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                        <label class="dropdown-trigger-off" for="FavoriteTrigger"></label>
+                    </div>
+                </div>
+                            }
+        </div>
+    </div>
+}
+
+@helper RenderStockAndShipping() {
+    bool hideStockState = Pageview.AreaSettings.GetItem("ProductPage").GetString("HideStockState") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetBoolean("HideStockState") : false;
+    bool hideDelivery = Pageview.AreaSettings.GetItem("ProductPage").GetString("HideShipping") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetBoolean("HideShipping") : false;
+    bool onlyPreview = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("OnlyPreviewForAnonymous") && Pageview.User == null;
+
+    if (!onlyPreview && (!String.IsNullOrEmpty(GetString("Ecom:Product:Stock.Text")) || !String.IsNullOrEmpty(GetString("Ecom:Product:Stock.DeliveryText"))))
+    {
+        string stockIcon = GetInteger("Ecom:Product.Stock") > 0 ? "stock-icon--in" : "stock-icon--not";
+
+        <div class="product__stock-delivery dw-mod">
+            @if (!hideStockState)
+            {
+            @GetString("Ecom:Product:Stock.Text") <div class="stock-icon @stockIcon"></div>
+            }
+
+            @if (!String.IsNullOrEmpty(GetString("Ecom:Product:Stock.DeliveryText")) && !hideDelivery)
+            {
+            <span>@Translate("Shipping")</span> <span>@GetString("Ecom:Product:Stock.DeliveryText")</span> <span>@GetString("Ecom:Product:Stock.DeliveryUnit")</span>
+            }
+        </div>
+    }
+}
+
+@helper RenderShortDescription() {
+    if (!String.IsNullOrEmpty(GetString("Ecom:Product.ShortDescription")))
+    {
+        <div class="introduction-text">
+            @GetString("Ecom:Product.ShortDescription")
+        </div>
+    }
+}
+
+@helper RenderMainInfoVariants() {
+    string pageId = GetGlobalValue("Global:Page.ID").ToString();
+    string productId = GetString("Ecom:Product.ID");
+    string variantSelection = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString.Get("variantId")) ? HttpContext.Current.Request.QueryString.Get("variantId").Replace(".", ",") : "";
+    string hideHelpText = "";
+
+    foreach (LoopItem variantgroup in GetLoop("VariantGroups"))
+    {
+        foreach (LoopItem variantoption in variantgroup.GetLoop("VariantAvailableOptions"))
+        {
+            if (variantoption.GetBoolean("Ecom:VariantOption.Selected"))
+            {
+                hideHelpText = "u-hidden";
+            }
+        }
+    }
+
+    if (GetLoop("VariantGroups").Count > 0)
+    {
+        var variantCombinationsObject = new List<Array>();
+        foreach (LoopItem variantcomb in GetLoop("VariantStockCombinations"))
+        {
+            string[] combinations = variantcomb.GetString("Ecom:VariantStockCombination.VariantID").Split('.');
+            variantCombinationsObject.Add(combinations);
+        }
+
+        string combinationsJson = Newtonsoft.Json.JsonConvert.SerializeObject(variantCombinationsObject).Replace("\"", "\'");
+
+        var variantGroupsObject = new List<List<String>>();
+        foreach (LoopItem variantGroup in GetLoop("VariantGroups"))
+        {
+            var variantsObject = new List<String>();
+            foreach (LoopItem variantOption in variantGroup.GetLoop("VariantAvailableOptions"))
+            {
+                variantsObject.Add(variantOption.GetString("Ecom:VariantOption.ID"));
+            }
+            variantGroupsObject.Add(variantsObject);
+        }
+        string variantsJson = Newtonsoft.Json.JsonConvert.SerializeObject(variantGroupsObject).Replace("\"", "\'");
+
+        <div>
+            <div class="js-variants" data-total-variant-groups="@GetLoop("VariantGroups").Count" data-combinations="@combinationsJson" data-variants="@variantsJson" data-variant-selections="@variantSelection" data-selection-complete="UpdatePage" data-page-id="@pageId" data-product-id="@productId">
+                @foreach (LoopItem variantGroup in GetLoop("VariantGroups"))
+                {
+                    string groupId = variantGroup.GetString("Ecom:VariantGroup.ID");
+
+                    <div>
+                        <div class="u-bold">@variantGroup.GetString("Ecom:VariantGroup.Name")</div>
+                        <div>
+                            @foreach (LoopItem variantOption in variantGroup.GetLoop("VariantAvailableOptions"))
+                            {
+                                string selected = variantOption.GetBoolean("Ecom:VariantOption.Selected") ? "checked" : "";
+
+                                if (!string.IsNullOrEmpty(variantOption.GetString("Ecom:VariantOption.ImgSmall.Clean")))
+                                {
+                                    string variantImage = "/Admin/Public/GetImage.ashx?width=100&amp;height=50&amp;crop=5&amp;Compression=75&amp;image=/Images/" + variantOption.GetString("Ecom: VariantOption.ImgSmall.Clean");
+                                    <img data-variant-id="@variantOption.GetString("Ecom:VariantOption.ID")" data-variant-group="@groupId" src="@variantImage" onclick="MatchVariants.SelectThis(event)" alt="@variantOption.GetString("Ecom:VariantOption.Name")" title="@variantOption.GetString("Ecom:VariantOption.Name")" class="btn btn--tag @selected js-variant-option" data-check="@selected" />
+                                }
+                                else
+                                {
+                                <button type="button" data-variant-id="@variantOption.GetString("Ecom:VariantOption.ID")" data-variant-group="@groupId" onclick="MatchVariants.SelectThis(event)" class="btn btn--tag @selected js-variant-option" data-check="@selected">@variantOption.GetString("Ecom:VariantOption.Name")</button>
+                                }
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+            <small class="js-help-text help-text @hideHelpText">@Translate("Please select variant!")</small>
+        </div>
+    }
+}
+
+@helper RenderMainInfoBOM() {
+    if (GetLoop("BOMProducts").Count > 0)
+    {
+        <h2 class="section-title">@Translate("Including products")</h2>
+        foreach (LoopItem BOMProductItem in GetLoop("BOMProducts"))
+        {
+            string link = "/" + BOMProductItem.GetString("Ecom:Product.LinkGroup.Clean") + (!String.IsNullOrEmpty(BOMProductItem.GetString("Ecom:Product.VariantID")) ? "&VariantID=" + BOMProductItem.GetString("Ecom:Product.VariantID") : "");
+            <div class="grid__col--border grid">
+                <div class="grid__cell grid__cell--align-middle-left">
+                    <a href="@link" class="u-pull--left u-margin-right">
+                        <img src="/Admin/Public/GetImage.ashx?width=50&image=@BOMProductItem.GetString("Ecom:Product.ImageDefault.Default.Clean")&Compression=99" alt="@BOMProductItem.GetString("Ecom:Product.Name")" />
+                    </a>
+                    <a href="@link">@BOMProductItem.GetString("Ecom:Product.Name")</a>
+                </div>
+            </div>
+        }
+    }
+}
+
+@helper RenderMainInfoPrice() {
+    string pageId = GetGlobalValue("Global:Page.ID").ToString();
+    string variantId = HttpContext.Current.Request.QueryString.Get("variantId");
+    string productId = GetString("Ecom:Product.ID");
+    string feedId = pageId + "&ProductID=" + productId + "&VariantID=" + variantId + "&Feed=True&redirect=false";
+
+    <div class="product__price-actions js-handlebars-root dw-mod" id="PriceAndActions" data-template="PricesAndActionsTemplate" data-json-feed="/Default.aspx?ID=@feedId" data-preloader="minimal"></div>
+    <input type="hidden" value="@GetString("Ecom:Product.VariantID.Extented")" name="Variant" id="Variant_@GetString("Ecom:Product.ID")" />
+}
+
+@helper RenderMainInfoBuy() {
+    string pageId = GetGlobalValue("Global:Page.ID").ToString();
+    string variantId = HttpContext.Current.Request.QueryString.Get("variantId");
+    string productId = GetString("Ecom:Product.ID");
+    string feedId = pageId + "&ProductID=" + productId + "&VariantID=" + variantId + "&Feed=True&redirect=false";
+
+    <div class="product__price-actions js-handlebars-root dw-mod" id="PriceAndActions" data-template="PricesAndActionsTemplate" data-json-feed="/Default.aspx?ID=@feedId" data-preloader="minimal"></div>
+    <input type="hidden" value="@GetString("Ecom:Product.VariantID.Extented")" name="Variant" id="Variant_@GetString("Ecom:Product.ID")" />
+}
+
+@* Handlebars templates *@
+<script id="PricesAndActionsTemplate" type="text/x-template">
+    {{#.}}
+        @if (!mainInfoOnlyPreview)
+{
+            <div class="product__price-actions__price dw-mod u-margin-bottom--lg">
+                <div class="before-price {{onSale}} dw-mod">{{discount}}</div>
+                <div class="price price--product-page dw-mod">{{price}}</div>
+            </div>
+            <div class="buttons-collection buttons-collection--right product__price-actions__actions dw-mod">
+                <input type="checkbox" id="UnitOptions_{{id}}" class="dropdown-trigger" />
+                <div class="dropdown u-w150px u-w80px--xs dw-mod {{hasUnits}}">
+                    <label class="dropdown__header dropdown__btn dw-mod" for="UnitOptions_{{id}}">{{unitName}}</label>
+                    <div id="unitOptions" class="dropdown__content dw-mod">
+                        {{#unitOptions}}
+                            {{>UnitOption}}
+                        {{/unitOptions}}
+                    </div>
+                    <label class="dropdown-trigger-off" for="UnitOptions_{{id}}"></label>
+                </div>
+                <input type="hidden" value="{{unitId}}" name="Unit" id="Unit_{{id}}" />
+                <input type="number" class="u-w70px" id="Quantity_{{id}}" name="Quantity" value="1" min="1">
+                <button type="button" id="CartButton_{{id}}" class="btn btn--primary btn--condensed u-no-margin dw-mod js-cart-btn" name="submit" 
+                        onclick="Cart.AddToCart(event, {
+                            id: '{{productId}}', 
+                            unitId: '{{unitId}}', 
+                            variantId: '{{variantid}}',
+                            quantity: document.getElementById('Quantity_{{id}}').value,
+                            productInfo: {{productInfo}}
+                        });">
+                        <i class="@mainInfoCartIcon"></i><span class="u-hidden-xs u-hidden-xxs"> @Translate("Add to cart")</span>
+                </button>
+            </div>
+            if (Pageview.User != null && Dynamicweb.Security.Licensing.LicenseManager.LicenseHasFeature("LoyaltyPoints"))
+            {
+                <text>
+                    {{#if canBePurchasedWithPoints}}
+                        <form method="post" role="form" class="u-no-margin u-margin-top">
+                            <input type="hidden" name="ProductID" value="{{id}}" />
+                            <button type="submit" onclick="UpdateCart();" class="btn btn--loyalty-points u-no-margin dw-mod pull-right u-no-margin" name="CartCmd" value="addWithPoints">@Translate("Buy for") {{points}} @Translate("points")</button>
+                        </form>
+                    {{/if}}
+                </text>
+            }
+        }
+        else
+        {
+            <button type="button" id="CartButton_{{id}}" class="u-hidden"></button>
+        }
+    {{/.}}
+</script>
+
+<script id="Units" type="text/x-template">
+    <div class="dropdown__item dw-mod" onclick="HandlebarsBolt.UpdateContent('PriceAndActions', '/Default.aspx?ID=@mainInfoFeedId&UnitID={{value}}')">{{name}}</div>
+</script>
+
+<script id="UnitOption" type="text/x-template">
+    <div class="dropdown__item dw-mod" onclick="HandlebarsBolt.UpdateContent('PriceAndActions', '{{link}}&feed=true&UnitID={{value}}&rid={{id}}')">{{name}}</div>
+</script>
+
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        if (document.getElementById("PriceAndActions")) {
+            document.getElementById("PriceAndActions").addEventListener("contentLoaded", function (event) {
+                if (document.querySelector(".js-variants") != null) {
+                    MatchVariants.Update(document.querySelector(".js-variants"), "DoNothing");
+                }
+            });
+        }
+    });
+</script>
+
+@if (useGoogleTagManager)
+{
+    var groupObject = Dynamicweb.Ecommerce.Services.ProductGroups.GetGroup(GetString("Ecom:Product.PrimaryOrFirstGroupID"));
+
+    <script>
+        // Measure a view of product details. This example assumes the detail view occurs on pageload,
+        // and also tracks a standard pageview of the details page.
+
+        dataLayer.push({
+            'ecommerce': {
+                'detail': {
+                    'actionField': {},    // 'detail' actions have an optional list property.
+                    'products': [{
+                        'name': '@GetString("Ecom:Product.Name")',         // Name or ID is required.
+                        'id': '@GetString("Ecom:Product.ID")',
+                        'price': '@(GetDouble("Ecom:Product.Discount.Price.Price") != GetDouble("Ecom:Product.Price.Price") ? GetDouble("Ecom:Product.Discount.Price.Price") : GetDouble("Ecom:Product.Price.Price"))',
+                        'brand': '@GetString("Ecom:Product:Field.brand.Value")',
+                        'category': '@(groupObject != null ? groupObject.Name : "")',
+                        'variant': '@(!string.IsNullOrEmpty(GetString("Ecom:Product.VariantID")) ? GetString("Ecom:Product.VariantID") : GetString("Ecom:Product.VariantID.Extented"))'
+                    }]
+                }
+            }
+        });
+    </script>
+}

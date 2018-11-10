@@ -1,0 +1,29 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+<head>
+    <meta charset="utf-8">
+    <title>@GetGlobalValue("Global:Page.Top.Name")</title>
+    <meta name="description" content="Dynamicweb - Bootstrap 3 Template">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+    <meta name="robots" content="index, follow">
+
+    <!-- Essential styles -->
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css" type="text/css">
+    <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css" type="text/css">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" media="screen">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/flag-icon-css/2.5.0/css/flag-icon.min.css" type="text/css">
+
+    <!-- Template styles -->
+    <link id="dwStylesheet" type="text/css" href="css/DWGlobalStyles.min.css" rel="stylesheet" media="screen">
+
+    @{ string cssAutoPath = "/Files/Templates/Designs/Dwsimple/css/DWGlobalStylesSite" + GetString("DwAreaID") + "_auto.min.css?t=@areaUpdated.Ticks"; }
+
+    <link type="text/css" href=@cssAutoPath rel="stylesheet">
+</head>
+<body id="sitecontent" class="white">
+    <div class="body-wrap white">
+        <div class="container">
+            <div id="contentmain" class="dwcontent" title="Main content" data-settings="template:moduleonly.html;unwrap:true;"></div>
+        </div>
+    </div>
+</body>

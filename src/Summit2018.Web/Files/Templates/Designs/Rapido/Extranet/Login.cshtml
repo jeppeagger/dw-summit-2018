@@ -1,0 +1,47 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using System.Web;
+
+@{
+    string pageId = GetGlobalValue("Global:Page.ID");
+    int signInProfilePageId = GetPageIdByNavigationTag("SignInPage");
+    string specialRedirectPage = !String.IsNullOrEmpty(HttpContext.Current.Request.QueryString.Get("RedirectPageId")) ? "/Default.aspx?ID=" + HttpContext.Current.Request.QueryString.Get("RedirectPageId") : "";
+    string redirectPage = !String.IsNullOrEmpty(GetString("UserManagement:User.Login.SuccessRedirectToPage")) ? GetString("UserManagement:User.Login.SuccessRedirectToPage") : specialRedirectPage;
+}
+
+<div class="grid grid--external-bleed">
+    <div class="grid__col-md-8">
+        <h2>@Translate("Sign in")</h2>
+
+        @if (!String.IsNullOrEmpty(GetString("DW_extranet_error_uk")))
+        {
+            <div class="error-block dw-mod">
+                @GetString("DW_extranet_error_uk")
+            </div>
+        }
+
+        <form method="post" id="loginform" action="@redirectPage">
+            <input type="hidden" name="ID" value="@pageId" />
+            <input type="hidden" name="DWExtranetUsernameRemember" value="True" />
+            <input type="hidden" name="DWExtranetPasswordRemember" value="True" />
+            <div class="form__field-group dw-mod">
+                <label for="login-username">@Translate("Email", "Email")</label>
+                <input type="text" class="u-full-width" id="login-username" name="username" placeholder="@Translate("Email")" />
+            </div>
+            <div class="form__field-group dw-mod">
+                <label for="login-password">@Translate("Password", "Password")</label>
+                <input type="password" class="u-full-width" id="login-password" name="password" placeholder="@Translate("Password")" />
+            </div>
+
+            <div class="form__field-group dw-mod">
+                <input type="checkbox" id="rememberMe" name="Autologin" checked="checked" value="True" class="form__control">
+                <label for="rememberMe">
+                    @Translate("Remember me", "Remember me")
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn--primary dw-mod" name="LoginAction" value="Login">@Translate("Sign in")</button>
+
+            <a class="btn btn--link-clean u-pull--right dw-mod" href="/Default.aspx?id=@signInProfilePageId&LoginAction=Recovery">@Translate("Forgot your password?", "Forgot your password?")</a>
+        </form>
+    </div>
+</div>

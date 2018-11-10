@@ -1,0 +1,17 @@
+﻿@inherits RazorTemplateBase<RazorTemplateModel<Template>>
+@using Dynamicweb.Rendering;
+@using Dynamicweb.Extensibility
+@using Dynamicweb.Content
+@using Dynamicweb.Security;
+
+@MasterPageFile("EmailMaster.cshtml")
+@Include("EmailHelpers.cshtml")
+
+@CreatePreheader(Dynamicweb.Context.Current.Request.Url.Scheme + "://" + GetGlobalValue("Global:Request.Host") + "/Default.aspx?ID=" + GetString("Global.PageId"))
+<table bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="500" id="emailBody">
+    @RenderHeaderImage()
+    <tr><td><div class="dwcontent" id="mycontainer"></div></td></tr>
+    @RenderFooterSection()
+</table> 
+
+@CreateSubscriptionFooter("{{EmailMarketing:Email.UnsubscribeLink.Clean}}")

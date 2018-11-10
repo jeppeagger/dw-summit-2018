@@ -1,0 +1,54 @@
+﻿.search-result {
+    border-bottom: 1px @gray-light solid;
+    margin-bottom: 20px;
+}
+
+.search-result__header {
+    display: block;
+    font-size: 20px;
+    margin-bottom: 5px;
+}
+
+.search-result__icon {
+    width: 20px;
+    text-align: center;
+    margin-right: 5px;
+}
+
+.search-result__breadcrumbs {
+    display: block;
+    margin-bottom: 5px;
+    color: @gray;
+
+    &::after {
+        clear: both;
+        content: "";
+        display: table;
+    }
+}
+
+.search-result__breadcrumb-delimiter:last-child {
+    display: none;
+}
+
+.search-result__breadcrumb-item {
+    color: @gray;
+    margin: 0 3px;
+    
+    &:last-child {
+        margin-right: 0;
+    }
+    
+    &:first-child {
+        margin-left: 0;
+    }
+}
+
+.search-result__summary {
+    margin-bottom: 10px;
+}
+
+.search-result__date {
+    color: @gray-light;
+    margin-bottom: 5px;
+}

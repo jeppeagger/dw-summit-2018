@@ -1,0 +1,118 @@
+﻿@inherits RazorTemplateBase<RazorTemplateModel<Template>>
+@using Dynamicweb.Rendering;
+@MasterPageFile("../EmailMaster.cshtml")
+
+@CreatePreheader()
+
+<table bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="500" id="emailBody">
+@{
+    //Header
+    string logoimage = "http://" + GetGlobalValue("Global:Request.Host") + Pageview.AreaSettings.GetItem("Layout").GetItem("Emails").GetString("LogoImage");
+
+    Column header = new Column();
+    header.image = logoimage;
+    header.align = "center";
+    @CreateRow(header, new RowSettings { backgroundColor = "#0B85C8" });
+
+    //Info
+    Column info = new Column();
+    info.header = Translate("Shipping confirmation");
+    info.subheader = Translate("Order no. ") + " " + "2345678764345675";
+    info.align = "center";
+    @CreateRow(info);
+    @CreateRowDivider();
+
+    //Message
+    Column message = new Column();
+    message.text.Add("Hey Adam");
+    message.text.Add("");
+    message.text.Add("Thank you for shopping with us. We'd like to let you know that BikeShop has received your order, and is preparing it for shipment. Your order details are indicated below. If you would like to view the status of your order or make any changes to it, please visit My Orders on BikeShop.dynamicweb.dk");
+    @CreateRow(message);
+
+    //Delivery information
+    Column billingInfo = new Column();
+    billingInfo.subheader = Translate("Billing address");
+    billingInfo.text.Add("Adam Jensen");
+    billingInfo.text.Add("Bjørnholms Alle 30");
+    billingInfo.text.Add("Viby J");
+    billingInfo.text.Add("Denmark");
+    billingInfo.text.Add("test@dynamicweb.dk");
+    billingInfo.text.Add("+45 70252090");
+
+    Column shippingInfo = new Column();
+    shippingInfo.subheader = Translate("Shipping address");
+    shippingInfo.text.Add("Adam Jensen");
+    shippingInfo.text.Add("Bjørnholms Alle 30");
+    shippingInfo.text.Add("Viby J");
+    shippingInfo.text.Add("Denmark");
+    shippingInfo.text.Add("test@dynamicweb.dk");
+    shippingInfo.text.Add("+45 70252090");
+    @CreateRow(billingInfo, shippingInfo, new RowSettings { backgroundColor = "#e4e4e4" });
+
+
+    //Orderlines
+    Column orderLineLeft = new Column();
+    orderLineLeft.image = "";
+
+    Column orderLineCenter = new Column();
+    orderLineCenter.subheader = "Mongroose ultra super star";
+    orderLineCenter.text.Add("Prod. no: 45678933");
+
+    Column orderLineRight = new Column();
+    orderLineRight.header = "DKK 5000";
+    orderLineRight.text.Add("DKK 7000");
+    orderLineRight.align = "right";
+
+    @CreateRow(orderLineLeft, orderLineCenter, orderLineRight);
+    @CreateRowDivider();
+
+    //Summary
+    Column summaryLeft = new Column();
+    summaryLeft.text.Add("Total");
+    summaryLeft.text.Add("Payment method: Visa");
+    summaryLeft.text.Add("Shipping method: Standard");
+    summaryLeft.text.Add("VAT");
+
+    Column summaryRight = new Column();
+    summaryRight.text.Add("DKK 40.000");
+    summaryRight.text.Add("DKK 0");
+    summaryRight.text.Add("DKK 400");
+    summaryRight.text.Add("DKK 2000");
+    summaryRight.align = "right";
+
+    @CreateRow(summaryLeft, summaryRight);
+
+    //Totals
+    Column totalsLeft = new Column();
+    totalsLeft.subheader = Translate("Total");
+
+    Column totalsRight = new Column();
+    totalsRight.subheader = "DKK 40.000";
+    totalsRight.align = "right";
+
+    @CreateRow(totalsLeft, totalsRight, new RowSettings { backgroundColor = "#e4e4e4" });
+
+    //Review order
+    Column review = new Column();
+    review.link = "#";
+    review.linkText = Translate("Review order online");
+    review.align = "center";
+    @CreateRow(review);
+
+    //Footer
+    Column footerLeft = new Column();
+
+    Column footerRight = new Column();
+    footerRight.textColor = "#FFF";
+    footerRight.image = logoimage;
+    footerRight.text.Add("");
+    footerRight.text.Add("info@dynamicweb.dk");
+    footerRight.text.Add("+45 70252090");
+    footerRight.align = "right";
+
+    @CreateRow(footerLeft, footerRight, new RowSettings { backgroundColor = "#0B85C8" });
+    }
+</table>
+
+@CreateSubscriptionFooter()
+

@@ -1,0 +1,47 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.ParagraphViewModel>
+                                 
+@Include("Layout.cshtml")
+@Include("ParagraphRender.cshtml")
+
+@{
+    string backgroundImage = "";
+    string backgroundImageSmall = "";
+    string backgroundImageFilterColor = Model.Item.GetList("ColorForTheFilter").SelectedValue != null ? Model.Item.GetList("ColorForTheFilter").SelectedValue : "none";
+    string backgroundImageFilterPrimary = Model.Item.GetList("ImageFilterPrimary").SelectedValue != null ? Model.Item.GetList("ImageFilterPrimary").SelectedValue : "none";
+    string backgroundImageFilterSecondary = Model.Item.GetList("ImageFilterSecondary").SelectedValue != null ? Model.Item.GetList("ImageFilterSecondary").SelectedValue : "none";
+    string extraCssClasses = "";
+    string imageStyle = Model.Item.GetList("ImageStyle").SelectedValue;
+    string placeHolderImage = "/Files/Images/placeholder.gif";
+
+    if (imageStyle == "background")
+    {
+        extraCssClasses = " grid__col--bg";
+        string cropMode = Model.Item.GetList("ImageCrop") != null ? Model.Item.GetList("ImageCrop").SelectedValue : "0";
+        string imagePath = Model.Item.GetFile("Image") != null ? Model.Item.GetFile("Image").PathUrlEncoded : "";
+        backgroundImage = "/Admin/Public/GetImage.ashx?width=2500&amp;height=1100&amp;crop=" + cropMode + "&DoNotUpscale=true&amp;Compression=75&amp;image=" + imagePath;
+        backgroundImageSmall = "/Admin/Public/GetImage.ashx?width=1000&amp;height=850&amp;crop=" + cropMode + "&DoNotUpscale=true&amp;Compression=75&amp;image=" + imagePath;
+    }
+
+    if (backgroundImageFilterPrimary == "colorize")
+    {
+        backgroundImageFilterPrimary = backgroundImageFilterColor;
+    }
+
+    string paragraphContainerPadding = Model.Item.GetBoolean("HidePadding") ? "paragraph-container--no-padding" : "";
+    string hideOnMobile = Model.Item.GetList("WidthMobile").SelectedValue == "hide" ? " u-hidden-xs u-hidden-xxs" : " grid__col-xs-" + Model.Item.GetList("WidthMobile").SelectedValue;
+
+    string contentPosition = Model.Item.GetList("ContentPositions").SelectedValue;
+    string contentPositionClasses = contentPosition == "middle-center" || contentPosition == "middle-left" ? "grid--justify-center u-middle " : "";
+}
+
+<div class="@columnClass() @extraCssClasses paragraph-container @paragraphContainerPadding @contentPositionClasses dw-mod">
+    @if (imageStyle == "background" && Model.Item.GetFile("Image") != null) {
+        <div class="background-image image-filter image-filter--@backgroundImageFilterPrimary dw-mod">
+            <div class="background-image__wrapper image-filter image-filter--@backgroundImageFilterSecondary dw-mod">
+                <img class="background-image__cover dw-mod b-lazy" src="@placeHolderImage" data-src="@backgroundImage" data-src-small="@backgroundImageSmall" alt="">
+            </div>
+        </div>
+    }
+
+    @RenderContent(Model.Item) 
+</div>                                

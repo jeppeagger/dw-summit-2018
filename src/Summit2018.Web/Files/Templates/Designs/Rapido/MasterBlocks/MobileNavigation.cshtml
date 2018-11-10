@@ -1,0 +1,306 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.PageViewModel>
+
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks.Extensibility
+@using Dynamicweb.Rapido.Blocks
+
+@functions {
+    BlocksPage mobileNavigationBlocksPage = BlocksPage.GetBlockPage("Master");
+}
+
+@{ 
+    bool navigationItemsHideSignIn = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("HideSignIn");
+    bool hideCreateAccountLink = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("SignInHideAccount");
+    bool hideMyProfileLink = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("SignInHideProfile");
+    bool hideMyOrdersLink = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("SignInHideOrders");
+    bool hideMySavedCardsLink = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("SignInHideSavedCards");
+    bool hideMyFavoritesLink = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("SignInHideFavorites");
+
+    Block mobileNavigation = new Block()
+    {
+        Id = "MobileNavigation",
+        SortId = 10,
+        Template = MobileNavigation(),
+        SkipRenderBlocksList = true
+    };
+    mobileNavigationBlocksPage.Add(MasterBlockId.MasterTopSnippets, mobileNavigation);
+
+    if (Model.CurrentUser.ID > 0)
+    {
+        Block mobileNavigationSignIn = new Block
+        {
+            Id = "MobileNavigationSignIn",
+            SortId = 10,
+            Template = RenderMobileNavigationSignIn()
+        };
+        mobileNavigationBlocksPage.Add("MobileNavigation", mobileNavigationSignIn);
+    }
+
+    Block mobileNavigationMenu = new Block
+    {
+        Id = "MobileNavigationMenu",
+        SortId = 20,
+        Template = RenderMobileNavigationMenu()
+    };
+    mobileNavigationBlocksPage.Add("MobileNavigation", mobileNavigationMenu);
+
+    Block mobileNavigationActions = new Block
+    {
+        Id = "MobileNavigationActions",
+        SortId = 30,
+        Template = RenderMobileNavigationActions(),
+        SkipRenderBlocksList = true
+    };
+    mobileNavigationBlocksPage.Add("MobileNavigation", mobileNavigationActions);
+
+    if (!navigationItemsHideSignIn)
+    {
+        if (Model.CurrentUser.ID <= 0)
+        {
+            Block mobileNavigationSignInAction = new Block
+            {
+                Id = "MobileNavigationSignInAction",
+                SortId = 10,
+                Template = RenderMobileNavigationSignInAction()
+            };
+            mobileNavigationBlocksPage.Add("MobileNavigationActions", mobileNavigationSignInAction);
+
+            if (hideCreateAccountLink)
+            {
+                Block mobileNavigationCreateAccountAction = new Block
+                {
+                    Id = "MobileNavigationCreateAccountAction",
+                    SortId = 20,
+                    Template = RenderMobileNavigationCreateAccountAction()
+                };
+                mobileNavigationBlocksPage.Add("MobileNavigationActions", mobileNavigationSignInAction);
+            }
+        }
+        else
+        {
+            if (hideMyProfileLink)
+            {
+                Block mobileNavigationProfileAction = new Block
+                {
+                    Id = "MobileNavigationProfileAction",
+                    SortId = 10,
+                    Template = RenderMobileNavigationProfileAction()
+                };
+                mobileNavigationBlocksPage.Add("MobileNavigationActions", mobileNavigationProfileAction);
+            }
+            if (hideMyOrdersLink)
+            {
+                Block mobileNavigationOrdersAction = new Block
+                {
+                    Id = "MobileNavigationOrdersAction",
+                    SortId = 20,
+                    Template = RenderMobileNavigationOrdersAction()
+                };
+                mobileNavigationBlocksPage.Add("MobileNavigationActions", mobileNavigationOrdersAction);
+            }
+            if (hideMyFavoritesLink)
+            {
+                Block mobileNavigationFavoritesAction = new Block
+                {
+                    Id = "MobileNavigationFavoritesAction",
+                    SortId = 30,
+                    Template = RenderMobileNavigationFavoritesAction()
+                };
+                mobileNavigationBlocksPage.Add("MobileNavigationActions", mobileNavigationFavoritesAction);
+            }
+
+            Block mobileNavigationSignOutAction = new Block
+            {
+                Id = "MobileNavigationSignOutAction",
+                SortId = 40,
+                Template = RenderMobileNavigationSignOutAction()
+            };
+            mobileNavigationBlocksPage.Add("MobileNavigationActions", mobileNavigationSignOutAction);
+        }
+    }
+
+    if (Model.Languages.Count > 1)
+    {
+        Block mobileNavigationLanguagesAction = new Block
+        {
+            Id = "MobileNavigationLanguagesAction",
+            SortId = 50,
+            Template = RenderMobileNavigationLanguagesAction()
+        };
+        mobileNavigationBlocksPage.Add("MobileNavigationActions", mobileNavigationLanguagesAction);
+    }
+}
+
+
+@helper MobileNavigation() {
+    List<Block> subBlocks = this.mobileNavigationBlocksPage.GetBlockListById("MobileNavigation").OrderBy(item => item.SortId).ToList();
+
+    bool onlyPreview = Model.Area.Item.GetItem("Ecommerce").GetBoolean("OnlyPreviewForAnonymous") && Model.CurrentUser.ID == 0;
+    int miniCartFeedPageId = GetPageIdByNavigationTag("MiniCartFeed");
+    int cartFeedPageId = GetPageIdByNavigationTag("CartOrderlinesFeed");
+    string mobileTopDesign = Model.Area.Item.GetItem("Layout").GetItem("MobileTop") != null ? Model.Area.Item.GetItem("Layout").GetItem("MobileTop").GetList("Design").SelectedValue : "nav-left";
+    string position = mobileTopDesign == "nav-left" || mobileTopDesign == "nav-search-left" ? "left" : "right";
+
+    <!-- Trigger for mobile navigation -->
+    <input type="checkbox" id="MobileNavTrigger" class="mobile-nav-trigger mobile-nav-trigger--@position" autocomplete="off" />
+
+    <!-- Mobile navigation -->
+    <nav class="mobile-navigation mobile-navigation--@position dw-mod">
+          @RenderBlockList(subBlocks)
+    </nav>
+
+    <label class="mobile-nav-trigger-off" for="MobileNavTrigger"></label>
+
+    if (!onlyPreview)
+    {
+        <div class="u-visually-hidden js-handlebars-root js-mini-cart" id="miniCart" data-template="MiniCartContent" data-cart-id="@cartFeedPageId" data-json-feed="/Default.aspx?ID=@miniCartFeedPageId&feedType=MiniCart" data-init-onload="false"></div>
+    }
+}
+
+@helper RenderMobileNavigationSignIn() {
+    int signInProfilePageId = GetPageIdByNavigationTag("SignInPage");
+    int myProfilePageId = GetPageIdByNavigationTag("CustomerProfile");
+    string linkStart = Model.CurrentUser.ID <= 0 ? "/Default.aspx?ID=" + signInProfilePageId + "&RedirectPageId=" : "/Default.aspx?ID=";
+    string myProfilePageLink = linkStart + myProfilePageId;
+    string userName = Model.CurrentUser.FirstName != null ? Model.CurrentUser.FirstName : "";
+    userName += " " + Model.CurrentUser.LastName != null ? Model.CurrentUser.LastName : "";
+    userName += userName == "" && Model.CurrentUser.UserName != null ? Model.CurrentUser.UserName : "";
+
+    <ul class="menu menu-mobile">
+        <li class="menu-mobile__item">
+            <a href="@myProfilePageLink" class="menu-mobile__link dw-mod"><i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("SignInProfileIcon").SelectedValue menu-mobile__link-icon"></i> @userName</a>
+        </li>
+    </ul>
+}
+
+@helper RenderMobileNavigationMenu() { 
+    bool isSlidesDesign = Model.Area.Item.GetItem("Layout").GetItem("MobileNavigation").GetList("Design").SelectedValue == "Slides";
+    string menuTemplate = isSlidesDesign ? "BaseMenuForMobileSlides.xslt" : "BaseMenuForMobileExpandable.xslt";
+    string levels = !String.IsNullOrEmpty(Model.Area.Item.GetItem("Layout").GetItem("MobileNavigation").GetString("Levels")) ? Model.Area.Item.GetItem("Layout").GetItem("MobileNavigation").GetString("Levels") : "3";
+    bool renderPagesInToolBar = Model.Area.Item.GetItem("Layout").GetItem("Header").GetBoolean("RenderPagesInToolBar");
+    int startLevel = renderPagesInToolBar ? 1 : 0;
+
+    @RenderNavigation(new
+    {
+        id = "mobilenavigation",
+        cssclass = "menu menu-mobile dwnavigation",
+        startLevel = @startLevel,
+        ecomStartLevel = @startLevel + 1,
+        endlevel = @levels,
+        expandmode = "all",
+        template = @menuTemplate
+    })
+
+    if (renderPagesInToolBar)
+    {
+        @RenderNavigation(new
+        {
+            id = "topToolsMobileNavigation",
+            cssclass = "menu menu-mobile dwnavigation",
+            template = "ToolsMenuForMobile.xslt"
+        })
+    }
+}
+
+@helper RenderMobileNavigationActions() { 
+    List<Block> subBlocks = this.mobileNavigationBlocksPage.GetBlockListById("MobileNavigationActions").OrderBy(item => item.SortId).ToList(); ;
+
+    <ul class="menu menu-mobile">
+        @RenderBlockList(subBlocks)
+    </ul>    
+}
+
+@helper RenderMobileNavigationSignInAction() {
+    <li class="menu-mobile__item">
+        <label for="SignInModalTrigger" onclick="document.getElementById('MobileNavTrigger').checked = false;" class="menu-mobile__link dw-mod menu-mobile__link--highlighted"><i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("SignInProfileIcon").SelectedValue menu-mobile__link-icon"></i> @Translate("Sign in")</label>
+    </li>
+}
+
+@helper RenderMobileNavigationCreateAccountAction() {
+    int createAccountPageId = GetPageIdByNavigationTag("CreateAccount");
+
+    <li class="menu-mobile__item">
+        <a class="menu-mobile__link menu-mobile__link--highlighted dw-mod" href="/Default.aspx?ID=@createAccountPageId"><i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("SignInProfileIcon").SelectedValue menu-mobile__link-icon"></i> @Translate("Create account")</a>
+    </li>
+}
+
+@helper RenderMobileNavigationProfileAction() {
+    int signInProfilePageId = GetPageIdByNavigationTag("SignInPage");
+    string linkStart = Model.CurrentUser.ID <= 0 ? "/Default.aspx?ID=" + signInProfilePageId + "&RedirectPageId=" : "/Default.aspx?ID=";
+    int myProfilePageId = GetPageIdByNavigationTag("CustomerProfile");
+    string myProfilePageLink = linkStart + myProfilePageId;
+
+    <li class="menu-mobile__item">
+        <a href="@myProfilePageLink" class="menu-mobile__link menu-mobile__link--highlighted dw-mod"><i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("SignInProfileIcon").SelectedValue menu-mobile__link-icon"></i> @Translate("My Profile")</a>
+    </li>
+}
+
+@helper RenderMobileNavigationOrdersAction() {
+    int signInProfilePageId = GetPageIdByNavigationTag("SignInPage");
+    string linkStart = Model.CurrentUser.ID <= 0 ? "/Default.aspx?ID=" + signInProfilePageId + "&RedirectPageId=" : "/Default.aspx?ID=";
+    int myOrdersPageId = GetPageIdByNavigationTag("CustomerOrders");
+    string myOrdersPageLink = linkStart + myOrdersPageId;
+
+    <li class="menu-mobile__item">
+        <a href="@myOrdersPageLink" class="menu-mobile__link menu-mobile__link--highlighted dw-mod"><i class="fas fa-list menu-mobile__link-icon"></i> @Translate("My Orders")</a>
+    </li>
+}
+
+@helper RenderMobileNavigationFavoritesAction() {
+    int signInProfilePageId = GetPageIdByNavigationTag("SignInPage");
+    string linkStart = Model.CurrentUser.ID <= 0 ? "/Default.aspx?ID=" + signInProfilePageId + "&RedirectPageId=" : "/Default.aspx?ID=";
+    int myFavoritesPageId = GetPageIdByNavigationTag("CustomerFavorites");
+    string myFavoritesPageLink = linkStart + myFavoritesPageId;
+
+    <li class="menu-mobile__item">
+        <a href="@myFavoritesPageLink" class="menu-mobile__link menu-mobile__link--highlighted dw-mod"><i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("FavoriteIcon").SelectedValue menu-mobile__link-icon"></i> @Translate("My Favorites")</a>
+    </li>
+}
+
+@helper RenderMobileNavigationSignOutAction() {
+    int pageId = Model.TopPage.ID;
+
+    <li class="menu-mobile__item">
+        <a class="menu-mobile__link menu-mobile__link--highlighted dw-mod" href="/Admin/Public/ExtranetLogoff.aspx?ID=@pageId"><i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("SignInProfileIcon").SelectedValue menu-mobile__link-icon"></i> @Translate("Sign out")</a>
+    </li>
+}
+
+@helper RenderMobileNavigationLanguagesAction() {
+    bool isSlidesDesign = Model.Area.Item.GetItem("Layout").GetItem("MobileNavigation").GetList("Design").SelectedValue == "Slides";
+
+    string selectedLanguage = "";
+    foreach (var lang in Model.Languages)
+    {
+        if (lang.IsCurrent)
+        {
+            selectedLanguage = lang.Name;
+        }
+    }
+
+    <li class="menu-mobile__item dw-mod">
+        <input id="MobileMenuCheck_Language" type="checkbox" class="expand-trigger">
+        <div class="menu-mobile__link__wrap">
+            <label for="MobileMenuCheck_Language" class="menu-mobile__link menu-mobile__link--highlighted dw-mod"><i class="@Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("LanguageIcon").SelectedValue menu-mobile__link-icon"></i> @selectedLanguage</label>
+            <label for="MobileMenuCheck_Language" class="menu-mobile__trigger"></label>
+        </div>
+        <ul class="menu-mobile menu-mobile__submenu expand-menu">
+            @if (isSlidesDesign)
+            {
+            <li class="menu-mobile__item dw-mod">
+                <div class="menu-mobile__link__wrap">
+                    <label for="MobileMenuCheck_Language" class="menu-mobile__trigger menu-mobile__trigger--back"></label>
+                    <label for="MobileMenuCheck_Language" class="menu-mobile__link dw-mod ">Back</label>
+                </div>
+            </li>
+            }
+            @foreach (var lang in Model.Languages)
+            {
+            <li class="menu-mobile__item dw-mod">
+                <a class="menu-mobile__link menu-mobile__link--highlighted dw-mod menu-mobile__link--level-1" href="/Default.aspx?ID=@lang.Page.ID">@lang.Name</a>
+            </li>
+            }
+        </ul>
+    </li>
+}

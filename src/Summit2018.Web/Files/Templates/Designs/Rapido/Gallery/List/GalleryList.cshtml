@@ -1,0 +1,39 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@using System.Web
+
+<!-- Trigger for the gallery modal -->
+<input type="checkbox" id="GalleryModalTrigger" class="modal-trigger" />
+
+<!-- Gallery modal -->
+<div class="modal-container">
+    <label for="GalleryModalTrigger" id="GalleryModalOverlay" class="modal-overlay"></label>
+    <div class="modal modal--full" id="GalleryModal">
+        <div class="modal__body modal__body--full">
+            <div class="gallery-slider">
+                <div class="gallery-slider__image">
+                    <img id="FullImage" src="#" alt="" class="modal--full__img" />
+                </div>
+                <div class="gallery-slider__image-counter" id="FullImage_counter"></div>
+                <label class="gallery-slider__close-btn" for="GalleryModalTrigger"></label>
+                <button class="gallery-slider__previous-btn" id="FullImage_prev" onclick="Gallery.prevImage('FullImage')"></button>
+                <button class="gallery-slider__next-btn" id="FullImage_next" onclick="Gallery.nextImage('FullImage')"></button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid--justify-center">
+    @foreach (LoopItem imagebox in GetLoop("Images"))
+    {
+        string imagePath = imagebox.GetString("Gallery.Image.Path");
+        string imageName = imagebox.GetString("Gallery.Image.Name");
+        <div class="grid__col-md-3 grid__col-sm-4 grid__col-xs-6">
+            <div class="grid__cell grid--align-self-center u-borders">
+                <label for="GalleryModalTrigger" class="product__image-container">
+                    <img alt="@imageName" src="/Admin/Public/GetImage.ashx?image=@imagePath&width=300&height=300&compression=85&crop=5" class="js-gallery" data-image="/Admin/Public/GetImage.ashx?image=@imagePath&width=550&height=550&compression=85&crop=5" data-for="FullImage" onclick="Gallery.openImage(this);">
+                </label>
+            </div>
+        </div>
+    }
+</div>

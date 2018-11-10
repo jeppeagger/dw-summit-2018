@@ -1,0 +1,34 @@
+﻿@inherits RazorTemplateBase<RazorTemplateModel<Template>>
+@using Dynamicweb.Rendering;
+@MasterPageFile("../../EmailMaster.cshtml")
+@Include("../../EmailHelpers.cshtml")
+
+<table bgcolor="#FFFFFF" border="0" cellpadding="0" cellspacing="0" width="500" id="emailBody">
+    @RenderHeaderSection()
+    @RenderMessage()
+    @RenderFooterSection()
+</table>
+
+@* CONTENT HELPERS *@
+
+@helper RenderHeaderSection()
+{
+    @RenderHeaderImage();
+}
+
+@helper RenderMessage()
+{
+    string companyName = !String.IsNullOrEmpty(GetString("Field.Companyname.Value")) ? ", " + GetString("Field.Companyname.Value") : "";
+
+    Column message = new Column();
+    message.subheader = Translate("Confirmation");
+    message.text.Add("");
+    message.text.Add(Translate("Dear ") + GetString("Field.Name.Value") + companyName);
+    message.text.Add("");
+    message.text.Add(Translate("You have asked the following question:"));
+    message.text.Add("");
+    message.text.Add(GetString("Field.Question.Value"));
+    message.text.Add("");
+    message.text.Add(Translate("And agreed that we may answer on either mail or phone: " + GetString("Field.Phone.Value")));
+    @CreateRow(message);
+}

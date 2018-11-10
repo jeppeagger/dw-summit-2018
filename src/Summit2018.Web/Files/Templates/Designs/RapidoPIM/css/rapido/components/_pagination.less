@@ -1,0 +1,18 @@
+.pager__num-mixin() when not (@content-layout-pagination-active-color = none) {
+	border: 1px solid @content-layout-pagination-active-color;
+}
+
+.pager__num--current-mixin() when not (@content-layout-pagination-active-color = none) {
+    background-color: @content-layout-pagination-active-color;
+}
+
+.pager__num {
+
+    &:hover:not(.pager__num--current):not(.pager__num--ellipsis) {
+        .pager__num-mixin(); 
+    }
+
+    &.pager__num--current {
+        .pager__num--current-mixin(); 
+    }
+}

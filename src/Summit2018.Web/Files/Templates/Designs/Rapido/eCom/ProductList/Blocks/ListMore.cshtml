@@ -1,0 +1,40 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@{ 
+    string groupID = HttpContext.Current.Request.QueryString.Get("groupid");
+    string listId = HttpContext.Current.Request.QueryString.Get("ListID");
+    bool isFavoriteList = !String.IsNullOrEmpty(listId) ? true : false;
+    string moreFeedFullUrl = GetGlobalValue("Global:Pageview.Url.Raw") + "&feed=true";
+    moreFeedFullUrl += !isFavoriteList ? "&DoNotShowVariantsAsSingleProducts=True" : "";
+
+    BlocksPage productListMoreBlocksPage = BlocksPage.GetBlockPage("ProductList");
+
+    Block moreBlock = new Block
+    {
+        Id = "More",
+        SortId = 40,
+        Template = RenderListMore()
+    };
+
+    productListMoreBlocksPage.Add("ProductList", moreBlock);
+}
+
+@helper RenderListMore() {
+   @*This is part of a script template *@
+
+   <text>{{>ListMore}}</text> 
+}
+
+<script id="ListMore" type="text/x-template">
+    <div class="grid">
+        <div class="grid__col-12 grid__col--bleed-y">
+            <button type="button" id="LoadMoreButton" class="btn btn--primary btn--full  {{nextdisabled}} dw-mod" data-current="{{currentPage}}" data-page-size="{{pageSize}}" data-total="{{totalPages}}" data-container="ProductsContainer" data-feed-url="@moreFeedFullUrl&groupid=@groupID{{loadMoreFeedParams}}" onclick="LoadMore.Next(this)" {{nextdisabled}}>@Translate("Load") {{pageSizeText}} @Translate("more")</button>
+            <button type="button" class="btn btn--clean" onclick="window.scroll(0, 0)">@Translate("Return to top")</button>
+        </div>
+    </div>
+</script>

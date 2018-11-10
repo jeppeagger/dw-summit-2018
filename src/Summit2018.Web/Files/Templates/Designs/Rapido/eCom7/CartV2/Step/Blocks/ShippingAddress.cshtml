@@ -1,0 +1,153 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@functions {
+    string Truncate(string str, int count)
+    {
+        return str.Substring(0, Math.Min(str.Length, count));
+    }
+}
+
+@{ 
+    BlocksPage shippingAddressCheckoutPage = BlocksPage.GetBlockPage("CheckoutPage");
+
+    Block shippingAddressBlock = new Block()
+    {
+        Id = "ShippingAddress",
+        SortId = 20,
+        Template = RenderShippingAddress(),
+        Design = new Design
+        {
+            RenderType = RenderType.Column,
+            Size = "12"
+        }
+    };
+    shippingAddressCheckoutPage.Add("AddressContainerRow", shippingAddressBlock);
+}
+
+@helper RenderShippingAddress() {
+    string manageAddresses = "/Default.aspx?ID=" + GetPageIdByNavigationTag("CustomerProfile").ToString() + "&Action=ManageAddresses";
+    int cartAddressesFeedPageId = GetPageIdByNavigationTag("CartAddressesFeed");
+
+    <div class="card-header u-color-light--bg dw-mod">
+        <h3><i class="fas fa-map-marker"></i> @Translate("Shipping address")</h3>
+    </div>
+
+    <div class="card u-color-light--bg dw-mod">
+        <div class="form__field-group u-margin-bottom--lg">
+            <input type="checkbox" id="AlternateAddressBlock" class="js-remember-state form__control" data-expand="AlternateAddressBlock" />
+            <label for="AlternateAddressBlock">@Translate("Add alternative adr.")</label>
+        </div>
+        <div class="expandable--collapsed" data-trigger="AlternateAddressBlock">
+            @if (GetLoop("UserManagement:User.UserAddresses").Count > 0)
+            {
+                <div class="form__field-combi">
+                    <select id="DeliveryAddressSelector" class="u-full-width" onchange="HandlebarsBolt.UpdateContent('DeliveryAddressFields', '/Default.aspx?ID=@cartAddressesFeedPageId&AddressId=' + this.value);">
+                        <option value="-1">@Translate("Select saved address")</option>
+                                
+                        @foreach (LoopItem address in GetLoop("UserManagement:User.UserAddresses"))
+                        {
+                            string description = Truncate(address.GetString("UserManagement:User.UserAddress.Description"), 25);
+                            string userAddress = Truncate(address.GetString("UserManagement:User.UserAddress.Address"), 20);
+
+                            <option value="@address.GetString("UserManagement:User.UserAddress.ID")">@description (@userAddress)</option>
+                        }
+                    </select>
+                    <a href="@manageAddresses" id="ManageAddressButton" class="btn btn--primary dw-mod btn--condensed u-no-margin" title="@Translate("Add new address", "Add new address")"><i class="fas fa-plus"></i></a>
+                </div>
+            }
+
+            @if (Dynamicweb.Core.Converter.ToBoolean(GetGlobalValue("Global:Extranet.UserName")) && GetLoop("UserManagement:User.UserAddresses").Count > 0)
+            {
+                <div class="js-handlebars-root" id="DeliveryAddressFields" data-template="DeliveryAddressFieldsTemplate" data-json-feed="/Default.aspx?ID=@cartAddressesFeedPageId&AddressId=0" data-preloader="minimal"></div>
+            }
+            else
+            {
+                <div class="form__field-group dw-mod">
+                    <label for="EcomOrderDeliveryCompany">@Translate("Company")</label>
+                    <input type="text" class="u-full-width" name="EcomOrderDeliveryCompany" id="EcomOrderDeliveryCompany" value="@GetString("Ecom:Order.Delivery.Company")" />
+                    <div class="field-error dw-mod">@GetString("Ecom:Cart.ValidationError.EcomOrderDeliveryCompany.ErrorMessage")</div>
+                </div>
+
+                <div class="form__field-group dw-mod">
+                    <label for="EcomOrderDeliveryName">@Translate("Name")</label>
+                    <input type="text" class="u-full-width" name="EcomOrderDeliveryName" id="EcomOrderDeliveryName" value="@GetString("Ecom:Order.Delivery.Name")" />
+                    <div class="field-error dw-mod">@GetString("Ecom:Cart.ValidationError.EcomOrderDeliveryName.ErrorMessage")</div>
+                </div>
+
+                <div class="form__fields-collection form__fields-collection--2-3">
+                    <div class="form__field-group dw-mod">
+                        <label for="EcomOrderDeliveryPhone">@Translate("Phone")</label>
+                        <input type="tel" class="u-full-width" name="EcomOrderDeliveryPhone" id="EcomOrderDeliveryPhone" value="@GetString("Ecom:Order.Delivery.Phone")" />
+                        <div class="field-error dw-mod">@GetString("Ecom:Cart.ValidationError.EcomOrderDeliveryPhone.ErrorMessage")</div>
+                    </div>
+
+                    <div class="form__field-group dw-mod">
+                        <label for="EcomOrderDeliveryEmail">@Translate("Email")</label>
+                        <input type="email" class="u-full-width" name="EcomOrderDeliveryEmail" id="EcomOrderDeliveryEmail" value="@GetString("Ecom:Order.Delivery.Email")" />
+                        <div class="field-error dw-mod">@GetString("Ecom:Cart.ValidationError.EcomOrderDeliveryEmail.ErrorMessage")</div>
+                    </div>
+                </div>
+
+                <div class="form__field-group dw-mod">
+                    <label for="EcomOrderDeliveryAddress">@Translate("Address")</label>
+                    <input type="text" class="u-full-width" name="EcomOrderDeliveryAddress" id="EcomOrderDeliveryAddress" value="@GetString("Ecom:Order.Delivery.Address")" />
+                    <div class="field-error dw-mod">@GetString("Ecom:Cart.ValidationError.EcomOrderDeliveryAddress.ErrorMessage")</div>
+                </div>
+
+                <div class="form__fields-collection form__fields-collection--2-3">
+                    <div class="form__field-group dw-mod">
+                        <label for="EcomOrderDeliveryZip">@Translate("Zip")</label>
+                        <input type="text" class="u-full-width" name="EcomOrderDeliveryZip" id="EcomOrderDeliveryZip" value="@GetString("Ecom:Order.Delivery.Zip")" />
+                        <div class="field-error dw-mod">@GetString("Ecom:Cart.ValidationError.EcomOrderDeliveryZip.ErrorMessage")</div>
+                    </div>
+
+                    <div class="form__field-group dw-mod">
+                        <label for="EcomOrderDeliveryCity">@Translate("City")</label>
+                        <input type="text" class="u-full-width" name="EcomOrderDeliveryCity" id="EcomOrderDeliveryCity" value="@GetString("Ecom:Order.Delivery.City")" />
+                        <div class="field-error dw-mod">@GetString("Ecom:Cart.ValidationError.EcomOrderDeliveryCity.ErrorMessage")</div>
+                    </div>
+                </div>
+
+                if (GetLoop("DeliveryRegions").Count > 0)
+                {
+                    <div class="form__field-group dw-mod">
+                        <label for="EcomOrderDeliveryRegion">@Translate("State/Region")</label>
+                        <select class="u-full-width" name="EcomOrderDeliveryRegion" id="EcomOrderDeliveryRegion" onchange="Cart.SubmitCart()">
+                            @foreach (LoopItem state in GetLoop("DeliveryRegions"))
+                            {
+                                string selected = GetString("Ecom:Order.Delivery.Region") == state.GetString("Ecom:DeliveryRegion.Name") ? "selected" : "";
+                                <option value="@state.GetString("Ecom:DeliveryRegion.Name")" @selected>@state.GetString("Ecom:DeliveryRegion.Name")</option>
+                            }
+                        </select>
+                        <div class="field-error dw-mod">@GetString("Ecom:Cart.ValidationError.EcomOrderDeliveryState.ErrorMessage")</div>
+                    </div>
+                }
+
+                <div class="form__field-group dw-mod">
+                    <label for="EcomOrderDeliveryCountry">@Translate("Country")</label>
+                    <select class="u-full-width" name="EcomOrderDeliveryCountry" id="EcomOrderDeliveryCountry" onchange="Cart.SubmitCart()">
+                    @{
+                        string deliveryCountry = GetString("Ecom:Order.Delivery.Country.Code");
+                        foreach (LoopItem country in GetLoop("Countries"))
+                        {
+                            string selected = GetString("Ecom:Order.Delivery.Country.Code") == country.GetString("Ecom:Country.Code2") ? "selected" : "";
+
+                            if (string.IsNullOrEmpty(deliveryCountry) && string.IsNullOrEmpty(selected))
+                            {
+                                selected = country.GetString("Ecom:Country.Code2") == GetGlobalValue("Global:Area.Culture.CountryCode").ToString() ? "selected" : "";
+                            }
+
+                            <option value="@country.GetString("Ecom:Country.Code2")" @selected>@country.GetString("Ecom:Country.Name")</option>
+                        }
+                    }
+                    </select>
+                </div>
+            }
+        </div>
+    </div>
+}

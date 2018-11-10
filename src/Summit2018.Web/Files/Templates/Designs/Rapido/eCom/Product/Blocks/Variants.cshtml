@@ -1,0 +1,220 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+@using Dynamicweb.Core
+@using System
+@using System.Web
+@using System.Collections.Generic
+@using Dynamicweb.Rapido.Blocks
+
+@functions { 
+    BlocksPage productVariantsPage = BlocksPage.GetBlockPage("Product");
+}
+
+@{ 
+    bool renderVariantsAsProducts = Pageview.AreaSettings.GetItem("ProductPage").GetString("RenderVariantsAsProductList") != null && GetInteger("Ecom:Product.VariantCount") > 1 ? Pageview.AreaSettings.GetItem("ProductPage").GetBoolean("RenderVariantsAsProductList") : false;
+    bool variantsOnlyPreview = Pageview.AreaSettings.GetItem("Ecommerce").GetBoolean("OnlyPreviewForAnonymous") && Pageview.User == null;
+    string variantsListPageSize = HttpContext.Current.Request.QueryString.Get("PageSize") != null ? HttpContext.Current.Request.QueryString.Get("PageSize") : "30";
+    string variantsFeedUrl = "/Default.aspx?ID=" + GetPageIdByNavigationTag("ProductsPage") + "&PageSize=" + variantsListPageSize + "&MainProductID=" + GetString("Ecom:Product.ID") + "&OnlyShowVariants=true&feed=true";
+    string variantsCartIcon = Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetString("CartIcon") != null ? Pageview.AreaSettings.GetItem("Layout").GetItem("Icons").GetList("CartIcon").SelectedValue : "fas fa-shopping-cart";
+
+    string variantsListLayout = Pageview.AreaSettings.GetItem("ProductPage").GetString("VariantsListLayout") != null ? Pageview.AreaSettings.GetItem("ProductPage").GetList("VariantsListLayout").SelectedValue : "Section";
+    variantsListLayout = variantsListLayout == "Ribbon" ? "Section" : variantsListLayout;
+
+
+    if (renderVariantsAsProducts && variantsListLayout != "hide")
+    {
+        Block detailsVariantsList = new Block()
+        {
+            Name = variantsListLayout != "MainInformation" ? Translate("Variants list") : "",
+            Id = "VariantsList",
+            SortId = 20,
+            Template = RenderVariantsProductList(variantsListLayout),
+            Design = new Design
+            {
+                Size = "12",
+                RenderType = RenderType.Column,
+                HidePadding = true
+            }
+        };
+        productVariantsPage.Add(variantsListLayout, detailsVariantsList);
+    }
+}
+
+@helper RenderVariantsProductList(string layout)
+{
+    string variantsListPageSize = HttpContext.Current.Request.QueryString.Get("PageSize") != null ? HttpContext.Current.Request.QueryString.Get("PageSize") : "30";
+    string variantsFeedUrl = "/Default.aspx?ID=" + GetPageIdByNavigationTag("ProductsPage") + "&PageSize=" + variantsListPageSize + "&MainProductID=" + GetString("Ecom:Product.ID") + "&OnlyShowVariants=true&feed=true";
+    string ribbonClasses = Pageview.AreaSettings.GetItem("ProductPage").GetList("VariantsListLayout").SelectedValue == "Ribbon" ? "product__section--ribbon paragraph-container paragraph-container--full-width" : "";
+    string ribbonSubClasses = Pageview.AreaSettings.GetItem("ProductPage").GetList("VariantsListLayout").SelectedValue == "Ribbon" ? "u-padding--lg" : "";
+
+    <div class="product__section @ribbonClasses dw-mod">
+        <div class="center-container @ribbonSubClasses dw-mod">
+            @if (layout == "Section") {
+               <h2>@Translate("Variants")</h2>
+            }
+
+            <div class="js-handlebars-root" id="VariantsListRoot" data-template="VariantProductsContainer" data-json-feed="@variantsFeedUrl" data-preloader="minimal"></div>
+        </div>
+    </div>
+}
+
+
+@* Script templates for variant products *@
+
+<script id="VariantProductsContainer" type="text/x-template">
+    {{#.}}
+        <div class="">
+            <table id="VariantsProductsContainer" class="table u-position-relative dw-mod">
+                <thead>
+                    <tr>
+                        <td width="75">&nbsp;</td>
+                        <td>@Translate("Product")</td>
+                        {{#AvailableCustomFields}}
+				            {{>TableFieldNameTemplate}}
+			            {{/AvailableCustomFields}}
+                        @if (Pageview.AreaSettings.GetItem("ProductPage").GetBoolean("RenderVariantGroupsInTable")) {
+                            foreach (LoopItem variantgroup in GetLoop("VariantGroups"))
+                            {
+                                <td>@variantgroup.GetString("Ecom:VariantGroup.Name")</td>
+                            }
+                        }
+                        <td width="360">&nbsp;</td>
+                    </tr>
+                </thead>
+            
+                <tbody id="VariantProductListContainer" data-template="VariantProductItemContainer" data-save-cookie="true">
+			        {{#ProductsContainer}}
+				        {{>VariantProductItemContainer}}
+			        {{/ProductsContainer}}
+                </tbody>
+		    </table>
+        </div>
+
+        <div class="grid">
+			<div class="grid__col-12 grid__col--bleed-y">
+				<button type="button" id="LoadMoreButton" class="btn btn--primary btn--full  {{nextdisabled}} dw-mod" data-current="{{currentPage}}" data-page-size="{{pageSize}}" data-total="{{totalPages}}" data-container="VariantProductListContainer" data-feed-url="@variantsFeedUrl{{loadMoreFeedParams}}" onclick="LoadMore.Next(this)" {{nextdisabled}}>@Translate("Load") @Translate("more")</button>
+			</div>
+		</div>
+    {{/.}}
+</script>
+
+<script id="VariantProductItemContainer" type="text/x-template">
+	{{#.}}
+	    <tr id="VariantProduct{{id}}" data-template="VariantProductItem" data-preloader="overlay" style="z-index: {{zIndex}}">
+		    {{#Product}}
+		        {{>VariantProductItem}}
+		    {{/Product}}
+	    </tr>
+	{{/.}}
+</script>
+
+<script id="VariantProductItem" type="text/x-template">
+	{{#.}}
+       <td width="75">
+           <div class="lightbox u-hidden-xxs">
+                <a href="{{link}}" onclick="Scroll.SavePosition(event)">
+                    <img class="lightbox__image {{noImage}}" src="/Admin/Public/GetImage.ashx?width=220&amp;height=220&amp;crop=5&amp;Compression=75&amp;image={{image}}" alt="{{name}}" />
+                    <div class="u-margin-right {{noImage}}">
+                        <img src="/Admin/Public/GetImage.ashx?width=75&amp;height=55&amp;crop=5&FillCanvas=true&amp;Compression=75&amp;image={{image}}" alt="{{name}}" />
+                    </div>
+                </a>
+            </div>
+       </td>
+	   <td class="u-va-middle">
+            <a href="{{link}}" onclick="Scroll.SavePosition(event)" title="{{name}}"><h6 class="u-no-margin">{{name}}</h6></a>
+			<div class="item-number item-number--compressed dw-mod">
+			    {{#if showProductNumber}}{{number}}{{/if}}
+			    @if (!variantsOnlyPreview)
+			    {
+				    <span>
+					    <span class="stock-icon {{stockState}} u-no-margin dw-mod" title="{{stockText}}"></span> {{stockText}}{{deliveryText}}
+				    </span>
+                }
+                else
+                {
+                    <div class="grid__cell-footer stickers-container stickers-container--block dw-mod">
+                        {{#Stickers}}
+                            {{>MiniSticker}}
+                        {{/Stickers}}
+                    </div>
+                }
+			</div>
+       </td> 
+        {{#CustomFields}}
+		    {{>TableFieldValueTemplate}}
+		{{/CustomFields}}
+        @if (Pageview.AreaSettings.GetItem("ProductPage").GetBoolean("RenderVariantGroupsInTable"))
+        {
+            <text>
+            {{#VariantSelectionNames}}
+		        {{>TableFieldNameTemplate}}
+		    {{/VariantSelectionNames}}
+            </text>
+        }
+        <td width="320" class="u-va-middle">
+            @if (variantsOnlyPreview)
+		    {
+				<div class="u-hidden-sm">
+					<div class="u-full-width u-ta-right u-padding-right">
+						<div class="before-price {{onSale}} before-price--micro dw-mod">{{discount}}</div>
+						<div class="price price--product-list price--micro dw-mod">{{price}}</div>
+					</div>
+				</div>
+            }
+            else
+            {
+                <div class="grid grid--align-center grid--justify-end">
+                    <div class="favorites u-margin-right {{hasVariants}} dw-mod" {{hasVariants}}>
+                        {{#Favorite}}
+                            {{>FavoriteTemplate}}
+                        {{/Favorite}}
+                    </div>
+                    <div class="u-margin-right">
+                        <input type="checkbox" id="UnitOptions_{{id}}" class="dropdown-trigger" />
+                        <div class="dropdown u-w120px {{hasUnits}} dw-mod">
+                            <label class="dropdown__header dropdown__btn dw-mod" for="UnitOptions_{{id}}">{{unitName}}</label>
+                            <div id="unitOptions" class="dropdown__content dw-mod">
+                                {{#unitOptions}}
+                                    {{>UnitOption}}
+                                {{/unitOptions}}
+                            </div>
+                            <label class="dropdown-trigger-off" for="UnitOptions_{{id}}"></label>
+                        </div>
+                        <input type="hidden" value="{{unitId}}" name="Unit{{id}}" id="Unit_{{id}}" />
+                        <input type="hidden" value="{{variantid}}" name="VariantID{{id}}" id="Variant_{{id}}" />
+                    </div>
+                    <div class="u-margin-right u-hidden-xs u-hidden-xxs">
+                        <div class="before-price before-price--micro {{onSale}} dw-mod">{{discount}}</div>
+                        <div class="price price--condensed price--product-list dw-mod">{{price}}</div>
+                    </div>
+                    <div>
+                        <input type="number" class="u-w80px u-no-margin u-margin-right" id="Quantity_{{id}}" name="Quantity{{id}}" value="1" min="1">
+                    </div>
+                    <div>
+                        <button type="button" id="CartButton_{{id}}" class="btn btn--primary btn--condensed u-no-margin dw-mod {{hasVariants}}" name="submit" 
+                                onclick="Cart.AddToCart(event, {
+                                    id: '{{productId}}', 
+                                    variantId: '{{variantid}}', 
+                                    unitId: '{{unitId}}', 
+                                    quantity: document.getElementById('Quantity_{{id}}').value,
+                                    productInfo: {{productInfo}}
+                                });" {{hasVariants}}>
+                                <i class="@variantsCartIcon"></i>
+                        </button>
+                    </div>
+                </div>
+            }
+        </td>
+	{{/.}}
+</script>
+
+<script id="TableFieldNameTemplate" type="text/x-template">
+	<td class="u-va-middle">{{name}}</td> 
+</script>
+
+<script id="TableFieldValueTemplate" type="text/x-template">
+	<td class="u-va-middle">{{value}}</td> 
+</script>
+
+<script id="MiniSticker" type="text/x-template">
+	<div class="stickers-container__tag stickers-container__tag--micro {{className}} dw-mod">{{text}}</div>
+</script>

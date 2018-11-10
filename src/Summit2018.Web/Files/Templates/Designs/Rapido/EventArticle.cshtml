@@ -1,0 +1,193 @@
+﻿@inherits Dynamicweb.Rendering.ViewModelTemplate<Dynamicweb.Frontend.PageViewModel>
+@MasterPageFile("Master.cshtml")
+@using Dynamicweb.Frontend
+@using Dynamicweb.Core
+@using Dynamicweb.Core.Helpers
+@using System.Linq
+@using Dynamicweb.Security.UserManagement
+
+@{
+    var speakerList = Model.Item.GetUsers("Speaker") ?? new List<UserViewModel>();
+    UserViewModel speaker = speakerList.FirstOrDefault();
+
+    var image = Model.Item.GetFile("Image");
+    string fullBackgroundImage = image != null ? "background-image:url(/Admin/Public/GetImage.ashx?width=2500&amp;height=1100&amp;crop=0&amp;Compression=85&amp;DoNotUpscale=true&amp;image=" + image.PathUrlEncoded + "); background-position: center center; background-size: cover; " : "";
+    string image1x1 = image != null ? Dynamicweb.Context.Current.Request.Url.Scheme + "://" + Dynamicweb.Context.Current.Request.Url.Host + "/Admin/Public/GetImage.ashx?width=1920&height=1920&crop=5&Compression=85&DoNotUpscale=true&image=" + image.Path : "";
+    string image4x3 = image != null ? Dynamicweb.Context.Current.Request.Url.Scheme + "://" + Dynamicweb.Context.Current.Request.Url.Host + "/Admin/Public/GetImage.ashx?width=1920&height=1440&crop=5&Compression=85&DoNotUpscale=true&image=" + image.Path : "";
+    string image16x9 = image != null ? Dynamicweb.Context.Current.Request.Url.Scheme + "://" + Dynamicweb.Context.Current.Request.Url.Host + "/Admin/Public/GetImage.ashx?width=1920&height=1080&crop=5&Compression=85&DoNotUpscale=true&image=" + image.Path : "";
+    string eventName = Model.Item.GetString("Title");
+    DateTime startDate = Model.Item.GetDateTime("DateAndTime");
+    var eventLocation = Model.Item.GetItem("Location");
+    string eventStreetAddress = "";
+    string eventAddressLocality = "";
+    string eventAddressRegion = "";
+    string eventPostalCode = "";
+    string eventAddressCountry = "";
+    string eventLocationName = "";
+    if (eventLocation != null)
+    {
+        eventStreetAddress = eventLocation.GetString("StreetAddress");
+        eventAddressLocality = eventLocation.GetString("City");
+        eventAddressRegion = eventLocation.GetString("Region");
+        eventPostalCode = eventLocation.GetString("PostalCode");
+        eventAddressCountry = eventLocation.GetString("Country");
+        eventLocationName = eventLocation.GetString("Name");
+    }
+}
+
+@if (!string.IsNullOrEmpty(eventStreetAddress) &&
+     !string.IsNullOrEmpty(eventAddressLocality) &&
+     !string.IsNullOrEmpty(eventAddressRegion) &&
+     !string.IsNullOrEmpty(eventPostalCode) &&
+     !string.IsNullOrEmpty(eventAddressCountry) &&
+     startDate.Year != 1 &&
+     !string.IsNullOrEmpty(eventName))
+{
+    <script type="application/ld+json">
+        {
+          "@@context": "http://schema.org",
+          "@@type": "Event",
+          "name": "@eventName",
+          "startDate": "@startDate.ToString("yyyy-MM-ddTHH:mm")",
+          "location": {
+            "@@type": "Place",
+            @if (!string.IsNullOrEmpty(eventLocationName))
+            {    
+                <text>"name": "@eventLocationName",</text>
+            }
+            "address": {
+              "@@type": "PostalAddress",
+              "streetAddress": "@eventStreetAddress",
+              "addressLocality": "@eventAddressLocality",
+              "postalCode": "@eventPostalCode",
+              "addressRegion": "@eventAddressRegion",
+              "addressCountry": "@eventAddressCountry"
+            }
+          },
+          @if (image != null)
+          {    
+              <text>"image": [
+                "@image1x1",
+                "@image4x3",
+                "@image16x9"
+              ],</text>
+          }
+          "description": "@Model.Item.GetString("Summary")",
+          @if (speaker != null)
+          {
+              <text>"performer": {
+                "@@type": "PerformingGroup",
+                "name": "@speaker.FirstName @speaker.LastName"
+              }
+              </text>
+          }
+        }
+    </script>
+}
+@if (fullBackgroundImage != "")
+{
+    <section class="multiple-paragraphs-container u-color-light paragraph-container--full-width" style="@fullBackgroundImage">
+        <div class="center-container center-container--with-background-image dw-mod">
+            <div class="grid center-container--with-background-image">
+                <div class="grid__col-md-12 grid__col-xs-12 paragraph-container">
+                    <div class="u-ta-center u-middle">
+                        <div>
+                            @{
+                                string textColor = !string.IsNullOrEmpty(Model.Item.GetString("TextColor")) ? "color:" + Model.Item.GetString("TextColor") : "";
+                            }
+                            <h1 class="article__header article__header--giant" style="@textColor">@Model.Item.GetString("BannerHeading")</h1>
+                            <div class="article__subheader article__subheader--giant" style="@textColor">@Model.Item.GetString("BannerSubheading")</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+}
+else
+{
+    <section class="center-container content-container dw-mod">
+        <div class="grid">
+            <div class="grid__col-12">
+                <h1 class="article__header article__header--giant">@Model.Item.GetString("BannerHeading")</h1>
+                <div class="article__subheader article__subheader--giant">@Model.Item.GetString("BannerSubheading")</div>
+            </div>
+        </div>
+    </section>
+}
+
+<div class="grid article">
+    <div class="grid__col-12"></div>
+
+    <article class="grid__col-md-9">
+        <h1 class="article__header">@eventName</h1>
+        <div class="article__summary">@Model.Item.GetString("Summary")</div>
+        <div class="article__paragraph">@Model.Item.GetString("Text")</div>
+    </article>
+    <div class="grid__col-md-3">
+        @if (speaker != null)
+        {
+            <div class="u-portrait--circle">
+                <img src="/Admin/Public/GetImage.ashx?width=150&height=150&crop=0&Compression=85&amp;image=@speaker.Image" alt="@speaker.FirstName @speaker.LastName" class="article__image article__image--ball">
+            </div>
+        }
+
+        <table class="table">
+            <tbody>
+                @if (speaker != null)
+                {
+                    <tr>
+                        <td class="u-w32px"><i class="fas fa-user fa-2x u-brand-color-two"></i></td>
+                        <td>
+                            <div class="u-bold">Speaker</div>
+                            <div>@speaker.FirstName @speaker.LastName</div>
+                            <div>@speaker.JobTitle</div>
+                            <div>@speaker.Email</div>
+                            <div>@speaker.Company</div>
+                        </td>
+                    </tr>
+                }
+                @if (startDate.Year != 1)
+                {
+                    <tr class="u-w32px">
+                        <td><i class="far fa-clock fa-2x u-brand-color-two"></i></td>
+                        <td>
+                            <div class="u-bold">Time</div>
+                            <div>@startDate.ToString("MMM dd, HH:mm")</div>
+                        </td>
+                    </tr>
+                }
+                @if ((!string.IsNullOrEmpty(eventStreetAddress) ||
+                        !string.IsNullOrEmpty(eventAddressLocality) ||
+                        !string.IsNullOrEmpty(eventAddressRegion) ||
+                        !string.IsNullOrEmpty(eventAddressCountry)))
+                {
+                    <tr>
+                        <td class="u-w32px"><i class="fas fa-globe fa-2x u-brand-color-two"></i></td>
+                        <td>
+                            <div class="u-bold">Location</div>
+                            <div>@eventLocationName</div>
+                            <small>@eventPostalCode, @eventStreetAddress</small> <br />
+                            @*Split address parts by comma*@
+                            <small>@string.Join(", ", (new[] { eventAddressLocality, eventAddressRegion, eventAddressCountry }).Where(x => !string.IsNullOrEmpty(x)))</small>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @{ 
+            int signUpForEventPageId = GetPageIdByNavigationTag("SignUpForEventPage");
+            string signUpLink = "";
+
+            if (Model.Item.GetString("SignUp") == "External")
+            {
+                signUpLink = Model.Item.GetString("SignUpLink");
+            }
+            else
+            {
+                signUpLink = "/Default.aspx?Id=" + signUpForEventPageId + "&eventId=" + Model.Item.Id + "&eventName=" + HttpUtility.UrlEncode(Model.Item.GetString("Title"));
+            }
+        }
+        <a href="@signUpLink" class="btn btn--primary dw-mod">@Translate("Sign up for the event here")</a>
+    </div>
+</div>

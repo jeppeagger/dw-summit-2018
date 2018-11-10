@@ -1,0 +1,74 @@
+﻿@inherits Dynamicweb.Rendering.RazorTemplateBase<Dynamicweb.Rendering.RazorTemplateModel<Dynamicweb.Rendering.Template>>
+
+@using System.Linq
+@using Dynamicweb.Content.Items.Editors
+@using Newtonsoft.Json.Linq
+
+@functions {
+    string getFontFamily(params string[] items)
+    {
+        var itemParent = Pageview.AreaSettings;
+        foreach (var item in items)
+        {
+            itemParent = itemParent.GetItem(item);
+            if (itemParent == null)
+            {
+                return null;
+            }
+        }
+
+        var googleFont = itemParent.GetGoogleFont("FontFamily");
+        if (googleFont == null)
+        {
+            return null;
+        }
+        return googleFont.Family.Replace(" ", "+");
+    }
+}
+
+@{
+    string areaId = GetGlobalValue("Global:Area.ID");
+    //Font settings
+    var fonts = new string[] {
+        getFontFamily("Layout", "HeaderFont"),
+        getFontFamily("Layout", "SubheaderFont"),
+        getFontFamily("Layout", "TertiaryHeaderFont"),
+        getFontFamily("Layout", "Header", "ToolsFont"),
+        getFontFamily("Layout", "Header", "NavigationFont"),
+        getFontFamily("Layout", "MobileNavigation", "Font")
+    };
+    string autoCssLink = "/Files/Templates/Designs/Rapido/css/rapido/rapido_" + areaId + ".min.css";
+    string family = string.Join("%7C", fonts.Where(x => !string.IsNullOrEmpty(x)).Distinct().Select(x => string.Format("{0}:100,200,300,400,500,600,700,800,900", x)));
+}
+
+<head>
+    <meta charset="utf-8" />
+    <title>Rapido</title>
+
+    <!-- Mobile specific meta -->
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Favicon -->
+    <link href="favicon" rel="icon" type="image/png">
+
+    <!-- Base (Default, wireframe) styles -->
+    <link rel="stylesheet" href="/Files/Templates/Designs/Rapido/css/base/base.css" type="text/css">
+
+    <!-- Rapido Css from Website Settings -->
+    <link rel="stylesheet" href="@autoCssLink" type="text/css">
+
+    <!-- Ignite Css (Custom site specific styles) -->
+    <link type="text/css" href="/Files/Templates/Designs/Rapido/css/ignite/ignite.min.css" rel="stylesheet">
+
+    <!-- Font awesome -->
+    <link rel="stylesheet" href="/Files/Templates/Designs/Rapido/css/rapido/font-awesome.min.css" type="text/css">
+
+    <!-- Google fonts -->
+    <link href="https://fonts.googleapis.com/css?family=@family" rel="stylesheet">
+
+
+</head>
+
+<body>
+    <div id="contentmain" class="dwcontent" title="Main content" data-settings="template:moduleonly.html;unwrap:true;"></div>
+</body>

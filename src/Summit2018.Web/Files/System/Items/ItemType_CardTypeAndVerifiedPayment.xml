@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-16" standalone="yes"?>
+<items>
+  <item category="Shared" name="Card type and verified payment" systemName="CardTypeAndVerifiedPayment" description="" icon="CreditCard" iconColor="None" includeInUrlIndex="False" pageDefaultView="item" fieldForTitle="" title="" inherits="" useCache="False">
+    <fields>
+      <field name="Card type or verified payment" systemName="CardTypeOrVerifiedPayment" description="" type="System.String, mscorlib" excludeFromSearch="False">
+        <editor type="Dynamicweb.Content.Items.Editors.RadioButtonListEditor`1, Dynamicweb">
+          <editorConfuguration><Parameters addin="Dynamicweb.Content.Items.Editors.RadioButtonListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]"><Parameter addin="Dynamicweb.Content.Items.Editors.RadioButtonListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="LabelPosition" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.RadioButtonListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconPosition" value="4" /><Parameter addin="Dynamicweb.Content.Items.Editors.RadioButtonListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconMaxWidth" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.RadioButtonListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="IconMaxHeight" value="0" /><Parameter addin="Dynamicweb.Content.Items.Editors.RadioButtonListEditor`1[[System.String, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089]]" name="EncodeValues" value="True" /></Parameters></editorConfuguration>
+        </editor>
+        <options sourceType="Static">
+          <Static>
+            <option name="Visa" value="visa" icon="/Images/Payment/visa.png" />
+            <option name="Mastercard" value="mastercard" icon="/Images/Payment/mastercard.png" />
+            <option name="Maestro" value="maestro" icon="/Images/Payment/maestro.png" />
+            <option name="Visa Electron" value="visa_e" icon="/Images/Payment/visa_e.png" />
+            <option name="Diner&amp;#39;s Club" value="diners" icon="/Images/Payment/diners.png" />
+            <option name="Paypal" value="paypal" icon="/Images/Payment/paypal.png" />
+            <option name="DK debit card" value="dk" icon="/Images/Payment/dk.png" />
+            <option name="Mobilepay" value="mobilepay" icon="/Images/Payment/mobilepay.png" />
+            <option name="Klarna" value="klarna" icon="/Images/Payment/klarna.png" />
+            <option name="Mastercard SecureCode" value="MKsecure" icon="/Images/Payment/MKsecure.png" />
+            <option name="Verified by VISA" value="VisaSecure" icon="/Images/Payment/VisaSecure.png" />
+            <option name="Norton Secured" value="Norton" icon="/Images/Payment/Norton.png" />
+          </Static>
+        </options>
+      </field>
+    </fields>
+    <rules>
+      <rule name="" type="Dynamicweb.Content.Items.Activation.ModuleAttachmentRestrictionRule, Dynamicweb" value="Nothing" />
+      <rule name="Enable item type for" type="Dynamicweb.Content.Items.Activation.StructureRestrictionRule, Dynamicweb" value="ItemList" />
+    </rules>
+    <layout>
+      <groups>
+        <group name="General" systemName="General" collapsibleState="None" visibilityField="" visibilityCondition="" visibilityConditionValueType="" visibilityConditionValue="">
+          <fields>
+            <field systemName="CardTypeOrVerifiedPayment" />
+          </fields>
+        </group>
+      </groups>
+    </layout>
+  </item>
+</items>

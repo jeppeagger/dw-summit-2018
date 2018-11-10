@@ -1,0 +1,15 @@
+//Lightbox
+
+.lightbox__image {
+    position: absolute;
+    z-index: @z-index-10;
+    padding: @reflex-cell-spacing-md;
+    border: 1px solid @gray;
+    box-shadow: 0 3px 6px rgba(0,0,0,.175);
+    background-color: #fff;
+    display: none;
+}
+
+.lightbox:hover .lightbox__image {
+    display: block;
+}
