@@ -99,7 +99,7 @@ If you add more projects, you can add more nested ignore files if they need to h
 
 ### Pipelines
 
-I couple of times in this document, I have talked about the build pipeline and the deployment pipeline. Let's go over them in more detail.
+A couple of times in this document, I have talked about the build pipeline and the deployment pipeline. Let's go over them in more detail.
 
 The pipelines are definitions of the steps required to perform a certain action. This may sound a little abstract, but basically it means that a pipeline specifies the steps required to either build the project or deploy the project to an environment.
 
